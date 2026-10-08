@@ -112,7 +112,11 @@ public static class GameBridge
                 // Every participant is already connected and authenticated; preserve
                 // native per-player IDs rather than creating host-only save players.
                 foreach(var player in snapshot.Players)
+#if STS2_STABLE
+                    lobby.ConnectedPlayerIds.Add(player.NetId);
+#else
                     lobby.Players.Add(new LoadRunLobbyPlayer {id=player.NetId,isReady=true,isModded=true});
+#endif
                 game.RemoteCursorContainer.Initialize(lobby.InputSynchronizer,snapshot.Players.Select(p=>p.NetId));
                 game.ReactionContainer.InitializeNetworking(net);
                 await manager.SetUpSavedMultiplayer(state,lobby);
@@ -123,7 +127,11 @@ public static class GameBridge
         } finally {IsRestoring=false;_loadingMap=false;_loadingCombat=false;}
     }
     private sealed class ReloadListener : ILoadRunLobbyListener {
+#if STS2_STABLE
+        public void PlayerConnected(ulong playerId){}
+#else
         public void PlayerConnected(LoadRunLobbyPlayer player){}
+#endif
         public void RemotePlayerDisconnected(ulong id) => HostCoordinator.Fail("恢复时有玩家断线");
         public Task<bool> ShouldAllowRunToBegin()=>Task.FromResult(true);
         public void BeginRun(){}

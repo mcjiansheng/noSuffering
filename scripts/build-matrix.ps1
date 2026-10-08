@@ -1,18 +1,20 @@
-param([Parameter(Mandatory=$true)][string]$BetaGameDir,[string]$StableGameDir)
+param([Parameter(Mandatory=$true)][string]$BetaGameDir,[string]$StableGameDir,[string]$BetaAssemblyDir,[string]$StableAssemblyDir,[ValidateSet('windows','macos')][string]$Platform,[string]$Dotnet='dotnet',[string]$Python)
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 $rows=@()
-foreach($entry in @(@{Branch='public-beta';Path=$BetaGameDir},@{Branch='public';Path=$StableGameDir})){
-    if(!$entry.Path){$rows+=@{branch=$entry.Branch;result='not_executed';reason='No installed assembly directory supplied'};continue}
+foreach($entry in @(@{Branch='public-beta';Path=$BetaGameDir;Assembly=$BetaAssemblyDir},@{Branch='public';Path=$StableGameDir;Assembly=$StableAssemblyDir})){
+    if(!$entry.Path){$rows+=@{branch=$entry.Branch;build='not_executed';load='not_executed';singleplayer='not_executed';multiplayer='not_executed';reason='No installed assembly directory supplied'};continue}
     try{
-        & "$PSScriptRoot/build.ps1" -GameDir $entry.Path
-        $version=Get-Content "$($entry.Path)/release_info.json" -Raw -Encoding UTF8 | ConvertFrom-Json
-        $target="$root/artifacts/$($entry.Branch)"
-        New-Item -ItemType Directory -Force $target | Out-Null
-        Copy-Item "$root/artifacts/NoSuffering" $target -Recurse -Force
-        $rows+=@{branch=$entry.Branch;result='build_passed';game=$version.version;assembly_sha256=(Get-FileHash "$($entry.Path)/data_sts2_windows_x86_64/sts2.dll").Hash;gameplay='not_executed'}
-    }catch{$rows+=@{branch=$entry.Branch;result='build_failed';reason=$_.Exception.Message}}
+        $parameters=@{GameDir=$entry.Path;Branch=$entry.Branch;Dotnet=$Dotnet}
+        if($entry.Assembly){$parameters.AssemblyDir=$entry.Assembly}
+        if($Platform){$parameters.Platform=$Platform}
+        if($Python){$parameters.Python=$Python}
+        & "$PSScriptRoot/build.ps1" @parameters
+        $rows+=@{branch=$entry.Branch;build='passed';load='not_executed';singleplayer='not_executed';multiplayer='not_executed'}
+    }catch{$rows+=@{branch=$entry.Branch;build='failed';reason=$_.Exception.Message;load='not_executed';singleplayer='not_executed';multiplayer='not_executed'}}
 }
-$rows | ConvertTo-Json -Depth 4 | Set-Content "$root/artifacts/build-matrix.json" -Encoding UTF8
+$label=if($Platform){$Platform}else{'auto'}
+New-Item -ItemType Directory -Force "$root/artifacts/$label" | Out-Null
+$rows | ConvertTo-Json -Depth 4 | Set-Content "$root/artifacts/$label/build-matrix.json" -Encoding UTF8
 $rows | ConvertTo-Json -Depth 4
-if($rows.result -contains 'build_failed'){throw 'A supplied branch failed to build. Inspect build-matrix.json.'}
+if($rows.build -contains 'failed'){throw 'A supplied branch failed to build. Inspect build-matrix.json.'}

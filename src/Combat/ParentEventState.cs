@@ -11,9 +11,14 @@ using MegaCrit.Sts2.Core.Saves;
 
 namespace NoSuffering.Combat;
 
-// Native SerializableRng has fields rather than JSON properties; keep explicit value data.
-public sealed record ParentEventPlayer(ulong PlayerId, int Counter, ulong State0, ulong State1,
-    ulong State2, ulong State3, bool IsFinished, bool CleanupCalled, bool StartedFight,
+// Persist the native RNG's immutable value data for the selected game branch.
+public sealed record ParentEventPlayer(ulong PlayerId, int Counter,
+#if STS2_STABLE
+    uint Seed,
+#else
+    ulong State0, ulong State1, ulong State2, ulong State3,
+#endif
+    bool IsFinished, bool CleanupCalled, bool StartedFight,
     string? DescriptionTable, string? DescriptionKey);
 
 public sealed record ParentEventRecord(string ModelId, bool IsPreFinished,
@@ -35,9 +40,14 @@ public static class ParentEventState
         return new ParentEventRecord(parent.ModelId.ToString(), parent.IsPreFinished,
             events.Select(item =>
             {
+#if STS2_STABLE
+                var rng = item.Rng;
+                return new ParentEventPlayer(item.Owner!.NetId, rng.Counter, rng.Seed, item.IsFinished,
+#else
                 var rng = item.Rng.ToSerializable();
                 return new ParentEventPlayer(item.Owner!.NetId, rng.counter, rng.state0, rng.state1,
                     rng.state2, rng.state3, item.IsFinished,
+#endif
                     (bool)AccessTools.Field(typeof(EventModel), "_cleanupCalled").GetValue(item)!,
                     item is FakeMerchant merchant && merchant.StartedFight,
                     item.Description?.LocTable, item.Description?.LocEntryKey);
@@ -114,8 +124,12 @@ public static class ParentEventState
                 var model = CanonicalEvent.ToMutable();
                 AccessTools.Property(typeof(EventModel), nameof(EventModel.Owner)).SetValue(model, player);
                 AccessTools.Property(typeof(EventModel), nameof(EventModel.Rng)).SetValue(model,
+#if STS2_STABLE
+                    new Rng(saved.Seed, saved.Counter));
+#else
                     new Rng(new SerializableRng { counter = saved.Counter, state0 = saved.State0,
                         state1 = saved.State1, state2 = saved.State2, state3 = saved.State3 }));
+#endif
                 AccessTools.Field(typeof(EventModel), "_combatSynchronizer").SetValue(model, combatSync);
                 AccessTools.Field(typeof(EventModel), "_isFinished").SetValue(model, saved.IsFinished);
                 AccessTools.Field(typeof(EventModel), "_cleanupCalled").SetValue(model, saved.CleanupCalled);

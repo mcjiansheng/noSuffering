@@ -2,6 +2,9 @@ using System.Reflection;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Assets;
 using MegaCrit.Sts2.Core.Entities.Players;
+#if STS2_STABLE
+using MegaCrit.Sts2.Core.Entities.Rngs;
+#endif
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
@@ -102,7 +105,7 @@ public static class AncientService
             var candidates = run.Act.GetUnlockedAncients(run.UnlockState).Concat(shared)
                 .Where(a => a.Id != canonical.Id && a.IsAllowed(run)).ToList();
             if (candidates.Count == 0) throw new InvalidOperationException("没有可替换的先古之民");
-            canonical = new Rng(seed, "nosuffering_ancient").NextItem(candidates)!;
+            canonical = CreateRng(seed, "nosuffering_ancient").NextItem(candidates)!;
         }
         var generationHp = run.Players.ToDictionary(p => p.NetId, p => p.Creature.CurrentHp);
         _busy = true;
@@ -137,6 +140,17 @@ public static class AncientService
         finally { _busy = false; }
     }
 
+    private static Rng CreateRng(ulong seed, string name)
+    {
+#if STS2_STABLE
+        // Stable's native RNG uses a 32-bit seed; every peer narrows the same
+        // host-provided seed before the native deterministic name mixin.
+        return new Rng(unchecked((uint)seed), name);
+#else
+        return new Rng(seed, name);
+#endif
+    }
+
     private static List<EventModel> Generate(AncientEventModel canonical, ulong seed, Dictionary<ulong, int> generationHp)
     {
         var result = new List<EventModel>();
@@ -144,22 +158,38 @@ public static class AncientService
         {
             var mutable = (AncientEventModel)canonical.ToMutable();
             AccessTools.Property(typeof(EventModel), nameof(EventModel.Owner)).SetValue(mutable, player);
-            AccessTools.Property(typeof(EventModel), nameof(EventModel.Rng)).SetValue(mutable, new Rng(seed, $"ancient_{player.NetId}"));
+            AccessTools.Property(typeof(EventModel), nameof(EventModel.Rng)).SetValue(mutable, CreateRng(seed, $"ancient_{player.NetId}"));
             // Darv's DustyTome.SetupForPlayer consumes Rewards. Isolate this narrow
             // generation scope, preserving the live Rewards stream on success/failure.
+#if STS2_STABLE
+            // Stable cannot reload an individual RNG backwards. Keep the original
+            // instance untouched and replace only Rewards during generation.
+            var streams = (Dictionary<PlayerRngType, Rng>)AccessTools.Field(typeof(PlayerRngSet), "_rngs")
+                .GetValue(player.PlayerRng)!;
+            var rewards = streams[PlayerRngType.Rewards];
+#else
             var rewards = player.PlayerRng.Rewards.ToSerializable();
+#endif
             int hp = player.Creature.CurrentHp;
             try
             {
                 player.Creature.SetCurrentHpInternal(generationHp[player.NetId]);
+#if STS2_STABLE
+                streams[PlayerRngType.Rewards] = CreateRng(seed, $"ancient_rewards_{player.NetId}");
+#else
                 player.PlayerRng.Rewards.LoadFromSerializable(new Rng(seed, $"ancient_rewards_{player.NetId}").ToSerializable());
+#endif
                 mutable.CalculateVars();
                 InitialState.Invoke(mutable, [false]);
                 result.Add(mutable);
             }
             finally
             {
+#if STS2_STABLE
+                streams[PlayerRngType.Rewards] = rewards;
+#else
                 player.PlayerRng.Rewards.LoadFromSerializable(rewards);
+#endif
                 player.Creature.SetCurrentHpInternal(hp);
             }
         }
@@ -243,7 +273,7 @@ public static class AncientService
                 {
                     var mutable = (AncientEventModel)ancient.ToMutable();
                     AccessTools.Property(typeof(EventModel), nameof(EventModel.Owner)).SetValue(mutable, player);
-                    AccessTools.Property(typeof(EventModel), nameof(EventModel.Rng)).SetValue(mutable, new Rng(_state.Seed, $"ancient_{player.NetId}"));
+                    AccessTools.Property(typeof(EventModel), nameof(EventModel.Rng)).SetValue(mutable, CreateRng(_state.Seed, $"ancient_{player.NetId}"));
                     mutable.StartPreFinished();
                     events.Add(mutable);
                 }

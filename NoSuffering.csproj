@@ -2,17 +2,22 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework><LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
-    <Version>0.1.0</Version><AssemblyName>NoSuffering</AssemblyName>
+    <DefineConstants Condition="'$(Sts2Branch)' == 'public'">$(DefineConstants);STS2_STABLE</DefineConstants>
+    <Version>0.1.1</Version><AssemblyName>NoSuffering</AssemblyName>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <Sts2InstallDir Condition="'$(Sts2InstallDir)' == ''">$(STS2_INSTALL_DIR)</Sts2InstallDir>
+    <Sts2AssemblyDir Condition="'$(Sts2AssemblyDir)' == ''">$(STS2_ASSEMBLY_DIR)</Sts2AssemblyDir>
+    <Sts2AssemblyDir Condition="'$(Sts2AssemblyDir)' == ''">$(Sts2InstallDir)/data_sts2_windows_x86_64</Sts2AssemblyDir>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="src/**/*.cs" />
-    <Reference Include="sts2"><HintPath>$(Sts2InstallDir)/data_sts2_windows_x86_64/sts2.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="GodotSharp"><HintPath>$(Sts2InstallDir)/data_sts2_windows_x86_64/GodotSharp.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="0Harmony"><HintPath>$(Sts2InstallDir)/data_sts2_windows_x86_64/0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="sts2"><HintPath>$(Sts2AssemblyDir)/sts2.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="GodotSharp"><HintPath>$(Sts2AssemblyDir)/GodotSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(Sts2AssemblyDir)/0Harmony.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
   <Target Name="ValidateGame" BeforeTargets="ResolveReferences">
-    <Error Condition="!Exists('$(Sts2InstallDir)/data_sts2_windows_x86_64/sts2.dll')" Text="Set STS2_INSTALL_DIR or -p:Sts2InstallDir to the actual game installation." />
+    <Error Condition="!Exists('$(Sts2AssemblyDir)/sts2.dll')" Text="Set STS2_ASSEMBLY_DIR or -p:Sts2AssemblyDir to the actual game assembly directory (legacy Windows: STS2_INSTALL_DIR or -p:Sts2InstallDir)." />
+    <Error Condition="!Exists('$(Sts2AssemblyDir)/GodotSharp.dll')" Text="GodotSharp.dll is missing from Sts2AssemblyDir." />
+    <Error Condition="!Exists('$(Sts2AssemblyDir)/0Harmony.dll')" Text="0Harmony.dll is missing from Sts2AssemblyDir." />
   </Target>
 </Project>

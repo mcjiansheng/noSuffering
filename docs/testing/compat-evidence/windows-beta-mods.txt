@@ -1,0 +1,15 @@
+{
+  "version": "0.1.1",
+  "platform": "windows",
+  "branch": "public-beta",
+  "mod_sha256": "cc1b395179d22f658bbba104b7e70989865bffdf85bca51d34393b024af34edd",
+  "scope": "Steam desktop-session headless startup coexistence only; no gameplay or multiplayer",
+  "loaded_mods": 25,
+  "exit_code": 0,
+  "evidence": [
+    "[INFO] Steamworks initialization succeeded!",
+    "[INFO] [NoSuffering] 0.1.1 initialized; game=73b63ee0-6c0a-47bb-b0d1-b21f6d94222e",
+    "[INFO]  --- RUNNING MODDED! --- Loaded 25 mods (26 total)"
+  ],
+  "shutdown_resource_warnings": "present"
+}

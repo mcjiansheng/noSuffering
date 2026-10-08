@@ -1,6 +1,6 @@
 {
   "id": "NoSuffering", "name": "不吃苦 · NoSuffering", "author": "mcjiansheng",
   "description": "房主控制的路线回滚、先古之民刷新与战斗重开。",
-  "version": "0.1.0", "has_pck": false, "has_dll": true,
+  "version": "0.1.1", "has_pck": false, "has_dll": true,
   "dependencies": [], "affects_gameplay": true
 }

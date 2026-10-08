@@ -216,9 +216,17 @@ public static class HostCoordinator
         while(!condition()){if(_failure is not null)throw new InvalidOperationException(_failure);if(Time.GetTicksMsec()>deadline)throw new InvalidOperationException(timeout);await Bridge.Frame();}
     }
     private static void Release(){_preparation?.Cancel();_preparation?.Dispose();_preparation=null;Busy=false;ConfigStore.OperationInProgress=false;Bridge.Unlock();Changed?.Invoke();}
+#if STS2_STABLE
+    [HarmonyPatch(typeof(NetHostGameService),MethodType.Constructor,new Type[0])]
+#else
     [HarmonyPatch(typeof(NetHostGameService),MethodType.Constructor,[typeof(MegaCrit.Sts2.Core.Multiplayer.PeerVersionInfo)])]
+#endif
     private static class AttachHost{static void Postfix(NetHostGameService __instance)=>Attach(__instance);}
+#if STS2_STABLE
+    [HarmonyPatch(typeof(NetClientGameService),MethodType.Constructor,new Type[0])]
+#else
     [HarmonyPatch(typeof(NetClientGameService),MethodType.Constructor,[typeof(MegaCrit.Sts2.Core.Multiplayer.PeerVersionInfo)])]
+#endif
     private static class AttachClient{static void Postfix(NetClientGameService __instance)=>Attach(__instance);}
     [HarmonyPatch(typeof(RunManager),nameof(RunManager.Launch))]
     private static class RunReady{static void Postfix()=>OnRunReady();}

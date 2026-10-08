@@ -1,9 +1,16 @@
-param([Parameter(Mandatory=$true)][string]$GameDir)
+param([string]$GameDir=$env:STS2_INSTALL_DIR,[string]$AssemblyDir=$env:STS2_ASSEMBLY_DIR,[ValidateSet('windows','macos')][string]$Platform,[string]$Branch='public-beta',[string]$Dotnet='dotnet',[string]$Python)
 $ErrorActionPreference='Stop'
-$assembly="$GameDir/data_sts2_windows_x86_64"
-$result=[ordered]@{release=(Get-Content "$GameDir/release_info.json" -Raw -Encoding UTF8 | ConvertFrom-Json); runtime=(Get-Content "$assembly/sts2.runtimeconfig.json" -Raw -Encoding UTF8 | ConvertFrom-Json); assemblies=@()}
-foreach($name in 'sts2.dll','GodotSharp.dll','0Harmony.dll'){
-    $path="$assembly/$name"
-    $result.assemblies+=@{name=$name;version=[Reflection.AssemblyName]::GetAssemblyName($path).Version.ToString();sha256=(Get-FileHash $path -Algorithm SHA256).Hash}
+$root=Split-Path $PSScriptRoot -Parent
+if (!$GameDir) {throw 'Provide -GameDir or STS2_INSTALL_DIR.'}
+if (!$Python) {
+    if(Test-Path "$root/.tools/python/python.exe") {$Python="$root/.tools/python/python.exe"}
+    elseif(Get-Command python -ErrorAction SilentlyContinue) {$Python='python'}
+    elseif(Get-Command python3 -ErrorAction SilentlyContinue) {$Python='python3'}
+    elseif(Get-Command py -ErrorAction SilentlyContinue) {$Python='py'}
+    else {throw 'Provide -Python to Python 3 or install the project-local .tools/python/python.exe runtime.'}
 }
-$result | ConvertTo-Json -Depth 8
+$arguments=@("$PSScriptRoot/build.py",'inspect','--game-dir',$GameDir,'--branch',$Branch,'--dotnet',$Dotnet)
+if($AssemblyDir) {$arguments+=@('--assembly-dir',$AssemblyDir)}
+if($Platform) {$arguments+=@('--platform',$Platform)}
+& $Python @arguments
+if($LASTEXITCODE -ne 0) {throw "NoSuffering inspect failed: $LASTEXITCODE"}

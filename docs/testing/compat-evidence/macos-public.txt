@@ -1,0 +1,116 @@
+{
+  "version": "0.1.1",
+  "platform": "macos-arm64",
+  "branch": "public",
+  "release": {
+    "commit": "59260271",
+    "version": "v0.107.1",
+    "date": "2026-06-18T15:43:56-07:00",
+    "branch": "v0.107.1",
+    "main_assembly_hash": -1718063421
+  },
+  "assemblies": [
+    {
+      "name": "sts2.dll",
+      "sha256": "e7ceb80669bfaf5c8fccabaa126ae2bb283aba514be5b5b55612579cfd285f18"
+    },
+    {
+      "name": "GodotSharp.dll",
+      "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+    },
+    {
+      "name": "0Harmony.dll",
+      "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+    }
+  ],
+  "mod_sha256": "a4e3b19d23ded8ac1470b515d0b96335a77e3ab772667f1a2f038dc17c317dad",
+  "build": "passed",
+  "runtime": {
+    "runtimeOptions": {
+      "tfm": "net9.0",
+      "includedFrameworks": [
+        {
+          "name": "Microsoft.NETCore.App",
+          "version": "9.0.7"
+        }
+      ],
+      "configProperties": {
+        "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+        "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+      }
+    }
+  },
+  "runs": [
+    {
+      "id": "lab-20261008T124656827308Z",
+      "mvid": null,
+      "report": null,
+      "load": "failed",
+      "singleplayer": "not_executed",
+      "exit_code": 0,
+      "mod_sha256": "a4e3b19d23ded8ac1470b515d0b96335a77e3ab772667f1a2f038dc17c317dad",
+      "isolated_user_data": "failed",
+      "offline": "passed"
+    },
+    {
+      "id": "lab-20261008T124809129408Z",
+      "mvid": "518e4758-52d7-47c2-b776-471a0e29e49d",
+      "report": {
+        "scope": "native-engine singleplayer smoke; act-two lab jump; no multiplayer/gameplay acceptance",
+        "process_id": 17849,
+        "results": {
+          "native_run_start": "PASS: native RunState, NRun, act-two lab jump, all unlocks; singleplayer",
+          "F02_ancient": "PASS: native event replaced through host coordinator",
+          "F03_options": "PASS: native same-ancient rewards generated and available",
+          "map_checkpoint": "PASS: captured act-two map decision",
+          "F01_rollback": "PASS: native map snapshot loaded through host coordinator",
+          "native_combat_start": "PASS: native generated monster room and opening draw; route selected by lab",
+          "F04_restart": "PASS: attempt zero and actual opening order retained",
+          "F05_order_refresh": "PASS: attempt one changed actual opening order and retained baseline",
+          "F04_retains_refresh": "PASS: attempt one and refreshed opening order retained",
+          "native_save_continue_retains_attempt": "PASS: actual disk save/read and native singleplayer continue retained attempt/order"
+        },
+        "expected_attempt": 1,
+        "expected_order": "1:B6134C8A0C10D52E9CDFC520F6588B2EB140A26FFBBD282E561A8ED98542DF49"
+      },
+      "load": "passed",
+      "singleplayer": "smoke_passed",
+      "singleplayer_checks": {
+        "native_run_start": "PASS: native RunState, NRun, act-two lab jump, all unlocks; singleplayer",
+        "F02_ancient": "PASS: native event replaced through host coordinator",
+        "F03_options": "PASS: native same-ancient rewards generated and available",
+        "map_checkpoint": "PASS: captured act-two map decision",
+        "F01_rollback": "PASS: native map snapshot loaded through host coordinator",
+        "native_combat_start": "PASS: native generated monster room and opening draw; route selected by lab",
+        "F04_restart": "PASS: attempt zero and actual opening order retained",
+        "F05_order_refresh": "PASS: attempt one changed actual opening order and retained baseline",
+        "F04_retains_refresh": "PASS: attempt one and refreshed opening order retained",
+        "native_save_continue_retains_attempt": "PASS: actual disk save/read and native singleplayer continue retained attempt/order"
+      },
+      "exit_code": 0,
+      "mod_sha256": "a4e3b19d23ded8ac1470b515d0b96335a77e3ab772667f1a2f038dc17c317dad",
+      "isolated_user_data": "passed",
+      "offline": "passed"
+    },
+    {
+      "id": "lab-20261008T124911799275Z",
+      "mvid": "518e4758-52d7-47c2-b776-471a0e29e49d",
+      "report": {
+        "scope": "native-engine fresh-process singleplayer continue smoke; no multiplayer/gameplay acceptance",
+        "process_id": 18482,
+        "results": {
+          "fresh_process_continue": "PASS: different process, native disk/companion read and actual opening draw retained refreshed attempt/order; native startup may already read the companion"
+        }
+      },
+      "load": "passed",
+      "singleplayer": "smoke_passed",
+      "singleplayer_checks": {
+        "fresh_process_continue": "PASS: different process, native disk/companion read and actual opening draw retained refreshed attempt/order; native startup may already read the companion"
+      },
+      "exit_code": 0,
+      "mod_sha256": "a4e3b19d23ded8ac1470b515d0b96335a77e3ab772667f1a2f038dc17c317dad",
+      "isolated_user_data": "passed",
+      "offline": "passed"
+    }
+  ]
+}

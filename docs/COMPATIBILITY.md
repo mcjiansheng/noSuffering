@@ -1,49 +1,65 @@
 # Mac / 正式版适配与副测试环境
 
-状态：实施方案；2026-10-08 核对。NoSuffering 实现版本仍为 0.1.0，本文不增加兼容性通过项。
+实现版本 0.1.1，设计 v1.5。副环境已落地，2026-10-08；详细结果见 [测试记录](testing/2026-10-08-compat.md)。
 
-## 采用的环境布局
+## 实际布局
 
-| 环境 | 用途 | 当前状态 |
-| --- | --- | --- |
-| xht-rog 当前 Windows public-beta | 主开发基线，保留原 Steam 安装 | 已构建、加载；玩法未验收 |
-| xht-rog 独立 Windows public 目录 | 正式版程序集检查、构建及后续运行 | 待获取正版正式版文件 |
-| MacBook 原生 ARM64 public-beta | Mac 路径、加载、快捷键和存档验证 | 常见路径未发现 Steam / 游戏，dotnet 未在 PATH |
-| MacBook 原生 public | 正式版在 Mac 上的最终检查 | 在前两项副环境建立后补齐 |
+| 目标 | 环境和证据 |
+| --- | --- |
+| Windows public-beta | xht-rog 原安装保持原状；独立副本 `.tools/game-lab/windows-public-beta/game`，v0.111.0 真实程序集 |
+| Mac ARM64 public-beta | Steam 正版 depot 2868842，独立下载 `.tools/game-lab/macos-public-beta/game/SlayTheSpire2.app`，v0.111.0 |
+| Windows / Mac ARM64 public | Steam 正版 depot 2868841 / 2868842，独立副环境，v0.107.1 真实程序集；验证状态逐项写入测试记录 |
 
-xht-rog 的 D 盘剩余约 215 GB，当前 Steam 记录游戏安装约 3 GB，磁盘容量不是建立副本的阻碍。副本放在工程忽略的 `.tools/game-lab` 下，不进入 Git 或发行包。Mac 使用实际原生游戏和运行时，Windows 虚拟机不能替代 Mac 验收。
+Mac 原生可执行文件为 universal Mach-O（ARM64 与 x86_64），实际包含两个程序集目录。当前在 ARM64 MacBook 上明确选择 `Contents/Resources/data_sts2_macos_arm64`；x86_64 尚未运行验证。Mac 与 Windows 的 sts2.dll 指纹不同，分别编译并输出平台／分支包，GodotSharp 与 Harmony 指纹相同。
 
-## 获取分支文件
+正式版使用 `Sts2Branch=public` 编译原生 API 差异：旧版 RNG 的 Seed / Counter、父事件 RNG 快照、加载大厅玩家 ID 和网络服务构造器。beta 保留对应的原生接口。刷新先古奖励时，正式版暂时替换玩家 Rewards RNG 并在同步生成后恢复原实例；不推进普通奖励随机流。没有加入通用反射兼容框架，也不宣称跨未来版本自动兼容。
 
-不在主 Steam 安装里反复切换 beta/public。Steam 官方说明分支切换会替换当前已安装分支。
+工程 `.tools`、游戏文件、授权缓存、运行产物全部忽略，发行包仅包含 NoSuffering 自身文件。沿用既有 SSH alias xht。
 
-优先利用现有已登录 Steam 客户端下载当前正式版 depot/manifest 到独立目录；若无法可靠指定分支和完整 depot 集合，则使用 DepotDownloader 的 `-app 2868840 -branch public -os windows -dir <副目录>`。Mac 对应 `-os macos`。工具明确支持分支、平台、输出目录和文件过滤；不能假设它直接继承桌面 Steam 的登录状态。如果需要认证，只由用户在交互界面完成登录／扫码，不读取 Steam 的私人凭据或将密码写进脚本。
+## 存档隔离
 
-先获取 `release_info.json`、运行时配置和实际 `sts2.dll` / `GodotSharp.dll` / `0Harmony.dll`，即可开始 API 检查和构建；需要加载游戏时再补齐该构建的可执行文件、PCK 和所有运行时文件。先查询该分支实际 manifest，再记录 build/depot/manifest/hash，不能用复制过来的 appmanifest 或目录名称认定版本。
+游戏副本旁写入 Godot 官方的 `override.cfg`：
 
-## 存档和 Mod 隔离
+```ini
+[application]
+config/use_custom_user_dir=true
+config/custom_user_dir_name="NoSufferingLab/macos-public-beta"
+```
 
-复制可执行文件仅隔离游戏文件。真实游戏的原生存档走 Godot `user://`，并可用 Steam 云存档；NoSuffering 自己的配置和伴随文件也在 `user://`。所以各游戏副本可能仍共享存档和配置。
+Windows 使用对应的 `NoSufferingLab/windows-public-beta`。真实引擎日志已确认 Windows 路径为 `%APPDATA%/NoSufferingLab/windows-public-beta`，Mac 为 `~/Library/Application Support/NoSufferingLab/macos-public-beta`。正式版使用独立 `*-public` 目录。仅复制游戏文件不足以隔离存档；必须核对实际引擎路径。
 
-副环境运行采用专用系统测试用户，以实际启动日志确认 `user://` 指向该用户独立目录。第一轮使用游戏已核实的 `--force-steam=off`，只加载副本可执行文件旁的本地 `mods`，从 NoSuffering 单独加载开始，然后加入对应分支／平台的 ModConfig、BaseLib 和常用 Mod。此模式仍使用真实引擎、原生运行和磁盘保存，但不验证 Steam 联机、云同步或 Workshop 行为。
+`--force-steam=off` 放在原生参数区，`--ns-lab-probe` 放在 `--` 后。前者在这两个真实分支的原生 NGame 中关闭 Steam 初始化、云存储和 Workshop 查询；后者仅记录实际用户目录。使用真实引擎、磁盘存档与原生运行，不用 TestMode 的内存 Mock。初次启动可能因原生 Mod 提示尚未同意而不加载；`--enable-mods` 仅备份并更新已生成的专用副环境设置，保留其他配置。
 
-该参数仅在当前 v0.111.0 程序集确认：`NGame.InitializePlatform` 跳过 Steam 初始化；`SaveManager.ConstructDefault` 因此采用本地存储；`ModManager` 不查询 Workshop。正式版必须先核实相同入口，不能直接假定存在。即使关闭 Steam，`user://` 根仍不会改变，所以仍需独立用户；不把未证实的 `--user-data-dir` 当作隔离方案。
+诊断玩法探针还要求完整用户目录精确匹配本平台的 NoSufferingLab 槽，以及明确的离线和探针参数。普通启动不会执行诊断。先古探针通过原生 API 设置第二幕、全解锁和测试路线；这不是正常完整通关、界面操作或联机验收。
 
-后续 Steam 联机验收使用测试客户端正常 Steam 登录、确认测试用户目录和云设置，并安装固定版本的玩法 Mod 组合。现在暂不启动联机验收，沿用用户“测试在后续考虑”的安排。`TestMode.IsOn` 使用内存 Mock 存储，不能拿它证明退出重进后尝试记录持久化。
+## 可复用命令
 
-## 工程改动
+安装官方 [DepotDownloader](https://github.com/SteamRE/DepotDownloader)，由游戏所有者扫码或在终端交互登录：
 
-1. 将 `NoSuffering.csproj` 的三个 DLL 引用改为明确的 `Sts2AssemblyDir`。Windows 现有目录保留默认值；Mac 从真实 app bundle 确认目录。社区模板给出的 Mac 路径为 `Contents/Resources/data_sts2_macos_x86_64`、部署位置 `Contents/MacOS/mods`，但本机 ARM64 必须检查实际目录，不能照抄 x86_64 路径。
-2. 增加可在 Mac 运行的构建／打包入口，使用与目标游戏匹配的 SDK；继续保持托管 DLL，不加入 Windows 专属原生依赖。每个“平台＋分支”输出独立目录、程序集指纹与状态，避免四次构建相互覆盖。
-3. 对正式版只适配已发现的 API／Harmony 插入点差异，集中在现有 GameBridge/Combat 边界。先尝试一份 DLL，只有实际二进制 API 不兼容才产出同版本的 beta/public 分包，不提前建立通用反射兼容框架。
-4. 每环境分别记录构建、初始化、玩法和持久化。关键顺序：普通重开→新牌序→再次普通重开→保存退出重进；再做地图和先古路径。Mac 额外检查 app bundle 安装位置、F6/Fn 键行为、UI 缩放、文件权限及架构。Windows/Mac 联机作为后续独立项。
+```bash
+python3 scripts/acquire-game.py --platform macos --branch public-beta --downloader /path/to/DepotDownloader
+# 两个平台的正式版可在一个会话获取；密码仅在下载器终端输入。
+python3 scripts/acquire-game.py --platform both --branch public --interactive-login --downloader /path/to/DepotDownloader
+```
 
-本次没有创建测试账户、下载游戏、切换 Steam 分支、修改云设置或运行玩法测试。先完成方案和可用入口核查；实际获取文件时的唯一可能新增交互是 Steam 授权登录。
+下载前拒绝链接目标和已经准备的副环境，允许未完成下载继续。不会修改主 Steam 分支。二维码失效／授权拒绝均按真实结果保留，不认为“用户点批准”就下载成功。
 
-## 依据
+Mac 下载完成后的准备、构建、部署与检查：
 
-- 实际 xht-rog v0.111.0 程序集：NGame.InitializePlatform、SaveManager.ConstructDefault、UserDataPathProvider、ModManager.Initialize；此前环境指纹见 testing/environment-beta.json。
-- [Steam 分支文档](https://partner.steamgames.com/doc/store/application/branches)：切换分支替换现有安装。
-- [DepotDownloader 官方说明](https://github.com/SteamRE/DepotDownloader)：分支／平台／独立目录、文件过滤及交互认证。
-- [Godot 用户数据路径](https://docs.godotengine.org/en/stable/tutorials/io/data_paths.html)：user:// 取决于应用设置和系统用户。
-- [ModTemplate 路径定义](https://github.com/Alchyr/ModTemplate-StS2/blob/master/content/ModTemplate/Sts2PathDiscovery.props)：Mac bundle 数据及 Mod 位置参考，仍以实际安装为准。
+```bash
+python3 scripts/lab.py prepare --game-dir .tools/game-lab/macos-public-beta/game --assembly-dir .tools/game-lab/macos-public-beta/game/SlayTheSpire2.app/Contents/Resources/data_sts2_macos_arm64 --platform macos --branch public-beta --in-place
+python3 scripts/build.py build --game-dir .tools/game-lab/macos-public-beta/game --assembly-dir .tools/game-lab/macos-public-beta/game/SlayTheSpire2.app/Contents/Resources/data_sts2_macos_arm64 --branch public-beta
+python3 scripts/build.py deploy --game-dir .tools/game-lab/macos-public-beta/game --assembly-dir .tools/game-lab/macos-public-beta/game/SlayTheSpire2.app/Contents/Resources/data_sts2_macos_arm64 --branch public-beta
+python3 scripts/lab.py run --platform macos --headless
+# 首次原生运行生成 settings.save 后启用副环境 Mod。
+python3 scripts/lab.py run --platform macos --headless --enable-mods --gameplay-probe --quit-after 6000
+python3 scripts/lab.py run --platform macos --headless --continue-probe --quit-after 6000
+```
+
+Windows 使用相同 Python 脚本，或已有 PowerShell 包装。`prepare` 从真实安装复制时排除主 Mod；下载 Mac 后恢复其主可执行文件的执行位，不关闭系统安全控制。`run --quit-after 0` 可启动人工游玩的独立环境。
+
+## 验证边界
+
+构建、初始化、单人核心检查、独立进程继续和联机分别记录。四个目标的核心探针与独立进程继续均通过。F6/Fn、UI 缩放、ModConfig 页面、付费刷新、跨幕完整路线、真实重连与多人玩法仍须相应实测。Windows 当前 25 个 Mod 组合已重新验证 0.1.1 启动共存；不能据此推断全部玩法互操作。联机继续按用户“后续考虑”的安排保留未执行。
+
+依据：[Godot exported override](https://docs.godotengine.org/en/stable/classes/class_projectsettings.html)、[用户数据路径](https://docs.godotengine.org/en/stable/tutorials/io/data_paths.html)、[官方引擎设置加载源码](https://github.com/godotengine/godot/blob/4.5/core/config/project_settings.cpp)，以及下载后的真实引擎日志、原生 NGame / CommandLineHelper / SaveManager / ModManager 与程序集指纹。

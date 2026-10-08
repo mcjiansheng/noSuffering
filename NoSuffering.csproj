@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework><LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
+    <Version>0.1.0</Version><AssemblyName>NoSuffering</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <Sts2InstallDir Condition="'$(Sts2InstallDir)' == ''">$(STS2_INSTALL_DIR)</Sts2InstallDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src/**/*.cs" />
+    <Reference Include="sts2"><HintPath>$(Sts2InstallDir)/data_sts2_windows_x86_64/sts2.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="GodotSharp"><HintPath>$(Sts2InstallDir)/data_sts2_windows_x86_64/GodotSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(Sts2InstallDir)/data_sts2_windows_x86_64/0Harmony.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <Target Name="ValidateGame" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(Sts2InstallDir)/data_sts2_windows_x86_64/sts2.dll')" Text="Set STS2_INSTALL_DIR or -p:Sts2InstallDir to the actual game installation." />
+  </Target>
+</Project>

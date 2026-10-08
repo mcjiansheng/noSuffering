@@ -1,0 +1,9 @@
+2026-10-08 / xht-rog / actual engine startup excerpt
+[INFO] [NoSuffering] 0.1.0 initialized; game=73b63ee0-6c0a-47bb-b0d1-b21f6d94222e
+[INFO] Finished mod initialization for '不吃苦 · NoSuffering' (NoSuffering).
+Host Version: v0.111.0
+RitsuLib Version: 0.6.7 [compat branch: 0.111.0]
+BaseLib: v3.4.7
+[INFO]  --- RUNNING MODDED! --- Loaded 25 mods (26 total)
+Exit status: 0
+Gameplay checks: not executed

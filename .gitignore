@@ -1,0 +1,11 @@
+.tools/
+bin/
+obj/
+artifacts/
+local.env
+*.user
+*.dll
+*.pck
+.DS_Store
+__pycache__/
+*.pyc

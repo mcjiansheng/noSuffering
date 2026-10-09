@@ -19,12 +19,19 @@
 
 最终候选在上述功能实现上只增加两处原生药水入口的 Busy 拦截：在饮用设置 IsQueued／触发 BeforeUse、丢弃禁用槽位之前拒绝新操作，操作结束后同一药水仍可正常重试。不阻断已在等待中的玩家选择。
 
-| 目标 | DLL SHA-256 | 构建 | 运行结果 |
-| --- | --- | --- | --- |
-| Mac beta | `02f63de79fe3d74563c70993c5c81fb0a2f1f6f52735b599d25fff9b849ba7dd` | PASS，0 警告／错误 | 已启动继续 UI 对局；本候选原生双客户端两端各 12/12 PASS，退出码 0 |
-| Mac 正式版 | `c1744bb3b49baa9654570e2276b6b4006e59856d9f01b7eee338aa2548ca97e0` | PASS，0 警告／错误 | 本候选原生双客户端两端各 12/12 PASS，退出码 0 |
-| Windows beta | `b453c472f989bb67abffb6af2e145fbd477f65f541635b631a01d2d66d54efe8` | PASS，0 警告／错误 | 25-Mod 组合加独立测试插件：原生互操作及药水回归 9/9 PASS，退出码 0；本候选原生双客户端两端各 12/12 PASS，退出码 0 |
-| Windows 正式版 | `db382947565b2aef8b5493c980730b50690456c893f206e076dcbcedb4697bb8` | PASS，0 警告／错误 | 本候选原生双客户端两端各 12/12 PASS，退出码 0 |
+| 目标／DLL | 构建 | 加载 | 单人 | 双客户端 |
+| --- | --- | --- | --- | --- |
+| Mac beta `02f63de7…` | PASS，0 警告／错误 | PASS，独立继续与双客户端 | 完整 UI 对局继续中；13 项旧构建证据见下表 | 同 DLL 两端各 12/12 PASS，退出码 0 |
+| Mac 正式版 `c1744bb3…` | PASS，0 警告／错误 | PASS，双客户端 | 本候选未重复单人；旧构建结果见下表 | 同 DLL 两端各 12/12 PASS，退出码 0 |
+| Windows beta `b453c472…` | PASS，0 警告／错误 | PASS，25-Mod 加测试插件 | 原生互操作及药水回归 9/9 PASS，退出码 0 | 同 DLL 两端各 12/12 PASS，退出码 0 |
+| Windows 正式版 `db382947…` | PASS，0 警告／错误 | PASS，双客户端 | 本候选未重复单人；旧构建结果见下表 | 同 DLL 两端各 12/12 PASS，退出码 0 |
+
+最终 DLL 完整 SHA-256：
+
+- Mac beta：`02f63de79fe3d74563c70993c5c81fb0a2f1f6f52735b599d25fff9b849ba7dd`。
+- Mac 正式版：`c1744bb3b49baa9654570e2276b6b4006e59856d9f01b7eee338aa2548ca97e0`。
+- Windows beta：`b453c472f989bb67abffb6af2e145fbd477f65f541635b631a01d2d66d54efe8`。
+- Windows 正式版：`db382947565b2aef8b5493c980730b50690456c893f206e076dcbcedb4697bb8`。
 
 四个最终候选的双客户端结果见 [Mac 证据](expansion-evidence/macos-potion-boundary.txt)及 [Windows 证据](expansion-evidence/windows-potion-boundary.txt)。独立复查核对 beta／正式版入口签名及已入队药水的续接路径，未发现这两处修正的具体回归。
 
@@ -102,6 +109,8 @@ Mac 正式版实际框架运行 PASS：注册 14 个设置，开关／百分比�
 - 静态审查发现商店保存的是入场后状态，但续读会再次触发餐券／Maw Bank 等入场效果。已为实际保存库存恢复的那次新房间重建设置一次性标记，仅跳过它的重复入场玩法钩子；普通入场和入场前回滚不跳过。新增三项原生检查在四个目标通过，补修后的 beta 双客户端和 Mac 双分支新进程续档通过；独立复查未发现具体回归。
 
 ## xht-rog 主目录部署
+
+最终 Windows beta DLL `b453c472…` 已在主游戏退出后安装，并核对完整 SHA-256 与发行候选一致。部署前另行备份当前用户数据 1358 份文件；启动后核对原生当前存档、NoSuffering 伴随记录及有关配置／第三方备份，共 47 项摘要均不变。启动检查退出码 0、Steam 初始化成功、加载 24 Mod，但日志明确记录 NoSuffering 被用户设置禁用。因此最终 DLL 在主目录的加载为 **未执行（用户禁用）**；保留该设置，没有把游戏启动成功计为 NoSuffering 加载通过。临时任务已移除。最终 DLL 的隔离环境加载与功能结果见上表。[本次部署证据](expansion-evidence/primary-final-deploy.txt)。
 
 主目录此前已安装 Windows beta DLL `37c24306…`，Steamworks 初始化成功、NoSuffering 0.1.4 初始化、实际加载 25 Mod，启动检查退出码 0。更新前备份 15 份原生运行存档／伴随记录（含一份第三方备份），启动后 15 项摘要均不变；临时计划任务已移除。未进入主存档游玩。Headless Godot 退出时报告资源／RID 尚未释放，保留该日志事实，不把启动结果当作玩法验收。[部署证据](expansion-evidence/primary-deploy.txt)。
 

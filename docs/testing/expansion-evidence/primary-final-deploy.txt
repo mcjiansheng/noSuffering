@@ -1,0 +1,16 @@
+{
+  "version": "0.1.4",
+  "dll_sha256": "B453C472F989BB67ABFFB6AF2E145FBD477F65F541635B631A01D2D66D54EFE8",
+  "deployment": "passed",
+  "nosuffering_load": "not_executed_disabled_in_user_settings",
+  "backup_files": 1358,
+  "checked": 47,
+  "all_preserved": true,
+  "startup_exit": "exit=0",
+  "steam_initialized": true,
+  "mods_count": "24",
+  "no_user_setting_change": true,
+  "temp_task_removed": true,
+  "gameplay": "not_executed_primary",
+  "native_exit_warnings": "Headless Godot reported outstanding resources/RID allocations at exit; not gameplay acceptance."
+}

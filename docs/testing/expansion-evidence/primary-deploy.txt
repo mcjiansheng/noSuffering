@@ -1,0 +1,15 @@
+{
+  "version": "0.1.4",
+  "deployment": "passed",
+  "dll_sha256": "37C24306F950EB1E5C4D6763BE2AD40A3A5A2574D47FBA6674C4464995F65A2E",
+  "startup_exit": "exit=0",
+  "nosuffering_initialized": true,
+  "steam_initialized": true,
+  "loaded_mods": "25",
+  "saved_files": 15,
+  "unchanged_files": 15,
+  "temp_task_removed": true,
+  "gameplay": "not_executed_primary",
+  "native_exit_warnings": "Headless Godot reported outstanding resources/RID allocations at process exit; exit code 0; not gameplay acceptance.",
+  "backup": "Remote artifacts/primary-0.1.4-predeploy-20261009-175256; full relative paths and before/after SHA-256 retained locally in ignored evidence"
+}

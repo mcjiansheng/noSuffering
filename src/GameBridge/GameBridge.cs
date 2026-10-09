@@ -69,7 +69,7 @@ public static class GameBridge
         // Do not pause a task that still needs its selection screen to finish.
         var deadline=Time.GetTicksMsec()+20000;
         while(manager.ActionExecutor.CurrentlyRunningAction is not null ||
-              CombatManager.Instance.IsStarting || CombatManager.Instance.IsEnemyTurnStarted) {
+              CombatManager.Instance.IsStarting || CombatManager.Instance.IsEnemyTurnStarted || NoSuffering.Shops.ShopService.HasPendingPurchases) {
             cancellation.ThrowIfCancellationRequested();
             if(Time.GetTicksMsec()>deadline) throw new InvalidOperationException("请先完成当前动作或选择");
             await Frame();
@@ -77,6 +77,11 @@ public static class GameBridge
         cancellation.ThrowIfCancellationRequested();
         manager.ActionExecutor.Pause();
         CombatManager.Instance.Pause();
+        if (State.CurrentRoom is MerchantRoom)
+        {
+            manager.CombatStateSynchronizer.StartSync();
+            await manager.CombatStateSynchronizer.WaitForSync().WaitAsync(TimeSpan.FromSeconds(20), cancellation);
+        }
     }
     public static async Task Frame() => await ((SceneTree)Engine.GetMainLoop()).ToSignal(Engine.GetMainLoop(),SceneTree.SignalName.ProcessFrame);
     public static void Unlock() { if(RunManager.Instance.IsInProgress) {RunManager.Instance.ActionExecutor.Unpause();CombatManager.Instance.Unpause();} }
@@ -210,14 +215,6 @@ public static class GameBridge
             // B already includes this entry hook; repeating it mutates permanent
             // cards such as Dowsing. Combat opening hooks still run normally.
             __result=Task.CompletedTask;return false;
-        }
-    }
-    [HarmonyPatch(typeof(RunState),nameof(RunState.GetAndIncrementNextRoomId))]
-    private static class FreshRoomIdentity {
-        static void Postfix(ref int __result) {
-            // Native room IDs reset on restore. Reserve a new range after each
-            // committed host operation so stale location-addressed messages expire.
-            __result=checked(__result+checked((int)HostCoordinator.WorldRevision)*4096);
         }
     }
 }

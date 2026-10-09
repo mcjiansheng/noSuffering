@@ -102,7 +102,7 @@ public static class RollbackProbe
             await Wait(() => Descendants<Button>(layer).Any(b => b.IsVisibleInTree() && b.Text is "设置" or "Settings"), "F6 panel");
             await Screenshot("nosuffering-actions.png");
             await Click(Descendants<Button>(layer).Single(b => b.IsVisibleInTree() && b.Text is "设置" or "Settings"));
-            await Wait(() => Descendants<CheckButton>(layer).Count() == 5, "settings toggles");
+            await Wait(() => Descendants<CheckButton>(layer).Count() == 7, "settings toggles");
             await Screenshot("nosuffering-settings.png");
             var before = ConfigStore.EditableRules.EnableCombatReroll;
             await Click(Descendants<CheckButton>(layer).ElementAt(2));

@@ -1,0 +1,56 @@
+{
+  "source_commit": "639eb97fa7824e94a43339913c51433117207d05",
+  "framework": "official v0.2.2 source built with Godot.NET.Sdk4.5.1+sourcegenerator; not officialreleasebinary",
+  "manifest_logger_mismatch": "officialmanifest0.2.2; sourceMainFile.Version0.2.1",
+  "engine_record": "artifacts/macos/public/lab-20261009T092653596135Z/run-record.json",
+  "result": "smoke_passed",
+  "load": "passed",
+  "nosuffering_sha256": "90a1b604c887f4bc126e971201557157df4bfd585a9a9b4ed8201164c17fdd38",
+  "framework_files": {
+    "ModConfig.json": "3a5a7c53b9ac19bb75c9d98a40e3a8547d37b61c7834760d4d2bb2ee7a1ac826",
+    "ModConfig.dll": "8d2dad09f28633520c8a61abae6a4d2fce04af31e5b18c4d71fd8a8425ff48a0",
+    "ModConfig.pck": "205732d402731226c811dd5ed45a8776ff33a5158fb52dee6308c91762ff8fdf"
+  },
+  "native_fixture_checks": {
+    "initial_ancient_options_claim_proceed": "PASS: initial ancient personal options refreshed, native reward and Proceed handlers opened map",
+    "shop_targeted_refresh_native_prices": "PASS: native targeted inventory regenerated; Membership Card and Courier live discounts retained; Shops/Rewards RNG unchanged",
+    "shop_failed_purchase_unlocked": "PASS: actual insufficient-gold native purchase failed; a subsequent targeted refresh succeeded",
+    "shop_courier_purchase_locks": "PASS: actual native card purchase changed deck/gold; Courier restocked entry; refresh still rejected",
+    "boss_reject_act_two": "PASS: native act-two boss rejected, enemy HP unchanged",
+    "boss_reject_nonboss": "PASS: act-three native ordinary encounter rejected, enemy HP unchanged",
+    "boss_health_additive_damage": "PASS: 25% of existing effective max HP added to every living enemy; existing damage retained",
+    "boss_health_normal_restart": "PASS: native restart retained exact adjusted max HP without compounding",
+    "boss_health_new_order_restart": "PASS: order refresh and subsequent normal restart retained HP and active draw attempt",
+    "boss_health_native_save_continue": "PASS: actual disk save/read and same-process native continue retained boss max HP and refreshed order",
+    "actual_modconfig_integration": "PASS: actual framework registered 14 settings; both sync directions and persistence verified; native Mods controls instantiated through engine"
+  },
+  "framework_state": {
+    "framework_assembly": "ModConfig, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "framework_sha256": "8D2DAD09F28633520C8A61ABAE6A4D2FCE04AF31E5B18C4D71FD8A8425FF48A0",
+    "entry_count": 14,
+    "keys": [
+      "TogglePanelKey",
+      "Language",
+      "EnableMapRollback",
+      "EnableAncientReroll",
+      "EnableAncientOptionsReroll",
+      "EnableCombatRestart",
+      "EnableCombatReroll",
+      "EnableShopReroll",
+      "EnableBossHealthIncrease",
+      "BossHealthPercent",
+      "AncientCostMode",
+      "AncientHpCost",
+      "OptionsCostMode",
+      "OptionsHpCost"
+    ],
+    "toggle_controls": 7,
+    "slider_controls": 3,
+    "dropdown_controls": 3,
+    "bidirectional_values": "PASS",
+    "both_config_files": "PASS",
+    "ui_scope": "actual native Settings Mods tab, engine-created controls and synthetic native release; no human pointer or visual-quality acceptance"
+  },
+  "cleanup": "framework removed from stable lab mods and preserved in .tools/compat; beta lab untouched",
+  "scope": "headless actualstable nativeengine fixture; nativeModsUIconstruction+visibility+syntheticRelease; nohumanpointer or visualquality or MP frameworkacceptance"
+}

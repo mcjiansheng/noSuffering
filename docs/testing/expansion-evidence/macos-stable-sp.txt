@@ -1,0 +1,87 @@
+{
+  "platform": "macos",
+  "branch": "public",
+  "release": {
+    "commit": "59260271",
+    "version": "v0.107.1",
+    "date": "2026-06-18T15:43:56-07:00",
+    "branch": "v0.107.1",
+    "main_assembly_hash": -1718063421
+  },
+  "runtime": {
+    "runtimeOptions": {
+      "tfm": "net9.0",
+      "includedFrameworks": [
+        {
+          "name": "Microsoft.NETCore.App",
+          "version": "9.0.7"
+        }
+      ],
+      "configProperties": {
+        "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+        "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+      }
+    }
+  },
+  "assemblies": [
+    {
+      "name": "sts2.dll",
+      "sha256": "e7ceb80669bfaf5c8fccabaa126ae2bb283aba514be5b5b55612579cfd285f18"
+    },
+    {
+      "name": "GodotSharp.dll",
+      "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+    },
+    {
+      "name": "0Harmony.dll",
+      "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+    }
+  ],
+  "load": "passed",
+  "singleplayer": "smoke_passed",
+  "mod_sha256": "3e71f5339fb8a018918d3f6141ca94b96a600e4d351987b907f81a7b4fda3a71",
+  "singleplayer_scope": "isolated native-engine singleplayer fixtures; direct room/act entry; no physical pointer, full playthrough, fresh-process or multiplayer acceptance",
+  "singleplayer_checks": {
+    "initial_ancient_options_claim_proceed": "PASS: initial ancient personal options refreshed, native reward and Proceed handlers opened map",
+    "shop_targeted_refresh_native_prices": "PASS: native targeted inventory regenerated; Membership Card and Courier live discounts retained; Shops/Rewards RNG unchanged",
+    "shop_failed_purchase_unlocked": "PASS: actual insufficient-gold native purchase failed; a subsequent targeted refresh succeeded",
+    "shop_courier_purchase_locks": "PASS: actual native card purchase changed deck/gold; Courier restocked entry; refresh still rejected",
+    "boss_reject_act_two": "PASS: native act-two boss rejected, enemy HP unchanged",
+    "boss_reject_nonboss": "PASS: act-three native ordinary encounter rejected, enemy HP unchanged",
+    "boss_health_additive_damage": "PASS: 25% of existing effective max HP added to every living enemy; existing damage retained",
+    "boss_health_normal_restart": "PASS: native restart retained exact adjusted max HP without compounding",
+    "boss_health_new_order_restart": "PASS: order refresh and subsequent normal restart retained HP and active draw attempt",
+    "boss_health_native_save_continue": "PASS: actual disk save/read and same-process native continue retained boss max HP and refreshed order",
+    "shop_entry_relic_effects": "PASS: ordinary native entry applied Meal Ticket +15 HP and active Maw Bank +12 gold exactly once",
+    "shop_reroll_continue_no_entry_effects": "PASS: actual disk save/read and native continue after shop reroll retained injury and gold; no repeated Meal Ticket/Maw Bank entry effect",
+    "shop_purchase_continue_no_entry_effects": "PASS: actual purchased-stock disk save/read and native continue retained injury, gold, purchase lock and spent Maw Bank"
+  },
+  "singleplayer_state": {
+    "initial_ancient_reward": "CURSED_PEARL",
+    "shop_refreshed_prices": [
+      20,
+      19,
+      29,
+      14,
+      31,
+      33,
+      71,
+      102,
+      79,
+      80,
+      29,
+      29,
+      20,
+      30
+    ],
+    "boss_expected_max_hp": {
+      "1": 249,
+      "2": 500
+    },
+    "boss_context": "2/7/3/14/ENCOUNTER.QUEEN_BOSS"
+  },
+  "exit_code": 0,
+  "isolated_user_data": "passed",
+  "offline": "passed",
+  "source_record": "artifacts/macos/public/lab-20261009T094047737570Z/run-record.json"
+}

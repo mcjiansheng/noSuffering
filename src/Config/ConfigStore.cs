@@ -130,6 +130,9 @@ public static class ConfigStore
         AddEntry(entries, "EnableAncientOptionsReroll", "Ancient reward reroll", "Toggle", _rules.EnableAncientOptionsReroll, v => ChangeRules(r => r with { EnableAncientOptionsReroll = Convert.ToBoolean(v) }));
         AddEntry(entries, "EnableCombatRestart", "Combat restart", "Toggle", _rules.EnableCombatRestart, v => ChangeRules(r => r with { EnableCombatRestart = Convert.ToBoolean(v) }));
         AddEntry(entries, "EnableCombatReroll", "Restart with a new deck order", "Toggle", _rules.EnableCombatReroll, v => ChangeRules(r => r with { EnableCombatReroll = Convert.ToBoolean(v) }));
+        AddEntry(entries, "EnableShopReroll", "Reroll shop", "Toggle", _rules.EnableShopReroll, v => ChangeRules(r => r with { EnableShopReroll = Convert.ToBoolean(v) }));
+        AddEntry(entries, "EnableBossHealthIncrease", "Increase act-three boss health", "Toggle", _rules.EnableBossHealthIncrease, v => ChangeRules(r => r with { EnableBossHealthIncrease = Convert.ToBoolean(v) }));
+        AddEntry(entries, "BossHealthPercent", "Boss health increase (%)", "Slider", (float)_local.BossHealthPercent, v => UpdateLocal(c => c with { BossHealthPercent = Math.Clamp(ToInt(v), 1, 1000) }), 1, 1000, 1);
         AddEntry(entries, "AncientCostMode", "Ancient reroll cost", "Dropdown", _rules.AncientCostMode.ToString(), v => ChangeRules(r => r with { AncientCostMode = ParseEnum(v, RefreshCostMode.Free) }), options: Enum.GetNames<RefreshCostMode>());
         AddEntry(entries, "AncientHpCost", "Ancient reroll HP", "Slider", (float)_rules.AncientHpCost, v => ChangeRules(r => r with { AncientHpCost = ToInt(v) }), 1, 99, 1);
         AddEntry(entries, "OptionsCostMode", "Reward reroll cost", "Dropdown", _rules.OptionsCostMode.ToString(), v => ChangeRules(r => r with { OptionsCostMode = ParseEnum(v, RefreshCostMode.Free) }), options: Enum.GetNames<RefreshCostMode>());
@@ -162,6 +165,9 @@ public static class ConfigStore
             "EnableAncientOptionsReroll" => "刷新先古之民奖励",
             "EnableCombatRestart" => "重新开始战斗",
             "EnableCombatReroll" => "重开并刷新牌序",
+            "EnableShopReroll" => "刷新商店",
+            "EnableBossHealthIncrease" => "增加第三幕 Boss 生命",
+            "BossHealthPercent" => "Boss 生命增加比例（%）",
             "AncientCostMode" => "先古之民刷新费用",
             "AncientHpCost" => "先古之民刷新生命费用",
             "OptionsCostMode" => "奖励刷新费用",
@@ -201,6 +207,7 @@ public static class ConfigStore
     {
         var current = _pendingLocal ?? _local;
         var next = update(current);
+        next = next with { BossHealthPercent = Math.Clamp(next.BossHealthPercent, 1, 1000) };
         if (_operationInProgress) _pendingLocal = next;
         else { _local = next; SaveLocal(); SyncModConfig(); Changed?.Invoke(); }
     }
@@ -303,6 +310,9 @@ public static class ConfigStore
             "EnableAncientOptionsReroll" => _rules.EnableAncientOptionsReroll,
             "EnableCombatRestart" => _rules.EnableCombatRestart,
             "EnableCombatReroll" => _rules.EnableCombatReroll,
+            "EnableShopReroll" => _rules.EnableShopReroll,
+            "EnableBossHealthIncrease" => _rules.EnableBossHealthIncrease,
+            "BossHealthPercent" => (float)_local.BossHealthPercent,
             "AncientCostMode" => _rules.AncientCostMode.ToString(),
             "AncientHpCost" => (float)_rules.AncientHpCost,
             "OptionsCostMode" => _rules.OptionsCostMode.ToString(),
@@ -322,11 +332,11 @@ public static class ConfigStore
 
     private static void SyncModConfig()
     {
-        foreach (var key in new[] { "TogglePanelKey", "Language", "EnableMapRollback", "EnableAncientReroll", "EnableAncientOptionsReroll", "EnableCombatRestart", "EnableCombatReroll", "AncientCostMode", "AncientHpCost", "OptionsCostMode", "OptionsHpCost" })
+        foreach (var key in new[] { "TogglePanelKey", "Language", "EnableMapRollback", "EnableAncientReroll", "EnableAncientOptionsReroll", "EnableCombatRestart", "EnableCombatReroll", "EnableShopReroll", "EnableBossHealthIncrease", "BossHealthPercent", "AncientCostMode", "AncientHpCost", "OptionsCostMode", "OptionsHpCost" })
             RestoreModConfigValue(key);
     }
 
-    private static bool IsLocalKey(string key) => key is "TogglePanelKey" or "Language";
+    private static bool IsLocalKey(string key) => key is "TogglePanelKey" or "Language" or "BossHealthPercent";
     private static void Set(object target, string property, object value) =>
         (_entryType!.GetProperty(property) ?? throw new MissingMemberException(_entryType.FullName, property)).SetValue(target, value);
     private static long ToLong(object? value) => Convert.ToInt64(value);

@@ -1,0 +1,583 @@
+{
+  "captured_at": "2026-10-09T09:49:29.342022+00:00",
+  "source": {
+    "captured_at": "2026-10-09T09:41:50.697531+00:00",
+    "source_sha256": "24253ce23c77e76205ad68701697144e5d008f7055c83af2ceea7f496d7663dc",
+    "files": {
+      "NoSuffering.csproj": "c8f9f61bd2953dd25669b8081c4b8c4b3a3f9d9b6d9e7c9cc4baf7cfd8c656e0",
+      "NoSuffering.json": "cda424516fab5d647d65d745152e34df0fd157d5fe18ed32976193965cc43607",
+      "src/Ancients/AncientService.cs": "de57326a98fa328bc92b49f6709771165405814e7b9bab732b33a8adb5bffc58",
+      "src/Checkpoints/CheckpointService.cs": "188ddb3e779257374563ad1918698fefa7e24ff21a5d78be556b25fc8b389a08",
+      "src/Checkpoints/CompanionStore.cs": "a076f2b66d89111445c9092a04f80a88bad55b95dff1220fc4c4ca3f7809d084",
+      "src/Combat/BossHealthService.cs": "7ecb6b7975b2661418ac6c454550079e67bd2235b81764621f65cb5601a9271f",
+      "src/Combat/CombatPatches.cs": "079eb364762ee12a97325a9c82bae84fa0c541540a64200b804e47cca1af87be",
+      "src/Combat/CombatService.cs": "5034f0ec33e242bdeb09c392f6773ab540346892f86993203afd495621fcef9f",
+      "src/Combat/ParentEventState.cs": "5c7eab78da57f8a2c221bc940512f4bb87910f61c40592b30cf3c2561364eb74",
+      "src/Combat/PrecreatedEnemyPatches.cs": "b48e5b4af4ea31712ccd2f82b5cfc597d935f6608ea5705d07fa722d185d6c72",
+      "src/Config/ConfigStore.cs": "50ddb14f4e909b06eebc55bda67ca209f067e4e5cb1997cbcc6033679278b2e5",
+      "src/Config/HostRules.cs": "4a01c1cda222c6ba9afc2884e7522d9f3eb546360865ba6be2ef8b5db1243dfc",
+      "src/Config/LocalConfig.cs": "4d12932e4134bacb6af2009e28f068dba073586d6f5dbc097aefaac58cdccb13",
+      "src/Diagnostics/ExpansionProbe.cs": "cfebb065c21f988086c2239e14a2dc1150acad1275ec0eafcd1833a5942b3323",
+      "src/Diagnostics/FrameworkProbe.cs": "8b9cd9eaa314d1f623c23b8f3e1b33dc10d66d7139328ad8e862ef0123c14d2e",
+      "src/Diagnostics/GameplayProbe.cs": "debb9820cc1ec67f79bd7c92d211ec722e867a3b8ce1892b152f80e6d9e60ce3",
+      "src/Diagnostics/MultiplayerProbe.cs": "3fcd0064f8627da4fdac310422eaa2bbb42a53965e9980a954ab918e5c6d97e3",
+      "src/Diagnostics/RollbackProbe.cs": "1d34132411f7aeb77432fdcd2d14a309dd2162153193538649f935f6098f7c15",
+      "src/GameBridge/GameBridge.cs": "f2bc307a80062f07335e4752adc39800a3f936d70335d094e3a729ca2ae3805a",
+      "src/ModEntry.cs": "8bb2477e43964caf78d60d7de182e828b17c11dc8a8ce4483108a26699679cd5",
+      "src/Multiplayer/HostCoordinator.cs": "ee3feb393c1f815e53b47a893d470249a16e2931e9d494e988a3e9cbbbd9d8d2",
+      "src/Shops/ShopService.cs": "2120e54934e538ee69265c91acb372eab105f0a3fb9dfc5f87760945e2d97323",
+      "src/UI/MapRollbackSelection.cs": "254402770ef5d64efb0cecadd2550a22f18221850adb7a4142af36775bf5320c",
+      "src/UI/Overlay.cs": "2525845cf3617a449096ba3d419aaa30d0b66fd6c1b1fa1511bffcd9c6fd20e0"
+    }
+  },
+  "source_still_matches": true,
+  "scope": "Isolated native Windows headless fixtures and actual two-peer loopback ENet; no Steam/public multiplayer, GUI input, or full playthrough claim.",
+  "observed_full_mp_loopback_binding": {
+    "pid": 35688,
+    "LocalAddress": "::ffff:127.0.0.1",
+    "LocalPort": 33771
+  },
+  "retained_prior_evidence": {
+    "Rollback7": "windows-874ac3ab.json; not rerun on final snapshot; diagnostics and UI unchanged",
+    "Gameplay10": "windows-d1f16c7c.json; not rerun on final snapshot"
+  },
+  "builds": {
+    "public-beta": {
+      "stage_dll_sha256": "37c24306f950eb1e5c4d6763be2ad40a3a5a2574d47fba6674c4464995f65a2e",
+      "zip_sha256": "09bf934ca7bc39d1695116a1876a0c544b9792126a7cb0b879bb495df5b1bd53",
+      "record": {
+        "platform": "windows",
+        "branch": "public-beta",
+        "release": {
+          "commit": "41cef1ea",
+          "version": "v0.111.0",
+          "date": "2026-08-13T17:39:18-07:00",
+          "branch": "v0.111.0",
+          "main_assembly_hash": 222455745
+        },
+        "runtime": {
+          "runtimeOptions": {
+            "tfm": "net9.0",
+            "includedFrameworks": [
+              {
+                "name": "Microsoft.NETCore.App",
+                "version": "9.0.7"
+              }
+            ],
+            "configProperties": {
+              "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+              "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+            }
+          }
+        },
+        "assemblies": [
+          {
+            "name": "sts2.dll",
+            "sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9"
+          },
+          {
+            "name": "GodotSharp.dll",
+            "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+          },
+          {
+            "name": "0Harmony.dll",
+            "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+          }
+        ],
+        "build": "passed",
+        "version": "0.1.4",
+        "mod_sha256": "37c24306f950eb1e5c4d6763be2ad40a3a5a2574d47fba6674c4464995f65a2e",
+        "load": "not_executed",
+        "singleplayer": "not_executed",
+        "multiplayer": "not_executed"
+      }
+    },
+    "public": {
+      "stage_dll_sha256": "a466aa23ae97e128e61e57df76dd1a1176511094531a18763ece7e62ff1200c5",
+      "zip_sha256": "4e924440cbfc3a477a7fb1ea0af5eb991a1d735b30b70f15828ec21cb9bfc6fb",
+      "record": {
+        "platform": "windows",
+        "branch": "public",
+        "release": {
+          "commit": "59260271",
+          "version": "v0.107.1",
+          "date": "2026-06-18T15:43:56-07:00",
+          "branch": "v0.107.1",
+          "main_assembly_hash": -1555940892
+        },
+        "runtime": {
+          "runtimeOptions": {
+            "tfm": "net9.0",
+            "includedFrameworks": [
+              {
+                "name": "Microsoft.NETCore.App",
+                "version": "9.0.7"
+              }
+            ],
+            "configProperties": {
+              "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+              "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+            }
+          }
+        },
+        "assemblies": [
+          {
+            "name": "sts2.dll",
+            "sha256": "a1f9e653f1e28e4076558fee1e60d218619cb7e057b887c6417f62c62c6d7a52"
+          },
+          {
+            "name": "GodotSharp.dll",
+            "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+          },
+          {
+            "name": "0Harmony.dll",
+            "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+          }
+        ],
+        "build": "passed",
+        "version": "0.1.4",
+        "mod_sha256": "a466aa23ae97e128e61e57df76dd1a1176511094531a18763ece7e62ff1200c5",
+        "load": "not_executed",
+        "singleplayer": "not_executed",
+        "multiplayer": "not_executed"
+      }
+    }
+  },
+  "runs": {
+    "beta_expansion": {
+      "source_record": "artifacts/windows/public-beta/lab-20261009T094213348950Z/run-record.json",
+      "source_record_sha256": "5ce6435b2200f7cf0036bda6b5835c891a6fbb02ba4fddf0cf53edaecab7372e",
+      "record": {
+        "platform": "windows",
+        "branch": "public-beta",
+        "release": {
+          "commit": "41cef1ea",
+          "version": "v0.111.0",
+          "date": "2026-08-13T17:39:18-07:00",
+          "branch": "v0.111.0",
+          "main_assembly_hash": 222455745
+        },
+        "runtime": {
+          "runtimeOptions": {
+            "tfm": "net9.0",
+            "includedFrameworks": [
+              {
+                "name": "Microsoft.NETCore.App",
+                "version": "9.0.7"
+              }
+            ],
+            "configProperties": {
+              "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+              "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+            }
+          }
+        },
+        "assemblies": [
+          {
+            "name": "sts2.dll",
+            "sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9"
+          },
+          {
+            "name": "GodotSharp.dll",
+            "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+          },
+          {
+            "name": "0Harmony.dll",
+            "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+          }
+        ],
+        "load": "passed",
+        "singleplayer": "smoke_passed",
+        "mod_sha256": "37c24306f950eb1e5c4d6763be2ad40a3a5a2574d47fba6674c4464995f65a2e",
+        "singleplayer_scope": "isolated native-engine singleplayer fixtures; direct room/act entry; no physical pointer, full playthrough, fresh-process or multiplayer acceptance",
+        "singleplayer_checks": {
+          "initial_ancient_options_claim_proceed": "PASS: initial ancient personal options refreshed, native reward and Proceed handlers opened map",
+          "shop_targeted_refresh_native_prices": "PASS: native targeted inventory regenerated; Membership Card and Courier live discounts retained; Shops/Rewards RNG unchanged",
+          "shop_failed_purchase_unlocked": "PASS: actual insufficient-gold native purchase failed; a subsequent targeted refresh succeeded",
+          "shop_courier_purchase_locks": "PASS: actual native card purchase changed deck/gold; Courier restocked entry; refresh still rejected",
+          "boss_reject_act_two": "PASS: native act-two boss rejected, enemy HP unchanged",
+          "boss_reject_nonboss": "PASS: act-three native ordinary encounter rejected, enemy HP unchanged",
+          "boss_health_additive_damage": "PASS: 25% of existing effective max HP added to every living enemy; existing damage retained",
+          "boss_health_normal_restart": "PASS: native restart retained exact adjusted max HP without compounding",
+          "boss_health_new_order_restart": "PASS: order refresh and subsequent normal restart retained HP and active draw attempt",
+          "boss_health_native_save_continue": "PASS: actual disk save/read and same-process native continue retained boss max HP and refreshed order",
+          "shop_entry_relic_effects": "PASS: ordinary native entry applied Meal Ticket +15 HP and active Maw Bank +12 gold exactly once",
+          "shop_reroll_continue_no_entry_effects": "PASS: actual disk save/read and native continue after shop reroll retained injury and gold; no repeated Meal Ticket/Maw Bank entry effect",
+          "shop_purchase_continue_no_entry_effects": "PASS: actual purchased-stock disk save/read and native continue retained injury, gold, purchase lock and spent Maw Bank"
+        },
+        "singleplayer_state": {
+          "initial_ancient_reward": "NUTRITIOUS_OYSTER",
+          "shop_refreshed_prices": [
+            20,
+            14,
+            30,
+            62,
+            29,
+            33,
+            66,
+            98,
+            104,
+            79,
+            28,
+            20,
+            19,
+            30
+          ],
+          "boss_expected_max_hp": {
+            "1": 640
+          },
+          "boss_context": "2/7/3/14/ENCOUNTER.AEONGLASS_BOSS"
+        },
+        "exit_code": 0,
+        "isolated_user_data": "passed",
+        "offline": "passed"
+      }
+    },
+    "stable_expansion": {
+      "source_record": "artifacts/windows/public/lab-20261009T094340172534Z/run-record.json",
+      "source_record_sha256": "cc8dd9a9b29dcb931813ff0c46f592854efbcb528643107ff10737f4d2b1c30f",
+      "record": {
+        "platform": "windows",
+        "branch": "public",
+        "release": {
+          "commit": "59260271",
+          "version": "v0.107.1",
+          "date": "2026-06-18T15:43:56-07:00",
+          "branch": "v0.107.1",
+          "main_assembly_hash": -1555940892
+        },
+        "runtime": {
+          "runtimeOptions": {
+            "tfm": "net9.0",
+            "includedFrameworks": [
+              {
+                "name": "Microsoft.NETCore.App",
+                "version": "9.0.7"
+              }
+            ],
+            "configProperties": {
+              "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+              "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+            }
+          }
+        },
+        "assemblies": [
+          {
+            "name": "sts2.dll",
+            "sha256": "a1f9e653f1e28e4076558fee1e60d218619cb7e057b887c6417f62c62c6d7a52"
+          },
+          {
+            "name": "GodotSharp.dll",
+            "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+          },
+          {
+            "name": "0Harmony.dll",
+            "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+          }
+        ],
+        "load": "passed",
+        "singleplayer": "smoke_passed",
+        "mod_sha256": "a466aa23ae97e128e61e57df76dd1a1176511094531a18763ece7e62ff1200c5",
+        "singleplayer_scope": "isolated native-engine singleplayer fixtures; direct room/act entry; no physical pointer, full playthrough, fresh-process or multiplayer acceptance",
+        "singleplayer_checks": {
+          "initial_ancient_options_claim_proceed": "PASS: initial ancient personal options refreshed, native reward and Proceed handlers opened map",
+          "shop_targeted_refresh_native_prices": "PASS: native targeted inventory regenerated; Membership Card and Courier live discounts retained; Shops/Rewards RNG unchanged",
+          "shop_failed_purchase_unlocked": "PASS: actual insufficient-gold native purchase failed; a subsequent targeted refresh succeeded",
+          "shop_courier_purchase_locks": "PASS: actual native card purchase changed deck/gold; Courier restocked entry; refresh still rejected",
+          "boss_reject_act_two": "PASS: native act-two boss rejected, enemy HP unchanged",
+          "boss_reject_nonboss": "PASS: act-three native ordinary encounter rejected, enemy HP unchanged",
+          "boss_health_additive_damage": "PASS: 25% of existing effective max HP added to every living enemy; existing damage retained",
+          "boss_health_normal_restart": "PASS: native restart retained exact adjusted max HP without compounding",
+          "boss_health_new_order_restart": "PASS: order refresh and subsequent normal restart retained HP and active draw attempt",
+          "boss_health_native_save_continue": "PASS: actual disk save/read and same-process native continue retained boss max HP and refreshed order",
+          "shop_entry_relic_effects": "PASS: ordinary native entry applied Meal Ticket +15 HP and active Maw Bank +12 gold exactly once",
+          "shop_reroll_continue_no_entry_effects": "PASS: actual disk save/read and native continue after shop reroll retained injury and gold; no repeated Meal Ticket/Maw Bank entry effect",
+          "shop_purchase_continue_no_entry_effects": "PASS: actual purchased-stock disk save/read and native continue retained injury, gold, purchase lock and spent Maw Bank"
+        },
+        "singleplayer_state": {
+          "initial_ancient_reward": "NUTRITIOUS_OYSTER",
+          "shop_refreshed_prices": [
+            30,
+            20,
+            30,
+            20,
+            15,
+            32,
+            65,
+            66,
+            99,
+            80,
+            29,
+            41,
+            28,
+            30
+          ],
+          "boss_expected_max_hp": {
+            "1": 249,
+            "2": 500
+          },
+          "boss_context": "2/7/3/14/ENCOUNTER.QUEEN_BOSS"
+        },
+        "exit_code": 0,
+        "isolated_user_data": "passed",
+        "offline": "passed"
+      }
+    },
+    "beta_native_enet_12": {
+      "source_record": "artifacts/windows/public-beta/mp-20261009-174457/run-record.json",
+      "source_record_sha256": "849c0e9879d71df932316779c440a732f6145a6370a293de4e78ce67201adc0a",
+      "record": {
+        "scope": "two actual native localhost ENet processes; direct fixture entries; no Steam multiplayer claim",
+        "platform": "windows",
+        "branch": "public-beta",
+        "multiplayer": "native_enet_smoke_passed",
+        "peers": {
+          "host": {
+            "mod_sha256": "37c24306f950eb1e5c4d6763be2ad40a3a5a2574d47fba6674c4464995f65a2e",
+            "native_sha256": "8602c26bffd2937e3841835fd8360ef8e974624a543e05977229fd3d062be231",
+            "exit_code": 0,
+            "report": {
+              "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+              "role": "host",
+              "results": {
+                "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+                "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+                "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+                "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+                "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+                "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+                "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+                "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+                "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+                "map_rollback": "PASS: actual native two-peer rollback completed",
+                "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+                "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock"
+              }
+            },
+            "isolated_user_data": true
+          },
+          "client": {
+            "mod_sha256": "37c24306f950eb1e5c4d6763be2ad40a3a5a2574d47fba6674c4464995f65a2e",
+            "native_sha256": "8602c26bffd2937e3841835fd8360ef8e974624a543e05977229fd3d062be231",
+            "exit_code": 0,
+            "report": {
+              "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+              "role": "client",
+              "results": {
+                "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+                "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+                "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+                "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+                "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+                "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+                "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+                "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+                "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+                "map_rollback": "PASS: actual native two-peer rollback completed",
+                "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+                "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock"
+              }
+            },
+            "isolated_user_data": true
+          }
+        }
+      }
+    },
+    "beta_fresh_process_seed": {
+      "source_record": "artifacts/windows/public-beta/mp-20261009-174640/run-record.json",
+      "source_record_sha256": "9ade82a9ec55232f7f3862f355779b11fee03c5eb0f5a3250e5f6a91fe04cdbf",
+      "record": {
+        "scope": "two actual native localhost ENet processes; direct fixture entries; no Steam multiplayer claim",
+        "platform": "windows",
+        "branch": "public-beta",
+        "multiplayer": "native_enet_smoke_passed",
+        "peers": {
+          "host": {
+            "mod_sha256": "37c24306f950eb1e5c4d6763be2ad40a3a5a2574d47fba6674c4464995f65a2e",
+            "native_sha256": "8602c26bffd2937e3841835fd8360ef8e974624a543e05977229fd3d062be231",
+            "exit_code": 0,
+            "report": {
+              "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+              "role": "host",
+              "results": {
+                "fresh_process_seed_resume": "PASS: actual exited/restarted native peers loaded saved run and first reroll used a distinct persisted-revision seed"
+              }
+            },
+            "isolated_user_data": true,
+            "first_lifetime": {
+              "exit_code": 0,
+              "report": {
+                "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+                "role": "host",
+                "results": {
+                  "fresh_process_seed_first": "PASS: first reroll then native client Courier purchase committed its own disk save before process exit"
+                }
+              },
+              "isolated_user_data": true
+            }
+          },
+          "client": {
+            "mod_sha256": "37c24306f950eb1e5c4d6763be2ad40a3a5a2574d47fba6674c4464995f65a2e",
+            "native_sha256": "8602c26bffd2937e3841835fd8360ef8e974624a543e05977229fd3d062be231",
+            "exit_code": 0,
+            "report": {
+              "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+              "role": "client",
+              "results": {
+                "fresh_process_seed_resume": "PASS: actual exited/restarted native peers loaded saved run and first reroll used a distinct persisted-revision seed"
+              }
+            },
+            "isolated_user_data": true,
+            "first_lifetime": {
+              "exit_code": 0,
+              "report": {
+                "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+                "role": "client",
+                "results": {
+                  "fresh_process_seed_first": "PASS: first reroll then native client Courier purchase committed its own disk save before process exit"
+                }
+              },
+              "isolated_user_data": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "mods": {
+    "public-beta": [
+      {
+        "id": "ironcladSkin",
+        "name": "ironcladSkin",
+        "version": "0.0.1"
+      },
+      {
+        "id": "NoSuffering",
+        "name": "不吃苦 · NoSuffering",
+        "version": "0.1.4"
+      },
+      {
+        "id": "BaseLib",
+        "name": "BaseLib",
+        "version": "v3.4.7"
+      },
+      {
+        "id": "UndoAndRestart",
+        "name": "Undo And Restart",
+        "version": "0.111.0.4"
+      },
+      {
+        "id": "intentgraph2",
+        "name": "Intent Graph",
+        "version": "1.6.0"
+      },
+      {
+        "id": "AncientSL",
+        "name": "先古之民SL",
+        "version": "1.0"
+      },
+      {
+        "id": "regentSkin",
+        "name": "regentSkin",
+        "version": "0.8.0"
+      },
+      {
+        "id": "silentSkin",
+        "name": "silentSkin",
+        "version": "0.7.1"
+      },
+      {
+        "id": "necrobinderSkin",
+        "name": "necrobinderSkin",
+        "version": "0.9.1"
+      },
+      {
+        "id": "STS2-RitsuLib",
+        "name": "RitsuLib",
+        "version": "0.6.7"
+      },
+      {
+        "id": "neowSkin",
+        "name": "neowSkin",
+        "version": "0.0.1"
+      },
+      {
+        "id": "RegentCardsAnimeRework",
+        "name": "RegentCardsAnimeRework",
+        "version": "v1.0"
+      },
+      {
+        "id": "RegentFemPortraits",
+        "name": "储君卡图娘化",
+        "version": "v1.0"
+      },
+      {
+        "id": "NecrobinderFemPortraits",
+        "name": "NecrobinderFemPortraits",
+        "version": "v0.1.3"
+      },
+      {
+        "id": "Mechaneko_Defect",
+        "name": "MechaNeko Defect Skin",
+        "version": "1.1.2"
+      },
+      {
+        "id": "ATA_IronClad",
+        "name": "机娘“阿塔”",
+        "version": "0.1.12"
+      },
+      {
+        "id": "RTRsMoeifyMod_ancients",
+        "name": "RTRsMoeifyMod_ancients",
+        "version": "v0.2.0"
+      },
+      {
+        "id": "Merchant2CuteII",
+        "name": "Merchant2CuteII",
+        "version": "v1.5.3"
+      },
+      {
+        "id": "AliceDefectSkin",
+        "name": "Alice Defect Skin",
+        "version": "0.1.33"
+      },
+      {
+        "id": "AliceDefectVoiceBridge",
+        "name": "Alice Defect Voice Bridge",
+        "version": "1.3.1"
+      },
+      {
+        "id": "AliceDefectVoicepack",
+        "name": "Alice Defect Voicepack",
+        "version": "1.0.2"
+      },
+      {
+        "id": "CustomCardBalance",
+        "name": "Custom Card Balance",
+        "version": "2.9.1"
+      },
+      {
+        "id": "AnimeWaifuSilent",
+        "name": "AnimeWaifuSilent",
+        "version": "v1.4.3"
+      },
+      {
+        "id": "CrystalSphereAlpha",
+        "name": "水晶球透视",
+        "version": "v0.0.1"
+      },
+      {
+        "id": "sts_nndx",
+        "name": "sts_nndx",
+        "version": "0.1.1"
+      }
+    ],
+    "public": [
+      {
+        "id": "NoSuffering",
+        "name": "不吃苦 · NoSuffering",
+        "version": "0.1.4"
+      }
+    ]
+  }
+}

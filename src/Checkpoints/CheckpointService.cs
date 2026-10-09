@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Saves;
 using MegaCrit.Sts2.Core.Saves.Managers;
 using NoSuffering.Ancients;
 using NoSuffering.Combat;
+using NoSuffering.Shops;
 using Bridge=NoSuffering.GameBridge.GameBridge;
 
 namespace NoSuffering.Checkpoints;
@@ -23,9 +24,13 @@ public readonly record struct CombatSettlement(MapCoord? Coord,int ActIndex)
 public sealed record TimelineData(List<MapCheckpoint> Checkpoints,CombatRecord? Combat,AncientRecord? Ancient)
 {
     public CombatSettlement? SettledCombat {get;init;}
+    public ShopRecord? Shop {get;init;}
+    public BossHealthRecord? BossHealth {get;init;}
 }
 public sealed record MapCheckpoint(long Id,string RunId,string Position,string Label,long CreatedAt,string LastRoom,Dictionary<ulong,int> PlayerHp,string Snapshot,CombatRecord? Combat,AncientRecord? Ancient)
 {
+    public ShopRecord? Shop {get;init;}
+    public BossHealthRecord? BossHealth {get;init;}
     public int ActIndex {get;init;}=-1;
     public MapCoord? Coord {get;init;}
     public bool BeforeEntry {get;init;}
@@ -40,14 +45,14 @@ public static class CheckpointService
     private static CombatRoom? _rewardRoom;
     private static readonly HashSet<ulong> RewardsStarted=[];
     public static IReadOnlyList<MapCheckpoint> History=>_history;
-    public static TimelineData Save(bool includeHistory=true)=>new(includeHistory?new(_history):[],CombatService.Save(),AncientService.CaptureState()){SettledCombat=_settledCombat is { } settled?CombatSettlement.At(settled):null};
-    public static void Restore(TimelineData data,bool keepHistory=false) {
+    public static TimelineData Save(bool includeHistory=true)=>new(includeHistory?new(_history):[],CombatService.Save(),AncientService.CaptureState()){SettledCombat=_settledCombat is { } settled?CombatSettlement.At(settled):null,Shop=ShopService.CaptureState(),BossHealth=BossHealthService.CaptureState()};
+    public static void Restore(TimelineData data,bool keepHistory=false,bool live=false) {
         if(!keepHistory)_history=new(data.Checkpoints);
         _nextId=Math.Max(_nextId,_history.Select(p=>p.Id).DefaultIfEmpty().Max());
-        CombatService.Restore(data.Combat);AncientService.RestoreState(data.Ancient);
+        CombatService.Restore(data.Combat);AncientService.RestoreState(data.Ancient);ShopService.RestoreState(data.Shop,live);BossHealthService.RestoreState(data.BossHealth);
         _settledCombat=data.SettledCombat is { } settled?new MapLocation(settled.Coord,settled.ActIndex):null;_rewardRoom=null;RewardsStarted.Clear();
     }
-    public static void Reset(){_history=[];_settledCombat=null;_rewardRoom=null;RewardsStarted.Clear();CombatService.Restore(null);AncientService.RestoreState(null);}
+    public static void Reset(){_history=[];_settledCombat=null;_rewardRoom=null;RewardsStarted.Clear();CombatService.Restore(null);AncientService.RestoreState(null);ShopService.RestoreState(null);BossHealthService.RestoreState(null);}
     // Native entry saves happen after the coordinate is selected and the old room
     // exits, but before rolling/generating the new room or applying its effects.
     private static void CaptureEntry(SerializableRun save) {
@@ -91,7 +96,7 @@ public static class CheckpointService
         if(finishedCombat)_settledCombat=state.MapLocation;
         var snapshot=Bridge.Freeze(save);
         var record=new MapCheckpoint(existing>=0?_history[existing].Id:++_nextId,key,position,"",DateTimeOffset.UtcNow.ToUnixTimeSeconds(),state.CurrentRoom?.RoomType.ToString()??"Map",state.Players.ToDictionary(p=>p.NetId,p=>p.Creature.CurrentHp),snapshot,finishedCombat?null:CombatService.Save(),AncientService.CaptureState())
-            {ActIndex=state.CurrentActIndex,Coord=state.CurrentMapCoord,CompletedCombat=finishedCombat};
+            {ActIndex=state.CurrentActIndex,Coord=state.CurrentMapCoord,CompletedCombat=finishedCombat,Shop=ShopService.CaptureState(),BossHealth=BossHealthService.CaptureState()};
         if(existing>=0)_history[existing]=record;else _history.Add(record);
         CompanionStore.PairWithLastNativeSave();
     }

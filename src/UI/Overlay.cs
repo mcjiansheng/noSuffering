@@ -9,6 +9,7 @@ using NoSuffering.Checkpoints;
 using NoSuffering.Combat;
 using NoSuffering.Config;
 using NoSuffering.Multiplayer;
+using NoSuffering.Shops;
 
 namespace NoSuffering.UI;
 
@@ -125,7 +126,8 @@ public static class Overlay
         _content.AddChild(new HSeparator());
         if (_settings) { Settings(); BindFocus(); return; }
         var r = ConfigStore.Rules;
-        var disabled = !HostCoordinator.IsHost || HostCoordinator.Busy || CompanionStore.Error != null;
+        var personalDisabled = HostCoordinator.Busy || CompanionStore.Error != null;
+        var disabled = !HostCoordinator.IsHost || personalDisabled;
         if (CombatManager.Instance.IsInProgress && CombatService.Baseline is not null)
         {
             ActionButton(CoreOperation.CombatRestart, T("重新开始战斗", "Restart combat"), CombatService.UnavailableReason ?? T("保留本次牌序。", "Keep the current deck order."), disabled || !r.EnableCombatRestart || CombatService.UnavailableReason != null);
@@ -136,7 +138,23 @@ public static class Overlay
             var ancientReason = AncientService.GetUnavailableReason(true, RunManager.Instance.NetService.NetId, r);
             var optionsReason = AncientService.GetUnavailableReason(false, RunManager.Instance.NetService.NetId, r);
             ActionButton(CoreOperation.AncientReroll, T("刷新先古之民", "Reroll ancient") + Cost(r.AncientCostMode, r.AncientHpCost), ancientReason ?? T("更换先古之民。", "Choose a different ancient."), disabled || ancientReason != null);
-            ActionButton(CoreOperation.AncientOptionsReroll, T("刷新先古之民奖励", "Reroll ancient rewards") + Cost(r.OptionsCostMode, r.OptionsHpCost), optionsReason ?? T("刷新当前奖励。", "Refresh the rewards."), disabled || optionsReason != null);
+            ActionButton(CoreOperation.AncientOptionsReroll, T("刷新先古之民奖励", "Reroll ancient rewards") + Cost(r.OptionsCostMode, r.OptionsHpCost), optionsReason ?? T("刷新当前奖励。", "Refresh the rewards."), personalDisabled || optionsReason != null);
+        }
+        if (RunManager.Instance.DebugOnlyGetState()?.CurrentRoom is MegaCrit.Sts2.Core.Rooms.MerchantRoom)
+        {
+            var reason = ShopService.GetUnavailableReason(RunManager.Instance.NetService.NetId, r);
+            ActionButton(CoreOperation.ShopReroll, T("刷新商店", "Reroll shop"), reason ?? T("重新生成全部商品。", "Generate new stock."), personalDisabled || reason != null);
+        }
+        if (CombatManager.Instance.IsInProgress && RunManager.Instance.DebugOnlyGetState()?.CurrentActIndex == 2 &&
+            RunManager.Instance.DebugOnlyGetState()?.CurrentRoom is MegaCrit.Sts2.Core.Rooms.CombatRoom { RoomType: MegaCrit.Sts2.Core.Rooms.RoomType.Boss })
+        {
+            var reason = BossHealthService.GetUnavailableReason(r);
+            var row = new HBoxContainer(); _content!.AddChild(row);
+            var percent = new SpinBox { MinValue = 1, MaxValue = 1000, Step = 1, Value = ConfigStore.Local.BossHealthPercent, Suffix = "%", CustomMinimumSize = new Vector2(112, 0), Editable = !disabled && reason == null };
+            row.AddChild(percent);
+            percent.ValueChanged += value => ConfigStore.UpdateLocal(c => c with { BossHealthPercent = (int)value });
+            var button = AddButton(row, T("增加 Boss 生命", "Increase boss health"), () => HostCoordinator.Submit(CoreOperation.BossHealthIncrease, percent: (int)percent.Value), disabled || reason != null, reason ?? T("增加上限并补充相同生命，保留已受伤害。", "Increase maximum and current HP equally, preserving damage taken."));
+            button.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         }
         AddButton(_content, T("路线回滚", "Rollback route"), () => { Close(); MapRollbackSelection.Begin(); }, disabled || !r.EnableMapRollback || MapRollbackSelection.Targets.Count == 0, T("在地图上选择走过的节点。", "Choose a visited node on the map."));
         if (CompanionStore.Error != null) AddText(CompanionStore.Error);
@@ -159,6 +177,8 @@ public static class Overlay
         Toggle(T("路线回滚", "Rollback route"), r.EnableMapRollback, (rules, value) => rules with { EnableMapRollback = value });
         Toggle(T("重新开始战斗", "Restart combat"), r.EnableCombatRestart, (rules, value) => rules with { EnableCombatRestart = value });
         Toggle(T("重开并刷新牌序", "Restart with new deck order"), r.EnableCombatReroll, (rules, value) => rules with { EnableCombatReroll = value });
+        Toggle(T("刷新商店", "Reroll shop"), r.EnableShopReroll, (rules, value) => rules with { EnableShopReroll = value });
+        Toggle(T("增加第三幕 Boss 生命", "Increase act-three boss health"), r.EnableBossHealthIncrease, (rules, value) => rules with { EnableBossHealthIncrease = value });
         Toggle(T("刷新先古之民", "Reroll ancient"), r.EnableAncientReroll, (rules, value) => rules with { EnableAncientReroll = value });
         CostSetting(T("费用", "Cost"), r.AncientCostMode, r.AncientHpCost, true);
         Toggle(T("刷新先古之民奖励", "Reroll ancient rewards"), r.EnableAncientOptionsReroll, (rules, value) => rules with { EnableAncientOptionsReroll = value });

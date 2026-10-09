@@ -15,6 +15,8 @@ public sealed record HostRules
     public bool EnableAncientOptionsReroll { get; init; } = true;
     public bool EnableCombatRestart { get; init; } = true;
     public bool EnableCombatReroll { get; init; } = true;
+    public bool EnableShopReroll { get; init; } = true;
+    public bool EnableBossHealthIncrease { get; init; } = true;
     public RefreshCostMode AncientCostMode { get; init; } = RefreshCostMode.Free;
     public int AncientHpCost { get; init; } = 5;
     public RefreshCostMode OptionsCostMode { get; init; } = RefreshCostMode.Free;

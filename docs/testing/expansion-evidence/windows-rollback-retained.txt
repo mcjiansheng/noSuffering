@@ -1,0 +1,150 @@
+{
+  "source_record": "artifacts/validation/windows-874ac3ab.json",
+  "source_sha256": "874ac3ab7480246a823b237eff4df983036ec77974eccf94f14b09cd03c8bac0",
+  "retained_checks": {
+    "public-beta": {
+      "source_record": "C:\\Users\\48811\\source\\NoSuffering\\artifacts\\windows\\public-beta\\lab-20261009T093308864515Z\\run-record.json",
+      "source_record_sha256": "6ff1933d2315e9c5f36e95ba0aaffc244cc363a01aafdb8fbb3df21376cf9ded",
+      "record": {
+        "platform": "windows",
+        "branch": "public-beta",
+        "release": {
+          "commit": "41cef1ea",
+          "version": "v0.111.0",
+          "date": "2026-08-13T17:39:18-07:00",
+          "branch": "v0.111.0",
+          "main_assembly_hash": 222455745
+        },
+        "runtime": {
+          "runtimeOptions": {
+            "tfm": "net9.0",
+            "includedFrameworks": [
+              {
+                "name": "Microsoft.NETCore.App",
+                "version": "9.0.7"
+              }
+            ],
+            "configProperties": {
+              "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+              "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+            }
+          }
+        },
+        "assemblies": [
+          {
+            "name": "sts2.dll",
+            "sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9"
+          },
+          {
+            "name": "GodotSharp.dll",
+            "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+          },
+          {
+            "name": "0Harmony.dll",
+            "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+          }
+        ],
+        "load": "passed",
+        "singleplayer": "smoke_passed",
+        "mod_sha256": "f90d32cbb98f76fa1d644fb032cc443330466e0e4dbaa874ab5982f0702c37c7",
+        "singleplayer_scope": "isolated native-engine singleplayer regression; generated-coordinate fixture jumps; native diagnostic combat kill; Viewport GUI and native map/reward handlers; physical pointer and multiplayer untested",
+        "singleplayer_checks": {
+          "shop_entry_rollback": "PASS: native shop card purchased via Viewport GUI, entry resources/map restored via visited-node handler, purchased again",
+          "transition_native_gui": "PASS: inactive transition ignores input; Viewport mouse click really opened native deck screen",
+          "standalone_settings": "PASS: without ModConfig: F6, GUI settings/toggle/close, disk persistence, subsequent native deck GUI click",
+          "settled_combat_rollback": "PASS: actual monster victory via native diagnostic kill, gold claimed/others skipped; rollback from second combat retained finished room/resources without duplicate reward screen",
+          "legal_next_node": "PASS: normal native travelable-node handler completed travel/action and room initialization at a generated child after completed-combat rollback",
+          "past_act_selector_cancel": "PASS: actual targets in acts two/three; GUI act switch displays boss without mutating live run; GUI Cancel restores later-act display/open state/history/resources",
+          "settled_boss_cross_act_proceed": "PASS: boss target captured naturally; GUI past-act selection committed through visited boss handler; native empty boss reward Proceed advanced act without repeated resource rewards"
+        },
+        "singleplayer_state": {
+          "shop_coord": "MapCoord (2, 2)",
+          "deck_opened_via_viewport": true,
+          "persisted_combat_reroll": false,
+          "settled_coord": "MapCoord (1, 1)",
+          "settled_resources": "{\"Gold\":77,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.DISMANTLE:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+          "next_coord": "MapCoord (0, 2)",
+          "boss_target_captured_naturally": true,
+          "boss_coord": "MapCoord (3, 15)",
+          "boss_resources_after_empty_proceed": "{\"Gold\":177,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.DISMANTLE:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+          "saved_settled_boss": true
+        },
+        "exit_code": 0,
+        "isolated_user_data": "passed",
+        "offline": "passed"
+      }
+    },
+    "public": {
+      "source_record": "C:\\Users\\48811\\source\\NoSuffering\\artifacts\\windows\\public\\lab-20261009T093543580454Z\\run-record.json",
+      "source_record_sha256": "58a9a6a702298f5c03266a4c77110c92be131c28762ba0af7be91db757546f2d",
+      "record": {
+        "platform": "windows",
+        "branch": "public",
+        "release": {
+          "commit": "59260271",
+          "version": "v0.107.1",
+          "date": "2026-06-18T15:43:56-07:00",
+          "branch": "v0.107.1",
+          "main_assembly_hash": -1555940892
+        },
+        "runtime": {
+          "runtimeOptions": {
+            "tfm": "net9.0",
+            "includedFrameworks": [
+              {
+                "name": "Microsoft.NETCore.App",
+                "version": "9.0.7"
+              }
+            ],
+            "configProperties": {
+              "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+              "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+            }
+          }
+        },
+        "assemblies": [
+          {
+            "name": "sts2.dll",
+            "sha256": "a1f9e653f1e28e4076558fee1e60d218619cb7e057b887c6417f62c62c6d7a52"
+          },
+          {
+            "name": "GodotSharp.dll",
+            "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+          },
+          {
+            "name": "0Harmony.dll",
+            "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+          }
+        ],
+        "load": "passed",
+        "singleplayer": "smoke_passed",
+        "mod_sha256": "e3cabac342e5c6e5240c18e7d1347c73eb604f3534d3774a839d44237f56433e",
+        "singleplayer_scope": "isolated native-engine singleplayer regression; generated-coordinate fixture jumps; native diagnostic combat kill; Viewport GUI and native map/reward handlers; physical pointer and multiplayer untested",
+        "singleplayer_checks": {
+          "shop_entry_rollback": "PASS: native shop card purchased via Viewport GUI, entry resources/map restored via visited-node handler, purchased again",
+          "transition_native_gui": "PASS: inactive transition ignores input; Viewport mouse click really opened native deck screen",
+          "standalone_settings": "PASS: without ModConfig: F6, GUI settings/toggle/close, disk persistence, subsequent native deck GUI click",
+          "settled_combat_rollback": "PASS: actual monster victory via native diagnostic kill, gold claimed/others skipped; rollback from second combat retained finished room/resources without duplicate reward screen",
+          "legal_next_node": "PASS: normal native travelable-node handler completed travel/action and room initialization at a generated child after completed-combat rollback",
+          "past_act_selector_cancel": "PASS: actual targets in acts two/three; GUI act switch displays boss without mutating live run; GUI Cancel restores later-act display/open state/history/resources",
+          "settled_boss_cross_act_proceed": "PASS: boss target captured naturally; GUI past-act selection committed through visited boss handler; native empty boss reward Proceed advanced act without repeated resource rewards"
+        },
+        "singleplayer_state": {
+          "shop_coord": "MapCoord (3, 4)",
+          "deck_opened_via_viewport": true,
+          "persisted_combat_reroll": false,
+          "settled_coord": "MapCoord (0, 1)",
+          "settled_resources": "{\"Gold\":89,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.HEADBUTT:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+          "next_coord": "MapCoord (0, 2)",
+          "boss_target_captured_naturally": true,
+          "boss_coord": "MapCoord (3, 15)",
+          "boss_resources_after_empty_proceed": "{\"Gold\":189,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.HEADBUTT:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+          "saved_settled_boss": true
+        },
+        "exit_code": 0,
+        "isolated_user_data": "passed",
+        "offline": "passed"
+      }
+    }
+  }
+}

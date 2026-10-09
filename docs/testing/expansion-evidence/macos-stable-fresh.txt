@@ -1,0 +1,57 @@
+{
+  "scope": "two actual native localhost ENet processes; direct fixture entries; no Steam multiplayer claim",
+  "platform": "macos",
+  "branch": "public",
+  "multiplayer": "native_enet_smoke_passed",
+  "peers": {
+    "host": {
+      "mod_sha256": "3e71f5339fb8a018918d3f6141ca94b96a600e4d351987b907f81a7b4fda3a71",
+      "native_sha256": "7fadae8d46f0074ba745bc3beebe31a13df5fafed2f2ac69cd68b3c5dd8508e6",
+      "exit_code": 0,
+      "report": {
+        "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+        "role": "host",
+        "results": {
+          "fresh_process_seed_resume": "PASS: actual exited/restarted native peers loaded saved run and first reroll used a distinct persisted-revision seed"
+        }
+      },
+      "isolated_user_data": true,
+      "first_lifetime": {
+        "exit_code": 0,
+        "report": {
+          "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+          "role": "host",
+          "results": {
+            "fresh_process_seed_first": "PASS: first reroll then native client Courier purchase committed its own disk save before process exit"
+          }
+        },
+        "isolated_user_data": true
+      }
+    },
+    "client": {
+      "mod_sha256": "3e71f5339fb8a018918d3f6141ca94b96a600e4d351987b907f81a7b4fda3a71",
+      "native_sha256": "7fadae8d46f0074ba745bc3beebe31a13df5fafed2f2ac69cd68b3c5dd8508e6",
+      "exit_code": 0,
+      "report": {
+        "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+        "role": "client",
+        "results": {
+          "fresh_process_seed_resume": "PASS: actual exited/restarted native peers loaded saved run and first reroll used a distinct persisted-revision seed"
+        }
+      },
+      "isolated_user_data": true,
+      "first_lifetime": {
+        "exit_code": 0,
+        "report": {
+          "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+          "role": "client",
+          "results": {
+            "fresh_process_seed_first": "PASS: first reroll then native client Courier purchase committed its own disk save before process exit"
+          }
+        },
+        "isolated_user_data": true
+      }
+    }
+  },
+  "source_record": "artifacts/macos/public/mp-20261009-174630/run-record.json"
+}

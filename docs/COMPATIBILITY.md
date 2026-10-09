@@ -1,12 +1,12 @@
 # Mac / 正式版适配与副测试环境
 
-本页记录 0.1.1 建立的隔离副测试环境。其历史结果见 [0.1.1 测试记录](testing/2026-10-08-compat.md)；当前版本 0.1.3 的实际验证范围以[本版测试记录](testing/2026-10-09-rollback.md)为准。
+本页记录隔离副测试环境和 0.1.4 的适配方式。具体通过项、DLL 指纹及未执行项目见[本版测试记录](testing/2026-10-09-expansion.md)；物理鼠标／键盘游玩另见 [Mac beta 对局记录](testing/2026-10-09-cua-playthrough.md)。
 
 ## 实际布局
 
 | 目标 | 环境和证据 |
 | --- | --- |
-| Windows public-beta | xht-rog 保留当前 Steam 分支并已安装 0.1.3；独立副本 `.tools/game-lab/windows-public-beta/game`，v0.111.0 真实程序集 |
+| Windows public-beta | xht-rog 保留当前 Steam 分支；独立副本 `.tools/game-lab/windows-public-beta/game`，v0.111.0 真实程序集；保留当前 25 个 Mod 组合 |
 | Mac ARM64 public-beta | Steam 正版 depot 2868842，独立下载 `.tools/game-lab/macos-public-beta/game/SlayTheSpire2.app`，v0.111.0 |
 | Windows / Mac ARM64 public | Steam 正版 depot 2868841 / 2868842，独立副环境，v0.107.1 真实程序集；验证状态逐项写入测试记录 |
 
@@ -30,7 +30,9 @@ Windows 使用对应的 `NoSufferingLab/windows-public-beta`。真实引擎日�
 
 `--force-steam=off` 放在原生参数区，`--ns-lab-probe` 放在 `--` 后。前者在这两个真实分支的原生 NGame 中关闭 Steam 初始化、云存储和 Workshop 查询；后者仅记录实际用户目录。使用真实引擎、磁盘存档与原生运行，不用 TestMode 的内存 Mock。初次启动可能因原生 Mod 提示尚未同意而不加载；`--enable-mods` 仅备份并更新已生成的专用副环境设置，保留其他配置。
 
-诊断玩法探针还要求完整用户目录精确匹配本平台的 NoSufferingLab 槽，以及明确的离线和探针参数。普通启动不会执行诊断。先古探针通过原生 API 设置第二幕、全解锁和测试路线；这不是正常完整通关、界面操作或联机验收。
+诊断玩法探针还要求完整用户目录精确匹配本平台的 NoSufferingLab 槽，以及明确的离线和探针参数。普通启动不会执行诊断。单人探针通过原生 API 设置幕次、解锁和测试路线；这不是正常完整通关或物理鼠标操作。Computer Use 游玩不带玩法探针参数，按游戏界面完成对局。
+
+联机探针使用两个实际原生进程、独立用户目录和原生 ENet 主机／客户端，明确绑定 `127.0.0.1`，不打开公网监听或修改防火墙。Mac 双副本采用不同 bundle ID 和独立可执行文件，资源可硬链接。`--seed-reload` 让首组进程正常结束，再通过原生加载大厅建立第二组进程，检查购买存档、库存、个人锁定和刷新种子。它验证本机原生网络链路与加载路径，不代表 Steam、互联网或两名真人的测试。
 
 ## 可复用命令
 
@@ -54,16 +56,21 @@ python3 scripts/lab.py run --platform macos --headless
 # 首次原生运行生成 settings.save 后启用副环境 Mod。
 python3 scripts/lab.py run --platform macos --headless --enable-mods --gameplay-probe --quit-after 6000
 python3 scripts/lab.py run --platform macos --headless --continue-probe --quit-after 6000
+python3 scripts/lab.py run --platform macos --branch public-beta --enable-mods --expansion-probe --headless --quit-after 0
+python3 scripts/mp-lab.py --platform macos --branch public-beta --headless
+python3 scripts/mp-lab.py --platform macos --branch public-beta --headless --seed-reload
 ```
 
 Windows 使用相同 Python 脚本，或已有 PowerShell 包装。`prepare` 从真实安装复制时排除主 Mod；下载 Mac 后恢复其主可执行文件的执行位，不关闭系统安全控制。`run --quit-after 0` 可启动人工游玩的独立环境。
 
 ## 验证边界
 
-0.1.1 历史记录分别记录了当时的构建、初始化、单人探针与独立进程继续；这些结果不代表 0.1.3 的回滚行为或当前兼容性。历史记录中 Windows 的 25 个 Mod 组合只验证了 0.1.1 启动共存，不构成玩法互操作或“兼容全部 Mod”的依据。Intel Mac、未来游戏版本和联机均没有兼容结论；联机测试按用户安排后续进行。
+各版本、平台和 Mod 组合的结果独立记录。Windows beta 当前 25-Mod 组合包含 BaseLib、RitsuLib、UndoAndRestart、AncientSL、Intent Graph、Custom Card Balance、角色与商人皮肤等；加载共存、NoSuffering 原生操作通过与交替调用对方功能是不同范围。未执行对方撤销／刷新按钮的场景不会标为互操作通过。
 
-0.1.3 四目标均构建和加载；Windows beta 的当前 25-Mod 组合通过七项地图／设置回归、十项核心检查，以及结算 Boss 和刷新牌序的新进程继续。Mac beta、Mac stable 和 Windows stable 的实际检查分别记录，不能从一个目标推断其他目标。主目录另行完成 Steam 启动检查和 14 份存档／伴随文件摘要比对；未进入主存档测试玩法。ModConfig 0.2.2 仅核对官方 API，其框架内运行未测试。
+ModConfig 为软依赖，独立设置在未安装框架时可用。官方 v0.2.2 标签没有发布二进制附件，测试使用该标签未修改源码、官方 Godot.NET.Sdk 4.5.1 及源生成器构建 DLL，并由官方 Godot 4.5.1 导出对应资源 PCK。在 Mac 正式版真实引擎中完成注册、双向同步、两份配置落盘与原生 Mods 控件检查。该证据不等同于官方发布二进制、真人点击或多人框架测试；不把框架打包为依赖。
 
-0.1.3 使用存档格式 2。仅接受已知的 0.1.1/0.1.2 格式 1 记录，且必须匹配游戏与其他 Mod 指纹及原生存档配对；旧格式只恢复可用的战斗检查点。旧记录没有保存的非战斗入口快照无法补造。详细行为及本版测试状态见[回滚测试记录](testing/2026-10-09-rollback.md)。
+已核查 Shop Enhancement `STS2_0.5.2` 官方发布 DLL。其调用的原生 `MerchantRoom.Inventory` 在本次 beta 中不存在，因此不能宣称该版本兼容；未修改或重新发布对方模组。测试记录列出该静态阻断证据，运行仍标为未执行。
+
+0.1.4 使用存档格式 2，接受已知的 0.1.3 格式 2 和 0.1.1/0.1.2 格式 1，仍须匹配游戏、其他 Mod 指纹及原生存档配对。旧记录没有保存的房间状态无法补造。Intel Mac、Linux、未来游戏版本及未列出的组合没有本版兼容结论。历史 0.1.1–0.1.3 记录仅代表当时范围，不用于填补当前未测项。
 
 依据：[Godot exported override](https://docs.godotengine.org/en/stable/classes/class_projectsettings.html)、[用户数据路径](https://docs.godotengine.org/en/stable/tutorials/io/data_paths.html)、[官方引擎设置加载源码](https://github.com/godotengine/godot/blob/4.5/core/config/project_settings.cpp)，以及下载后的真实引擎日志、原生 NGame / CommandLineHelper / SaveManager / ModManager 与程序集指纹。

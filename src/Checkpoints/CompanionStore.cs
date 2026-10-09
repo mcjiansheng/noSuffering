@@ -37,7 +37,8 @@ public static class CompanionStore
             var timeline=CheckpointService.Save();
             // History may advance after a victory save, but that old native save
             // still has unclaimed resources. Only retain its request-bound marker.
-            timeline=timeline with {SettledCombat=timeline.SettledCombat==_lastNativeTimeline?.SettledCombat?timeline.SettledCombat:null};
+            timeline=timeline with {SettledCombat=timeline.SettledCombat==_lastNativeTimeline?.SettledCombat?timeline.SettledCombat:null,
+                Shop=_lastNativeTimeline?.Shop,Ancient=_lastNativeTimeline?.Ancient};
             Write(Bridge.Thaw(_lastNative),timeline);
         }
     }
@@ -78,7 +79,7 @@ public static class CompanionStore
         // Format 2 adds node entry/settled-combat semantics. Read known format 1
         // predecessors without inventing entry snapshots absent from their data.
         bool legacy=data.Format==1 && data.ModVersion is "0.1.1" or "0.1.2";
-        bool versionCompatible=data.Format==2 && data.ModVersion==ModEntry.Version || legacy;
+        bool versionCompatible=data.Format==2 && (data.ModVersion==ModEntry.Version || data.ModVersion=="0.1.3") || legacy;
         bool modsCompatible=versionCompatible && data.Mods==FingerprintFor(data.ModVersion);
         if(!versionCompatible || data.GameAssembly!=GameAssembly || !modsCompatible || data.RunId!=run || data.NativeDigest!=digest) {
             Log.Warn($"[NoSuffering] Companion mismatch: format={data.Format}, version={versionCompatible}, game={data.GameAssembly==GameAssembly}, mods={modsCompatible}, run={data.RunId==run}, native={data.NativeDigest==digest}");
@@ -93,7 +94,9 @@ public static class CompanionStore
         SerializableRun save;
         if(MegaCrit.Sts2.Core.Combat.CombatManager.Instance.IsInProgress && CombatService.Baseline is not null)
             save=Bridge.Thaw(CombatService.Baseline);
-        else save=Bridge.Capture(Bridge.State.CurrentRoom);
+        // Native room deserialization cannot load MerchantRoom. Its current map
+        // coordinate is re-entered normally; ShopService restores the saved stock.
+        else save=Bridge.Capture(Bridge.State.CurrentRoom is MegaCrit.Sts2.Core.Rooms.MerchantRoom ? null : Bridge.State.CurrentRoom);
         var native=(RunSaveManager)AccessTools.Field(typeof(SaveManager),"_runSaveManager").GetValue(SaveManager.Instance)!;
         // Participate in the native write slot even when saving a frozen combat
         // baseline rather than the active, unserializable combat room.

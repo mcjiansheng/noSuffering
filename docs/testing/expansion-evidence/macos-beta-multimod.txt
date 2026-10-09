@@ -1,0 +1,34 @@
+Mac ARM64 public-beta 25-mod isolated load and native expansion validation
+Date: 2026-10-09
+
+Environment
+- Game: Slay the Spire 2 v0.111.0, release commit 41cef1ea, Steam build 24724944.
+- Runtime: net9.0 / .NET 9.0.7, Godot 4.5.1.
+- Game assemblies: sts2.dll 9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4; GodotSharp.dll 0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289; 0Harmony.dll ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387.
+- NoSuffering: 0.1.4, DLL SHA-256 578af2e74dd28d39b19754d1d291ce5b8890638a1c85126c6f4a7f5273df9031.
+- The app bundle is an APFS clone in the ignored `.tools/game-lab/macos-public-beta-25mod` slot. Its profile is `NoSufferingLab/macos-public-beta-25mod`; the first load attempt left the original public-beta app and profile untouched. The later accepted-profile run restored the original profile byte-for-byte as recorded below.
+
+Copied Windows-beta mod profile and versions
+- Merchant2CuteII v1.5.3; intentgraph2 1.6.0; AnimeWaifuSilent v1.4.3; regentSkin 0.8.0; silentSkin 0.7.1; neowSkin 0.0.1; RegentCardsAnimeRework v1.0; NecrobinderFemPortraits v0.1.3; RegentFemPortraits v1.0; necrobinderSkin 0.9.1; ironcladSkin 0.0.1; RTRsMoeifyMod_ancients v0.2.0; STS2-RitsuLib 0.6.7; Mechaneko_Defect 1.1.2; sts_nndx 0.1.1; CustomCardBalance 2.9.1; ATA_IronClad 0.1.12; UndoAndRestart 0.111.0.4; AncientSL 1.0; BaseLib v3.4.7; CrystalSphereAlpha v0.0.1; AliceDefectVoicepack 1.0.2; AliceDefectVoiceBridge 1.3.1; AliceDefectSkin 0.1.33; NoSuffering 0.1.4.
+- MintySpire2 v1.2.0 was installed but disabled, matching the Windows profile (26 total entries, 25 enabled).
+- Third-party assets remain only in ignored local test artifacts; none are included in this evidence file or tracked source.
+
+Run: `python3 scripts/lab.py run --platform macos --branch public-beta-25mod --headless --quit-after 900 --expansion-probe`
+- Actual mod load: PASS. Log: `Loaded 25 mods (26 total)`; NoSuffering 0.1.4 initialized.
+- Lab user-data isolation: PASS; observed path ends in `NoSufferingLab/macos-public-beta-25mod`.
+- Offline Steam initialization: PASS; process exit code 0.
+- Expansion probe: NOT RUN; record status `smoke_incomplete`, with no check results.
+- Blocking excerpt: `[NoSuffering] GAMEPLAY_PROBE refused: requires --force-steam=off and an actual NoSufferingLab user directory.`
+- Cause: `src/Diagnostics/GameplayProbe.cs` only accepts exact user-directory paths `OS.GetDataDir()/NoSufferingLab/macos-public-beta` or `OS.GetDataDir()/NoSufferingLab/macos-public`. The independently isolated `macos-public-beta-25mod` profile is rejected before the expansion checks begin. No source or diagnostic code was changed.
+- Other log findings: RitsuLib reports missing `localization/settings/zh_hans_cn.json`. The loader also emits an `[ERROR]`-level old-style dependency diagnostic whose message says it still works. Neither prevented game startup or the 25-mod load. Godot emitted resource/RID cleanup warnings at headless exit.
+
+Raw ignored records: `artifacts/macos/public-beta-25mod/lab-20261009T102737072195Z/run-record.json`, `engine.log`, and `stdout.log`.
+
+Follow-up native probe with the accepted isolated profile name
+- After the original Mac beta app was closed, its `NoSufferingLab/macos-public-beta` profile was moved into an ignored backup. Its recursive manifest contains 293 files; the original was restored and verified byte-for-byte after the run.
+- The 25-mod clone temporarily used the exact accepted user directory `OS.GetDataDir()/NoSufferingLab/macos-public-beta`, backed by a separate copy of its own 25-mod test profile. The original UI profile was never used by the test process.
+- Direct command: `<cloned-game-app>/Contents/MacOS/Slay the Spire 2 --log-file <ignored-run>/engine.log --max-fps 30 --headless --quit-after 6000 --force-steam=off -- --ns-lab-probe --ns-expansion-probe`.
+- Result: `Loaded 25 mods (26 total)`; NoSuffering initialized; isolated profile path observed; Steam offline; exit code 0; all 13 native checks PASS.
+- Passing checks: `initial_ancient_options_claim_proceed`, `shop_targeted_refresh_native_prices`, `shop_failed_purchase_unlocked`, `shop_courier_purchase_locks`, `boss_reject_act_two`, `boss_reject_nonboss`, `boss_health_additive_damage`, `boss_health_normal_restart`, `boss_health_new_order_restart`, `boss_health_native_save_continue`, `shop_entry_relic_effects`, `shop_reroll_continue_no_entry_effects`, and `shop_purchase_continue_no_entry_effects`.
+- Restoration proof: original profile recursive SHA-256 `4789cab5a44ba576f9f5691d082c26379572433530b254f852e9427775e3cf78` matched before/after across all 293 files; clone override bytes matched its saved copy; original beta app executable hash remained `ec8c10831dbb424c45859907f5ef6a7711f7a6e9a02f386ad13922ba8a7fcbe7`; original and clone NoSuffering DLLs remained `578af2e74dd28d39b19754d1d291ce5b8890638a1c85126c6f4a7f5273df9031`. No game process remained running after the test.
+- Full ignored result: `artifacts/macos/public-beta-25mod/accepted-profile-expansion/run-and-restore-record.json`; native logs and post-test profile copy are under `artifacts/macos/public-beta-25mod/accepted-profile-expansion/`; original profile backup and SHA manifest are under `artifacts/macos/public-beta-25mod/profile-backups/`.

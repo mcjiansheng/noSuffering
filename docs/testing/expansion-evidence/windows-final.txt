@@ -44,7 +44,6 @@
   "builds": {
     "public-beta": {
       "stage_dll_sha256": "37c24306f950eb1e5c4d6763be2ad40a3a5a2574d47fba6674c4464995f65a2e",
-      "zip_sha256": "09bf934ca7bc39d1695116a1876a0c544b9792126a7cb0b879bb495df5b1bd53",
       "record": {
         "platform": "windows",
         "branch": "public-beta",
@@ -90,11 +89,11 @@
         "load": "not_executed",
         "singleplayer": "not_executed",
         "multiplayer": "not_executed"
-      }
+      },
+      "build_zip_sha256_before_documentation_refresh": "09bf934ca7bc39d1695116a1876a0c544b9792126a7cb0b879bb495df5b1bd53"
     },
     "public": {
       "stage_dll_sha256": "a466aa23ae97e128e61e57df76dd1a1176511094531a18763ece7e62ff1200c5",
-      "zip_sha256": "4e924440cbfc3a477a7fb1ea0af5eb991a1d735b30b70f15828ec21cb9bfc6fb",
       "record": {
         "platform": "windows",
         "branch": "public",
@@ -140,7 +139,8 @@
         "load": "not_executed",
         "singleplayer": "not_executed",
         "multiplayer": "not_executed"
-      }
+      },
+      "build_zip_sha256_before_documentation_refresh": "4e924440cbfc3a477a7fb1ea0af5eb991a1d735b30b70f15828ec21cb9bfc6fb"
     }
   },
   "runs": {

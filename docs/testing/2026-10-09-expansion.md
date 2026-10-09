@@ -8,7 +8,7 @@
 
 | 目标 | 实际游戏 | 运行时 | Mod 组合 |
 | --- | --- | --- | --- |
-| Mac ARM64 beta | v0.111.0 / `41cef1ea` / Steam build `24724944` | .NET 9.0.7、Godot 4.5.1、Harmony 2.4.2 | NoSuffering |
+| Mac ARM64 beta | v0.111.0 / `41cef1ea` / Steam build `24724944` | .NET 9.0.7、Godot 4.5.1、Harmony 2.4.2 | NoSuffering；25-Mod 组合专项使用独立克隆 |
 | Mac ARM64 正式版 | v0.107.1 / `59260271` / Steam build `23811903` | 同上 | NoSuffering；框架专项另加源码构建的 ModConfig 0.2.2 |
 | Windows x64 beta | xht-rog，v0.111.0，同上 commit/build | 同上 | 原有 25-Mod 组合，含 NoSuffering |
 | Windows x64 正式版 | xht-rog，v0.107.1，同上 commit/build | 同上 | NoSuffering |
@@ -19,21 +19,23 @@
 
 | 目标／DLL | 构建 | 加载 | 单人 | 双客户端 | 独立进程继续 |
 | --- | --- | --- | --- | --- | --- |
-| Mac beta `578af2e7…` | PASS，0 警告／错误 | PASS | 之前 `068a7ee9…` 新增功能 10/10；最终版完整 UI 对局进行中 | 同 DLL 原生 12/12，两端退出码 0 | 同 DLL：购买自动存档、实际进程退出／原生 load/join、库存锁定与下一次种子 PASS；UI 已确认刷新牌序跨进程保留 |
+| Mac beta `578af2e7…` | PASS，0 警告／错误 | PASS | 同 DLL、25-Mod 组合新增功能 13/13；完整 UI 对局进行中 | 同 DLL 原生 12/12，两端退出码 0 | 同 DLL：购买自动存档、实际进程退出／原生 load/join、库存锁定与下一次种子 PASS；UI 已确认刷新牌序跨进程保留 |
 | Mac 正式版 `3e71f533…` | PASS，0 警告／错误 | PASS | 同 DLL 新增功能 13/13；`90a1b604…` ModConfig 专项 PASS | `730ed3b5…` 原生 12/12，两端退出码 0；最终商店钩子修正由单人及新进程检查覆盖 | 最终 DLL：购买自动存档后两进程退出、重新加载／加入 PASS |
 | Windows beta `37c24306…` | PASS，0 警告／错误 | PASS，实际加载 25 Mod | 同 DLL 新增功能 13/13；`f90d32cb…` 地图／设置 7/7 | 同 DLL 原生 12/12，两端退出码 0 | 同 DLL：独立进程购买续档与新种子 PASS |
-| Windows 正式版 `a466aa23…` | PASS，0 警告／错误 | PASS，实际加载 1 Mod | 同 DLL 新增功能 13/13；`e3cabac3…` 地图／设置 7/7 | 本轮未执行 | 同进程原生磁盘续读 PASS；本轮独立进程未执行 |
+| Windows 正式版 `a466aa23…` | PASS，0 警告／错误 | PASS，实际加载 1 Mod | 同 DLL 新增功能 13/13；`e3cabac3…` 地图／设置 7/7 | 同 DLL 原生 12/12，两端退出码 0 | 同 DLL：购买自动存档、实际进程退出／原生 load/join、库存锁定与下一次种子 PASS |
 
-最终 Windows 源码快照为 `24253ce23c77e76205ad68701697144e5d008f7055c83af2ceea7f496d7663dc`。前序 `874ac3ab…` 的地图／设置 7 项在相关代码未变时保留，不重复冒充最终 DLL 运行。最终各目标的完整 DLL 摘要、检查内容及退出码见[结构化证据](expansion-evidence/windows-final.txt)、[Mac beta 联机](expansion-evidence/macos-beta-mp.txt)、[Mac beta 新进程](expansion-evidence/macos-beta-fresh.txt)、[Mac 正式版单人](expansion-evidence/macos-stable-sp.txt)、[Mac 正式版新进程](expansion-evidence/macos-stable-fresh.txt)。
+最终 Windows 源码快照为 `24253ce23c77e76205ad68701697144e5d008f7055c83af2ceea7f496d7663dc`。前序 `874ac3ab…` 的地图／设置 7 项在相关代码未变时保留，不重复冒充最终 DLL 运行。最终各目标的完整 DLL 摘要、检查内容及退出码见[结构化证据](expansion-evidence/windows-final.txt)、[Mac beta 联机](expansion-evidence/macos-beta-mp.txt)、[Mac beta 新进程](expansion-evidence/macos-beta-fresh.txt)、[Mac 正式版单人](expansion-evidence/macos-stable-sp.txt)、[Mac 正式版新进程](expansion-evidence/macos-stable-fresh.txt)、[Windows 正式版联机及新进程](expansion-evidence/windows-stable-mp.txt)、[Mac beta 25-Mod 功能检查](expansion-evidence/macos-beta-multimod.txt)。
 
 原始运行记录保存在本地忽略目录 `artifacts`：
 
+- Mac beta 25-Mod 最终 13 项：`macos/public-beta-25mod/accepted-profile-expansion/run-and-restore-record.json`；完整树摘要证明原界面对局的 293 份文件已原样恢复。
 - Mac beta 双客户端：`macos/public-beta/mp-20261009-174439/run-record.json`。
 - Mac beta 新进程：`macos/public-beta/mp-20261009-174529/run-record.json`。
 - Mac 正式版双客户端：`macos/public/mp-20261009-173108/run-record.json`。
 - Mac 正式版新进程：`macos/public/mp-20261009-174630/run-record.json`。
 - Mac 正式版最终 13 项：`macos/public/lab-20261009T094047737570Z/run-record.json`。
 - ModConfig 与单人：`macos/public/lab-20261009T092653596135Z/run-record.json`。
+- Windows 正式版双客户端／独立进程：`windows/public/mp-20261009-181819/run-record.json`、`windows/public/mp-20261009-181938/run-record.json`。
 - Windows 最终汇总：`validation/windows-24253ce2.json`，包含源码、DLL、单人、两次联机运行和完整模组版本；阶段地图／设置结果在 `validation/windows-874ac3ab.json`。
 
 ## 功能检查的具体含义
@@ -44,18 +46,18 @@
 - 整体刷新本人原生库存，房间／地图位置不变，原生 Shops／Rewards RNG 不受污染；会员卡和送货员的价格叠加正确。
 - 金币不足的真实失败购买不锁刷新，随后刷新成功。
 - 成功购买改变金币与牌组，送货员补货仍锁定刷新。
-- 正常商店入场只执行一次餐券治疗 15、Maw Bank 金币 12；刷新后或购买后保存并经原生磁盘加载，已有损伤、金币和购买锁定不变，不重复执行入场收益。此三项新增断言在 Mac 正式版与 Windows 两分支通过。
+- 正常商店入场只执行一次餐券治疗 15、Maw Bank 金币 12；刷新后或购买后保存并经原生磁盘加载，已有损伤、金币和购买锁定不变，不重复执行入场收益。此三项新增断言在四个目标通过；Mac beta 使用 25-Mod 组合。
 - 第二幕 Boss 和第三幕普通敌人拒绝增血且不改变状态。
 - 第三幕 Boss 对每个存活敌人增加当前有效上限的 25%，已有损伤保留，战前基线不变。
 - 普通重开、新牌序重开、再次普通重开及原生磁盘续读保持确切增血量，不重复叠加；当前牌序尝试保留。
 
 原生双客户端 12 项检查覆盖：真实建局、伪造他人身份选择被拒绝、房主领取后客户端仍能仅刷新自身且扣自身生命、双方独立领取与 Proceed、客户端个人商店刷新、送货员购买及所有者库存同步、客户端不能执行房主增血、普通重开、新牌序重开、地图回滚、待完成的奖励任务先于刷新收费处理、原生商店磁盘续读。
 
-另一次独立进程检查先刷新商店、让客户端成功购买并自动存档，未追加手动保存或刷新便退出两端；第二组进程通过游戏原生加载大厅继续。Mac 正式版恢复的客户端金币 9961、牌组 11 张、库存及购买锁定一致；下一次刷新使用新的持久化 Revision 输入，Revision 2→3，种子 `363808084864638692`→`885736499033398724`。Mac beta 对应过程恢复金币 9939、牌组 11 张，种子 `14429437140635911785`→`1218682949736837250`。Windows beta 也独立通过同一过程。它们不是 Steam 或互联网多人测试。
+另一次独立进程检查先刷新商店、让客户端成功购买并自动存档，未追加手动保存或刷新便退出两端；第二组进程通过游戏原生加载大厅继续。Mac 正式版恢复的客户端金币 9961、牌组 11 张、库存及购买锁定一致；下一次刷新使用新的持久化 Revision 输入，Revision 2→3，种子 `363808084864638692`→`885736499033398724`。Mac beta 对应过程恢复金币 9939、牌组 11 张，种子 `14429437140635911785`→`1218682949736837250`。Windows beta 与正式版也各自独立通过同一过程。它们不是 Steam 或互联网多人测试。
 
 ## 设置和常用模组
 
-Windows beta 实际加载组合包含 BaseLib 3.4.7、RitsuLib 0.6.7、UndoAndRestart 0.111.0.4、AncientSL 1.0、Intent Graph 1.6.0、Custom Card Balance 2.9.1、CrystalSphereAlpha 0.0.1，以及当前角色、先古之民、商人皮肤和语音模组。每项原生操作通过只证明此组合中的对应场景，未据此宣称对方所有功能或任意组合兼容。
+Windows beta 与独立 Mac beta 克隆实际加载组合包含 BaseLib 3.4.7、RitsuLib 0.6.7、UndoAndRestart 0.111.0.4、AncientSL 1.0、Intent Graph 1.6.0、Custom Card Balance 2.9.1、CrystalSphereAlpha 0.0.1，以及当前角色、先古之民、商人皮肤和语音模组。Mac beta 13 项检查使用同一最终 DLL；固定测试目录限制使首次新目录运行未执行，随后在游戏关闭期间临时移开原副环境存档，使用独立测试内容运行，结束后逐文件核对恢复，未修改主存档。每项原生操作通过只证明此组合中的对应场景，未据此宣称对方所有功能或任意组合兼容。
 
 已只读核对安装的 UndoAndRestart 生命周期：原生 `CombatManager.Reset(bool)` 后调用 `UndoRedoManager.Reset()`，清空历史、选择、待执行动作和导航，取消恢复并递增世代；战斗对象引用变化另有清理。最终 beta 单人与联机日志均记录 NoS 重开／回滚之前旧历史 reset、之后新建会话／快照。多人中对方明确禁用单步撤销捕获。此项证明实际原生重载经过对方清理路径，没有执行第三方 Undo 按钮，不宣称交替撤销验收。AncientSL 的 `EventRoom.OnEventStateChanged` 回调在个人刷新和替换后仍保留；单人及双客户端领取／Proceed 实际通过。
 
@@ -76,7 +78,7 @@ Mac 正式版实际框架运行 PASS：注册 14 个设置，开关／百分比�
 - Windows 路径分隔符曾使多人诊断拒绝启动，已统一规范路径并在非法探针参数下退出，避免继续原生快速建局。该次未完成运行不算多人通过。
 - 地图／设置探针曾仍断言 5 个开关，更新为本版 7 个后 Windows 两分支 7/7 通过。
 - ModConfig 首次诊断调用受保护 OnRelease 没有发出原生 Released 信号；改用公开 ForceTabPressed 后真实页签检查通过。这是诊断调用问题。
-- 静态审查发现商店保存的是入场后状态，但续读会再次触发餐券／Maw Bank 等入场效果。已为实际保存库存恢复的那次新房间重建设置一次性标记，仅跳过它的重复入场玩法钩子；普通入场和入场前回滚不跳过。新增三项原生检查在 Mac 正式版和 Windows 两分支通过，补修后的 beta 双客户端和 Mac 双分支新进程续档通过；独立复查未发现具体回归。
+- 静态审查发现商店保存的是入场后状态，但续读会再次触发餐券／Maw Bank 等入场效果。已为实际保存库存恢复的那次新房间重建设置一次性标记，仅跳过它的重复入场玩法钩子；普通入场和入场前回滚不跳过。新增三项原生检查在四个目标通过，补修后的 beta 双客户端和 Mac 双分支新进程续档通过；独立复查未发现具体回归。
 
 ## xht-rog 主目录部署
 
@@ -84,6 +86,6 @@ Mac 正式版实际框架运行 PASS：注册 14 个设置，开关／百分比�
 
 ## Computer Use 和未测边界
 
-完整 Mac beta 对局见[独立记录](2026-10-09-cua-playthrough.md)，当前进行中。初始全屏模式使 Computer Use 找不到可点击窗口，通过系统 Window→Exit Full Screen 恢复；这属于操作环境问题，不算模组通过项。
+完整 Mac beta 对局见[独立记录](2026-10-09-cua-playthrough.md)，当前进行中，已完成两种战斗重开、刷新牌序跨进程保留、战斗及事件回滚、自带设置、商店刷新与购买锁定跨进程保留的界面操作；第二／三幕和结局仍未完成。初始全屏模式使 Computer Use 找不到可点击窗口，通过系统 Window→Exit Full Screen 恢复；这属于操作环境问题，不算模组通过项。
 
 未完成的完整对局、Steam／互联网多人、两台实机真人联机、Intel Mac、Linux、未来游戏版本、未列出的 Mod 组合，以及交替使用第三方撤销／刷新按钮，均未标为通过。历史版本结果不填补这些边界。

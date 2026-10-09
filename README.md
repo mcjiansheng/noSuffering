@@ -52,6 +52,6 @@ Mac 远端工作流程：复制 `local.env.example` 为 `local.env`，填写已�
 
 ## 当前兼容范围
 
-优先基线：public-beta **v0.111.0 / build 24724944**；正式版基线：**v0.107.1 / build 23811903**。Windows 与 Mac ARM64 的两分支分别构建，逐项记录加载、单人、原生双客户端联机与独立进程续档。Windows beta 使用实际 25-Mod 组合；ModConfig 另以官方 v0.2.2 源码构建的完整 DLL/PCK 在 Mac 正式版运行验证。[本版测试记录](docs/testing/2026-10-09-expansion.md)列出对应 DLL、场景、失败与限制；不能将引擎夹具测试当作完整游玩，也不能从一个组合推断所有 Mod 兼容。
+优先基线：public-beta **v0.111.0 / build 24724944**；正式版基线：**v0.107.1 / build 23811903**。Windows 与 Mac ARM64 的两分支分别构建，逐项记录加载、单人、原生双客户端联机与独立进程续档。Windows beta 与 Mac beta 专项使用实际 25-Mod 组合；ModConfig 另以官方 v0.2.2 源码构建的完整 DLL/PCK 在 Mac 正式版运行验证。[本版测试记录](docs/testing/2026-10-09-expansion.md)列出对应 DLL、场景、失败与限制；不能将引擎夹具测试当作完整游玩，也不能从一个组合推断所有 Mod 兼容。
 
 0.1.4 接受已知 0.1.3 格式 2 和 0.1.1/0.1.2 格式 1 的配对记录，仍要求游戏及其他玩法 Mod 指纹一致。旧格式只能恢复其实际记录的检查点；缺少的历史房间状态无法补造。Intel Mac、Linux、其他游戏版本、Steam／互联网多人和未列出的 Mod 组合尚无本版验证结论。技术参考和署名见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

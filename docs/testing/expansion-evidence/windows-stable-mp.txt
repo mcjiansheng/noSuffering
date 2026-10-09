@@ -1,0 +1,61 @@
+Windows stable native multiplayer validation
+Captured UTC: 2026-10-09T10:21:16.589011+00:00
+
+Game: Windows public v0.107.1; isolated lab; NoSuffering 0.1.4 only.
+Source aggregate SHA256: 24253ce23c77e76205ad68701697144e5d008f7055c83af2ceea7f496d7663dc
+Remote and local production source file hashes matched final build snapshot at collection.
+No rebuild, source changes, beta-lab changes, primary install or primary save writes.
+NoSuffering.dll SHA256: a466aa23ae97e128e61e57df76dd1a1176511094531a18763ece7e62ff1200c5
+Native executable SHA256: 59c3e86e43e8388cb2b03e40544cca7309c7d34519498bed91d88595e766bf82
+scripts/mp-lab.py SHA256: 0c98a4c5bebd6dc9aa551e89ce3ac22955693b89940ec746c30103b1eb015c89
+Observed full-run host UDP binding: ::ffff:127.0.0.1:33771, PID 9480.
+Native game processes remaining after tests: none.
+
+Full native two-peer checks
+Command: py scripts/mp-lab.py --platform windows --branch public --headless --timeout 600
+Remote root: <authorized-remote-checkout>
+Record: artifacts/windows/public/mp-20261009-181819/run-record.json
+Record SHA256: 90cb428e56dddd4a92d84df1bf0c1920f0eec566152d7b5d98eb6ed005c3e66b
+host: exit 0; isolated_user_data=True; 12 checks passed.
+  native_two_peer_start: PASS: native ENet host 1/client 2, native lobby/run/ancient
+  authenticated_ancient_choice: PASS: actual client forged host actor choice rejected; no reward committed
+  client_F03_after_host_claim: PASS: client request rerolled only own event and charged own 3 HP after host claimed
+  independent_claim_native_proceed: PASS: both actual native reward handlers and local Proceed completed
+  client_shop_refresh: PASS: actual client shop request replaced only client stock
+  courier_purchase_owner_stock: PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock
+  host_only_boss_hp: PASS: client host-only request ignored; host increased live boss current/max HP on both peers
+  normal_restart: PASS: actual two-peer native combat reload retained boss increment
+  new_order_restart: PASS: actual two-peer refreshed-order reload retained boss increment
+  map_rollback: PASS: actual native two-peer rollback completed
+  pending_ancient_choice_boundary: PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable
+  shop_disk_continue: PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock
+client: exit 0; isolated_user_data=True; 12 checks passed.
+  native_two_peer_start: PASS: native ENet host 1/client 2, native lobby/run/ancient
+  authenticated_ancient_choice: PASS: actual client forged host actor choice rejected; no reward committed
+  client_F03_after_host_claim: PASS: client request rerolled only own event and charged own 3 HP after host claimed
+  independent_claim_native_proceed: PASS: both actual native reward handlers and local Proceed completed
+  client_shop_refresh: PASS: actual client shop request replaced only client stock
+  courier_purchase_owner_stock: PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock
+  host_only_boss_hp: PASS: client host-only request ignored; host increased live boss current/max HP on both peers
+  normal_restart: PASS: actual two-peer native combat reload retained boss increment
+  new_order_restart: PASS: actual two-peer refreshed-order reload retained boss increment
+  map_rollback: PASS: actual native two-peer rollback completed
+  pending_ancient_choice_boundary: PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable
+  shop_disk_continue: PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock
+
+Separate fresh-process seed reload
+Command: py scripts/mp-lab.py --platform windows --branch public --headless --seed-reload --timeout 600
+Remote root: <authorized-remote-checkout>
+Record: artifacts/windows/public/mp-20261009-181938/run-record.json
+Record SHA256: 09f24dbcc530fb29112d99b70bff1adcf9dc7d6715210f6f4b4df9e929af747d
+host: exit 0; isolated_user_data=True; 1 checks passed.
+  fresh_process_seed_resume: PASS: actual exited/restarted native peers loaded saved run and first reroll used a distinct persisted-revision seed
+  first lifetime: exit 0; isolated_user_data=True
+    fresh_process_seed_first: PASS: first reroll then native client Courier purchase committed its own disk save before process exit
+client: exit 0; isolated_user_data=True; 1 checks passed.
+  fresh_process_seed_resume: PASS: actual exited/restarted native peers loaded saved run and first reroll used a distinct persisted-revision seed
+  first lifetime: exit 0; isolated_user_data=True
+    fresh_process_seed_first: PASS: first reroll then native client Courier purchase committed its own disk save before process exit
+
+Scope: two actual native headless processes using loopback ENet; native room/act fixtures, native disk save/read, and genuinely exited/restarted peers.
+Not a Steam/public-internet multiplayer, physical-pointer GUI, full-playthrough, or arbitrary-mod compatibility claim.

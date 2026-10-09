@@ -1,0 +1,8 @@
+{
+  "native_runs": 2,
+  "native_unchanged": true,
+  "original_companion_files": 4,
+  "original_companion_unchanged": true,
+  "backup": "neow-original-save-20261009-114932",
+  "scope": "primary save bytes compared with read-only backup; no save advancement"
+}

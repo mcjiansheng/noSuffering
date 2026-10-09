@@ -1,0 +1,47 @@
+{
+  "record": "lab-20261009T034147422580Z",
+  "release": {
+    "commit": "41cef1ea",
+    "version": "v0.111.0",
+    "date": "2026-08-13T17:39:18-07:00",
+    "branch": "v0.111.0",
+    "main_assembly_hash": 1172974615
+  },
+  "assemblies": [
+    {
+      "name": "sts2.dll",
+      "sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4"
+    },
+    {
+      "name": "GodotSharp.dll",
+      "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+    },
+    {
+      "name": "0Harmony.dll",
+      "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+    }
+  ],
+  "mod_sha256": "12d06d0f61df565fa920f707b2468783822bc715d697c65ae4528c2651ea6000",
+  "load": "passed",
+  "singleplayer": "smoke_failed",
+  "singleplayer_scope": "native-engine singleplayer Neow reward and button-handler regression; no physical pointer or multiplayer test",
+  "singleplayer_checks": {
+    "neow_reroll_claim_proceed": "FAIL: Native Proceed click did not open an actionable map."
+  },
+  "singleplayer_state": {
+    "stale_reward_rejected": true,
+    "options": [
+      "LAVA_ROCK",
+      "NEOWS_TORMENT",
+      "SILVER_CRUCIBLE"
+    ],
+    "reward": "LAVA_ROCK",
+    "event_finished": true,
+    "proceed_in_model_options": false,
+    "map_open_before_click": false,
+    "map_open_after_click": false,
+    "travel_enabled_after_click": false
+  },
+  "exit_code": 1,
+  "multiplayer": "not_executed"
+}

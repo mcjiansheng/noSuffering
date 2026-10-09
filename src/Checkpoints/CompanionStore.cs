@@ -1,7 +1,9 @@
 using System.Text.Json;
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Debug;
 using MegaCrit.Sts2.Core.Modding;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
@@ -20,8 +22,9 @@ public static class CompanionStore
     public static long LoadedRevision {get;private set;}
     public static string? Error {get;private set;}
     private static string Root=>ProjectSettings.GlobalizePath("user://NoSuffering/runs");
-    private static string Fingerprint=>Bridge.Hash(string.Join("\n",ModManager.Mods.Where(m=>(m.state==ModLoadState.Loaded && m.manifest?.affectsGameplay!=false) || m.manifest?.id=="NoSuffering")
-        .Select(m=>m.manifest?.id+"@"+m.version).Order()));
+    private static string Fingerprint=>FingerprintFor(ModEntry.Version);
+    private static string FingerprintFor(string ownVersion)=>Bridge.Hash(string.Join("\n",ModManager.Mods.Where(m=>(m.state==ModLoadState.Loaded && m.manifest?.affectsGameplay!=false) || m.manifest?.id=="NoSuffering")
+        .Select(m=>m.manifest?.id=="NoSuffering" ? "NoSuffering@"+SemanticVersion.FromString(ownVersion) : m.manifest?.id+"@"+m.version).Order()));
     private static string GameAssembly=>typeof(RunManager).Assembly.ManifestModule.ModuleVersionId.ToString();
     private static string NativeDigest(SerializableRun save) {
         var copy=Bridge.Thaw(Bridge.Freeze(save));
@@ -61,10 +64,17 @@ public static class CompanionStore
             return;
         }
         var data=JsonSerializer.Deserialize<CompanionCommit>(File.ReadAllText(file)) ?? throw new InvalidOperationException("伴随存档为空");
-        if(data.Format!=1 || data.ModVersion!=ModEntry.Version || data.GameAssembly!=GameAssembly || data.Mods!=Fingerprint || data.RunId!=run || data.NativeDigest!=digest) {
+        // 0.1.2 fixes only button routing; its snapshot format and gameplay state
+        // are identical to 0.1.1. Accept that exact predecessor while requiring
+        // the original game, every other gameplay mod, run and native commit.
+        bool versionCompatible=data.ModVersion==ModEntry.Version || (ModEntry.Version=="0.1.2" && data.ModVersion=="0.1.1");
+        bool modsCompatible=versionCompatible && data.Mods==FingerprintFor(data.ModVersion);
+        if(data.Format!=1 || !versionCompatible || data.GameAssembly!=GameAssembly || !modsCompatible || data.RunId!=run || data.NativeDigest!=digest) {
+            Log.Warn($"[NoSuffering] Companion mismatch: format={data.Format==1}, version={versionCompatible}, game={data.GameAssembly==GameAssembly}, mods={modsCompatible}, run={data.RunId==run}, native={data.NativeDigest==digest}");
             Error="存档版本或模组组合不符，请保留原存档";return;
         }
         CheckpointService.Restore(data.Timeline);LoadedRevision=data.Revision;
+        if(data.ModVersion!=ModEntry.Version)Log.Info("[NoSuffering] Loaded compatible 0.1.1 companion; format, game, other mods and native commit matched.");
     }
     public static async Task SaveNativeCurrent() {
         var manager=RunManager.Instance;

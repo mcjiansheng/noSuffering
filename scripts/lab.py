@@ -200,6 +200,8 @@ def run(args):
         command.append('--ns-gameplay-probe')
     if args.continue_probe:
         command.append('--ns-gameplay-continue-probe')
+    if args.neow_probe:
+        command.append('--ns-neow-probe')
     result = dict(record, command=command, load='running', singleplayer='not_executed',
                   multiplayer='not_executed', mod_sha256=sha256(mods / 'NoSuffering' / 'NoSuffering.dll'),
                   **settings_update)
@@ -212,8 +214,8 @@ def run(args):
         verified = bool(paths) and all(p.strip().replace('\\', '/').rstrip('/').endswith('/' + suffix) for p in paths)
         initialized = bool(re.search(r'\[NoSuffering\] \S+ initialized; game=', logs))
         offline = 'Steam initialization skipped' in logs
-        if args.gameplay_probe or args.continue_probe:
-            marker = 'GAMEPLAY_PROBE_RESULTS' if args.gameplay_probe else 'CONTINUE_PROBE_RESULTS'
+        if args.gameplay_probe or args.continue_probe or args.neow_probe:
+            marker = 'NEOW_PROBE_RESULTS' if args.neow_probe else 'GAMEPLAY_PROBE_RESULTS' if args.gameplay_probe else 'CONTINUE_PROBE_RESULTS'
             reports = re.findall(r'\[NoSuffering\] ' + marker + r' (\{[^\r\n]+\})', logs)
             if reports:
                 report = json.loads(reports[-1])
@@ -221,9 +223,11 @@ def run(args):
                 passed = bool(checks) and all(value.startswith('PASS') for value in checks.values())
                 result.update(singleplayer='smoke_passed' if passed else 'smoke_failed',
                               singleplayer_scope=report['scope'], singleplayer_checks=checks, acceptance='not_executed')
+                if args.neow_probe:
+                    result['singleplayer_state'] = report['state']
             else:
                 result.update(singleplayer='smoke_incomplete', acceptance='not_executed')
-        normal_exit = completed.returncode == 0 or ((args.gameplay_probe or args.continue_probe) and bool(reports))
+        normal_exit = completed.returncode == 0 or ((args.gameplay_probe or args.continue_probe or args.neow_probe) and bool(reports))
         result.update(exit_code=completed.returncode, observed_user_data=paths,
                       isolated_user_data='passed' if verified else 'failed',
                       offline='passed' if offline else 'unverified',
@@ -252,12 +256,13 @@ def main():
     parser.add_argument('--enable-mods', action='store_true', help='Enable mods only in existing native lab settings, with backup.')
     parser.add_argument('--continue-probe', action='store_true', help='Verify native disk continuation in a fresh process.')
     parser.add_argument('--gameplay-probe', action='store_true', help='Run the opt-in native gameplay diagnostic; does not imply acceptance.')
+    parser.add_argument('--neow-probe', action='store_true', help='Verify act-one Neow reward reroll, claim and native Proceed button.')
     parser.add_argument('--quit-after', type=int, default=300, help='Native frame limit; 0 runs until closed.')
     args = parser.parse_args()
     if args.action == 'prepare' and not args.game_dir:
         parser.error('prepare requires --game-dir or STS2_INSTALL_DIR.')
-    if args.gameplay_probe and args.continue_probe:
-        parser.error('Choose gameplay-probe or continue-probe for one process.')
+    if sum((args.gameplay_probe, args.continue_probe, args.neow_probe)) > 1:
+        parser.error('Choose one gameplay, continue or Neow probe per process.')
     if args.quit_after < 0:
         parser.error('--quit-after must be nonnegative.')
     try:

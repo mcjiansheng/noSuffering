@@ -8,8 +8,12 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Characters;
+using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Nodes;
+using MegaCrit.Sts2.Core.Nodes.Events;
+using MegaCrit.Sts2.Core.Nodes.Rooms;
+using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves;
@@ -35,19 +39,20 @@ public static class GameplayProbe
         var args = OS.GetCmdlineUserArgs();
         bool continueProbe = args.Contains("--ns-gameplay-continue-probe");
         bool gameplayProbe = args.Contains("--ns-gameplay-probe");
-        if (_attached || (!gameplayProbe && !continueProbe)) return;
+        bool neowProbe = args.Contains("--ns-neow-probe");
+        if (_attached || (!gameplayProbe && !continueProbe && !neowProbe)) return;
         _attached = true;
         var platform = OS.GetName() == "Windows" ? "windows" : OS.GetName() == "macOS" ? "macos" : "";
         var userDir = OS.GetUserDataDir().Replace('\\', '/').TrimEnd('/');
         var labRoot = OS.GetDataDir().Replace('\\', '/').TrimEnd('/') + "/NoSufferingLab/";
-        if (gameplayProbe == continueProbe || !args.Contains("--ns-lab-probe") || platform.Length == 0 ||
+        if (new[] { gameplayProbe, continueProbe, neowProbe }.Count(flag => flag) != 1 || !args.Contains("--ns-lab-probe") || platform.Length == 0 ||
             !string.Equals(CommandLineHelper.GetValue("force-steam"), "off", StringComparison.OrdinalIgnoreCase) ||
             (userDir != labRoot + platform + "-public-beta" && userDir != labRoot + platform + "-public"))
         {
             Log.Error("[NoSuffering] GAMEPLAY_PROBE refused: requires --force-steam=off and an actual NoSufferingLab user directory.");
             return;
         }
-        void Start() { tree.ProcessFrame -= Start; _ = continueProbe ? RunContinue(tree) : Run(tree); }
+        void Start() { tree.ProcessFrame -= Start; _ = neowProbe ? RunNeow(tree) : continueProbe ? RunContinue(tree) : Run(tree); }
         tree.ProcessFrame += Start;
     }
 
@@ -222,6 +227,86 @@ public static class GameplayProbe
             });
             Log.Info("[NoSuffering] CONTINUE_PROBE_RESULTS " + report);
             File.WriteAllText(Path.Combine(OS.GetUserDataDir(), "nosuffering-continue-probe.json"), report);
+            tree.Quit(Results[check].StartsWith("PASS", StringComparison.Ordinal) ? 0 : 1);
+        }
+    }
+
+    private static async Task RunNeow(SceneTree tree)
+    {
+        const string check = "neow_reroll_claim_proceed";
+        Results[check] = "UNEXECUTED";
+        var state = new Dictionary<string, object>();
+        try
+        {
+            await AwaitStartup();
+            var game = NGame.Instance!;
+            var manager = RunManager.Instance;
+            Require(!manager.IsInProgress, "Probe requires no active run.");
+            var existing = SaveManager.Instance.LoadRunSave();
+            if (existing.Success && existing.SaveData != null)
+            {
+                Require(CompanionStore.Error == null, "Existing save pairing failed: " + CompanionStore.Error);
+                state["existing_ancient_record_loaded"] = AncientService.CaptureState() != null;
+            }
+            var run = RunState.CreateForNewRun([Player.CreateForNewRun(ModelDb.Character<Ironclad>(), UnlockState.all, 1UL)],
+                ActModel.GetDefaultList().Select(a => a.ToMutable()).ToList(), [], GameMode.Standard, 0, "NOSUFFERINGNEOW");
+            manager.SetUpNewSingleplayer(run, true);
+            await Timed(PreloadManager.LoadRunAssets(run.Players.Select(p => p.Character)), "run assets");
+            await Timed(manager.FinalizeStartingRelics(), "starting relics");
+            manager.Launch();
+            game.RootSceneContainer.SetCurrentScene(NRun.Create(run));
+            game.ReactionContainer.InitializeNetworking(manager.NetService);
+            await Timed(manager.EnterAct(0, false), "native act-one setup");
+            HostCoordinator.OnRunReady();
+            await Timed(manager.EnterMapCoord(run.Map.StartingMapPoint.coord), "native Neow entry");
+            Require(((EventRoom)run.CurrentRoom!).CanonicalEvent is Neow, "Act-one ancient is not Neow.");
+            await Wait(() => NEventRoom.Instance?.Layout?.OptionButtons.Any() == true, "Neow buttons");
+            var oldOption = manager.EventSynchronizer.GetLocalEvent().CurrentOptions[0];
+            NEventOptionButton? reward = null;
+            for (int rerolls = 1; reward == null; rerolls++)
+            {
+                await Operation(CoreOperation.AncientOptionsReroll);
+                await Wait(() => NEventRoom.Instance?.Layout?.OptionButtons.Any() == true, "rerolled Neow buttons");
+                state["rerolls"] = rerolls;
+                state["options"] = manager.EventSynchronizer.GetLocalEvent().CurrentOptions.Select(o => o.Relic?.Id.Entry ?? o.TextKey).ToArray();
+                // Pick a native reward without an additional card-selection screen.
+                reward = NEventRoom.Instance!.Layout!.OptionButtons.FirstOrDefault(b => b.Option.Relic is { } relic &&
+                    (relic.Id.Entry is "NEOWS_TALISMAN" or "GOLDEN_PEARL" or "NUTRITIOUS_OYSTER" or "CURSED_PEARL" or "SILKEN_TRESS" or "LEAFY_POULTICE" ||
+                     relic.GetType().GetMethod(nameof(RelicModel.AfterObtained))!.DeclaringType == typeof(RelicModel)) && !b.Option.IsLocked);
+                Require(reward != null || rerolls < 4, "No prompt-free Neow reward in the diagnostic fixture.");
+            }
+            // A click queued for the discarded reward must not claim a new reward.
+            NEventRoom.Instance!.OptionButtonClicked(oldOption, 0);
+            Require(!manager.EventSynchronizer.GetLocalEvent().CurrentOptions.Any(o => o.WasChosen), "Stale reward click was accepted.");
+            state["stale_reward_rejected"] = true;
+            var local = manager.EventSynchronizer.GetLocalEvent();
+            state["reward"] = reward.Option.Relic!.Id.Entry;
+            reward.Call(NEventOptionButton.MethodName.OnRelease);
+            await Wait(() => local.IsFinished && NEventRoom.Instance!.Layout!.OptionButtons.Any(b => b.Option.IsProceed), "claimed Neow reward");
+            await Timed(manager.EventSynchronizer.AwaitPendingOptionTasks(), "native reward completion");
+            Require(((EventRoom)run.CurrentRoom!).IsPreFinished, "Claimed ancient room not marked finished.");
+            var proceed = NEventRoom.Instance!.Layout!.OptionButtons.Single(b => b.Option.IsProceed);
+            state["event_finished"] = local.IsFinished;
+            state["proceed_in_model_options"] = local.CurrentOptions.Contains(proceed.Option);
+            state["map_open_before_click"] = NMapScreen.Instance!.IsOpen;
+            Require(!NMapScreen.Instance.IsOpen, "Fixture map was already open before the Proceed click.");
+            proceed.Call(NEventOptionButton.MethodName.OnRelease);
+            await Bridge.Frame();
+            state["map_open_after_click"] = NMapScreen.Instance!.IsOpen;
+            state["travel_enabled_after_click"] = NMapScreen.Instance.IsTravelEnabled;
+            Require(NMapScreen.Instance.IsOpen && NMapScreen.Instance.IsTravelEnabled, "Native Proceed click did not open an actionable map.");
+            Pass(check, "act-one Neow reroll, stale reward rejected, actual native reward/Proceed button handlers opened travel map");
+        }
+        catch (Exception error)
+        {
+            Results[check] = "FAIL: " + error.Message;
+            Log.Error("[NoSuffering] NEOW_PROBE " + error);
+        }
+        finally
+        {
+            var report = JsonSerializer.Serialize(new { scope = "native-engine singleplayer Neow reward and button-handler regression; no physical pointer or multiplayer test", results = Results, state });
+            Log.Info("[NoSuffering] NEOW_PROBE_RESULTS " + report);
+            File.WriteAllText(Path.Combine(OS.GetUserDataDir(), "nosuffering-neow-probe.json"), report);
             tree.Quit(Results[check].StartsWith("PASS", StringComparison.Ordinal) ? 0 : 1);
         }
     }

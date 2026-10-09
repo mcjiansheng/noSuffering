@@ -238,6 +238,10 @@ public static class AncientService
         private static bool Prefix(EventOption option, int index)
         {
             if (State.CurrentRoom is not EventRoom room || room.CanonicalEvent is not AncientEventModel) return true;
+            // Native SetOptions creates Proceed separately after the event finishes;
+            // it is not a reward in EventModel.CurrentOptions. Leave its native
+            // action intact, including custom event layouts supplied by other mods.
+            if (option.IsProceed) return !_busy;
             var options = RunManager.Instance.EventSynchronizer.GetLocalEvent().CurrentOptions;
             return !_busy && index >= 0 && index < options.Count && ReferenceEquals(option, options[index]);
         }

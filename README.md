@@ -1,6 +1,6 @@
 # 不吃苦 · NoSuffering
 
-《杀戮尖塔 2》原生 C# Mod，当前开发发行 **0.1.1**。五项核心路径已实现；尚未完成 v1.0 玩法验收。需求见 [设计文档](docs/DESIGN.md)，实测状态见 [0.1.1 测试记录](docs/testing/2026-10-08-compat.md)。
+《杀戮尖塔 2》原生 C# Mod，当前开发发行 **0.1.2**。五项核心路径已实现；尚未完成 v1.0 玩法验收。需求见 [设计文档](docs/DESIGN.md)，本次修复见 [涅奥测试记录](docs/testing/2026-10-09-neow.md)，跨平台基线见 [0.1.1 测试记录](docs/testing/2026-10-08-compat.md)。
 
 F6 打开面板：路线回滚、刷新先古之民、刷新先古之民奖励、普通战斗重开、重开并刷新牌序。联机由房主发起，全队自动同步。普通重开保留当前尝试；新尝试写入伴随存档。两种先古刷新独立选择免费或扣房主当前生命，其余永久免费。
 
@@ -22,7 +22,7 @@ F6 打开面板：路线回滚、刷新先古之民、刷新先古之民奖励�
 ./scripts/deploy.ps1 -GameDir 'D:/steam/steamapps/common/Slay the Spire 2'
 ```
 
-构建输出 `artifacts/<platform>/<branch>/NoSuffering-0.1.1.zip`，同目录记录实际程序集和构建指纹。四个平台／分支目标分别构建；发行页文件名标明目标。正式版构建／部署必须传入 `--branch public`，PowerShell 使用 `-Branch public`。部署先备份原 NoSuffering，仅更新本 Mod，游戏运行时拒绝覆盖。
+构建输出 `artifacts/<platform>/<branch>/NoSuffering-0.1.2.zip`，同目录记录实际程序集和构建指纹。四个平台／分支目标分别构建；发行页文件名标明目标。正式版构建／部署必须传入 `--branch public`，PowerShell 使用 `-Branch public`。部署先备份原 NoSuffering，仅更新本 Mod，游戏运行时拒绝覆盖。
 
 Mac 可直接构建／部署：
 
@@ -42,8 +42,8 @@ Mac 远端工作流程：复制 `local.env.example` 为 `local.env`，填写已�
 
 优先基线：public-beta **v0.111.0 / build 24724944**；正式版基线为 **v0.107.1 / build 23811903**。Windows 与 Mac ARM64 使用各自真实程序集构建，按平台和分支选包。具体加载、五项核心操作及存档继续结果见测试记录；不将这些结果扩展到未来游戏更新或 Intel Mac。
 
-xht-rog 现有 25 个 Mod 组合包括 BaseLib、RitsuLib、UndoAndRestart、intentgraph2、CustomCardBalance。组合验证仅证明启动共存，不能证明玩法、撤销历史互操作或 ModConfig 设置页全部兼容。
+xht-rog 现有 25 个 Mod 组合包括 BaseLib、RitsuLib、UndoAndRestart、intentgraph2、CustomCardBalance。本次在复制这些 Mod 的 Windows beta 副环境中验证了涅奥奖励刷新、领取及继续；其余组合玩法、撤销历史互操作或 ModConfig 设置页不据此认定全部兼容。
 
-当前原版事件战斗有父事件状态适配；尚无已核实恢复格式的第三方父事件限制该场重开，保持正常游戏路径。没有稳定身份的额外起手卡限制刷新牌序。原生未完成的多步先古奖励流程不安全恢复，报告明确错误。伴随存档版本或玩法 Mod 组合不一致时拒绝混用，不自动迁移。
+当前原版事件战斗有父事件状态适配；尚无已核实恢复格式的第三方父事件限制该场重开，保持正常游戏路径。没有稳定身份的额外起手卡限制刷新牌序。原生未完成的多步先古奖励流程不安全恢复，报告明确错误。伴随存档格式或玩法 Mod 组合不一致时拒绝混用。0.1.2 明确允许读取同格式的 0.1.1 记录，并继续核对游戏、其他 Mod、运行和原生保存提交；不修改或自动转换旧记录。
 
 联机实测按用户安排后续进行。未执行测试不会标为通过。技术参考和署名见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

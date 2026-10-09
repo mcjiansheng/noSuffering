@@ -1,0 +1,48 @@
+{
+  "record": "lab-20261009T035321167691Z",
+  "release": {
+    "commit": "59260271",
+    "version": "v0.107.1",
+    "date": "2026-06-18T15:43:56-07:00",
+    "branch": "v0.107.1",
+    "main_assembly_hash": -1718063421
+  },
+  "assemblies": [
+    {
+      "name": "sts2.dll",
+      "sha256": "e7ceb80669bfaf5c8fccabaa126ae2bb283aba514be5b5b55612579cfd285f18"
+    },
+    {
+      "name": "GodotSharp.dll",
+      "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+    },
+    {
+      "name": "0Harmony.dll",
+      "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+    }
+  ],
+  "mod_sha256": "77c3e9340baf5022257a3802b192719bf7fc7bd1998c87d70b9126e51a9cdfa5",
+  "load": "passed",
+  "singleplayer": "smoke_passed",
+  "singleplayer_scope": "native-engine singleplayer Neow reward and button-handler regression; no physical pointer or multiplayer test",
+  "singleplayer_checks": {
+    "neow_reroll_claim_proceed": "PASS: act-one Neow reroll, stale reward rejected, actual native reward/Proceed button handlers opened travel map"
+  },
+  "singleplayer_state": {
+    "rerolls": 1,
+    "options": [
+      "NEOWS_TORMENT",
+      "LAVA_ROCK",
+      "SILVER_CRUCIBLE"
+    ],
+    "stale_reward_rejected": true,
+    "reward": "LAVA_ROCK",
+    "event_finished": true,
+    "proceed_in_model_options": false,
+    "map_open_before_click": false,
+    "map_open_after_click": true,
+    "travel_enabled_after_click": true
+  },
+  "exit_code": 0,
+  "multiplayer": "not_executed"
+}

@@ -1,0 +1,61 @@
+{
+  "record": "lab-20261009T040845254557Z",
+  "release": {
+    "commit": "41cef1ea",
+    "version": "v0.111.0",
+    "date": "2026-08-13T17:39:18-07:00",
+    "branch": "v0.111.0",
+    "main_assembly_hash": 222455745
+  },
+  "assemblies": [
+    {
+      "name": "sts2.dll",
+      "sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9"
+    },
+    {
+      "name": "GodotSharp.dll",
+      "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+    },
+    {
+      "name": "0Harmony.dll",
+      "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+    }
+  ],
+  "mod_sha256": "9c515b19af3fbba08d2c223f0583116094c5a32181acab5c3ad0fa1031fd013c",
+  "load": "passed",
+  "singleplayer": "smoke_passed",
+  "checks": {
+    "neow_reroll_claim_proceed": "PASS: act-one Neow reroll, stale reward rejected, actual native reward/Proceed button handlers opened travel map"
+  },
+  "state": {
+    "existing_ancient_record_loaded": true,
+    "rerolls": 4,
+    "options": [
+      "BOOMING_CONCH",
+      "SCROLL_BOXES",
+      "LARGE_CAPSULE"
+    ],
+    "stale_reward_rejected": true,
+    "reward": "BOOMING_CONCH",
+    "event_finished": true,
+    "proceed_in_model_options": false,
+    "map_open_before_click": false,
+    "map_open_after_click": true,
+    "travel_enabled_after_click": true
+  },
+  "exit_code": 0,
+  "multiplayer": "not_executed",
+  "scope": "native-engine singleplayer Neow reward and button-handler regression; no physical pointer or multiplayer test",
+  "loaded_mods": [
+    "[INFO]  --- RUNNING MODDED! --- Loaded 25 mods (25 total)"
+  ],
+  "legacy_read": [
+    "[INFO] [NoSuffering] Loaded compatible 0.1.1 companion; format, game, other mods and native commit matched.",
+    "[INFO] [NoSuffering] Loaded compatible 0.1.1 companion; format, game, other mods and native commit matched.",
+    "[INFO] [NoSuffering] Loaded compatible 0.1.1 companion; format, game, other mods and native commit matched."
+  ],
+  "other_mod_exception": [
+    "   at UndoAndRestartCode.FeatureAnnouncement.ShowAfterMainMenuReady(NMainMenu mainMenu)",
+    "   at UndoAndRestartCode.FeatureAnnouncement.ShowAfterMainMenuReady(NMainMenu mainMenu)"
+  ]
+}

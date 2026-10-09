@@ -30,7 +30,7 @@ Windows 使用对应的 `NoSufferingLab/windows-public-beta`。真实引擎日�
 
 `--force-steam=off` 放在原生参数区，`--ns-lab-probe` 放在 `--` 后。前者在这两个真实分支的原生 NGame 中关闭 Steam 初始化、云存储和 Workshop 查询；后者仅记录实际用户目录。使用真实引擎、磁盘存档与原生运行，不用 TestMode 的内存 Mock。初次启动可能因原生 Mod 提示尚未同意而不加载；`--enable-mods` 仅备份并更新已生成的专用副环境设置，保留其他配置。
 
-诊断玩法探针还要求完整用户目录精确匹配本平台的 NoSufferingLab 槽，以及明确的离线和探针参数。普通启动不会执行诊断。单人探针通过原生 API 设置幕次、解锁和测试路线；这不是正常完整通关或物理鼠标操作。Computer Use 游玩不带玩法探针参数，按游戏界面完成对局。
+诊断玩法探针还要求完整用户目录精确匹配本平台的 NoSufferingLab 槽，以及明确的离线和探针参数。普通启动不会执行诊断。单人探针通过原生 API 设置幕次、解锁和测试路线；这不是正常完整通关或物理鼠标操作。Computer Use 游玩不带玩法探针参数，已按游戏界面从新开局完成至原生结局；按用户授权添加强力卡牌辅助，候选版本和具体功能结果另行记录。
 
 联机探针使用两个实际原生进程、独立用户目录和原生 ENet 主机／客户端，明确绑定 `127.0.0.1`，不打开公网监听或修改防火墙。Mac 双副本采用不同 bundle ID 和独立可执行文件，资源可硬链接。`--seed-reload` 让首组进程正常结束，再通过原生加载大厅建立第二组进程，检查购买存档、库存、个人锁定和刷新种子。它验证本机原生网络链路与加载路径，不代表 Steam、互联网或两名真人的测试。
 
@@ -65,7 +65,7 @@ Windows 使用相同 Python 脚本，或已有 PowerShell 包装。`prepare` 从
 
 ## 验证边界
 
-各版本、平台和 Mod 组合的结果独立记录。Windows beta 当前及 Mac beta 独立克隆的 25-Mod 组合包含 BaseLib、RitsuLib、UndoAndRestart、AncientSL、Intent Graph、Custom Card Balance、角色与商人皮肤等；加载共存、NoSuffering 原生操作通过与交替调用对方功能是不同范围。Windows beta 最终候选另通过真实原生出牌和 UndoAndRestart 撤销／快速重开处理器的交替调用、AncientSL 保留存档加载后个人刷新领取，共七项检查；新增药水 Busy 拒绝及重试两项，总计九项。该专项调用真实处理器，未据此宣称物理按钮或所有第三方功能已测。
+各版本、平台和 Mod 组合的结果独立记录。双客户端检查在同一平台执行，Windows／Mac 混合联机及跨平台迁移存档未执行，不能从四个分支分别通过推断这两项兼容。Windows beta 当前及 Mac beta 独立克隆的 25-Mod 组合包含 BaseLib、RitsuLib、UndoAndRestart、AncientSL、Intent Graph、Custom Card Balance、角色与商人皮肤等；加载共存、NoSuffering 原生操作通过与交替调用对方功能是不同范围。Windows beta 最终候选另通过真实原生出牌和 UndoAndRestart 撤销／快速重开处理器的交替调用、AncientSL 保留存档加载后个人刷新领取，共七项检查；新增药水 Busy 拒绝及重试两项，总计九项。该专项调用真实处理器，未据此宣称物理按钮或所有第三方功能已测。
 
 ModConfig 为软依赖，独立设置在未安装框架时可用。官方 v0.2.2 标签没有发布二进制附件，测试使用该标签未修改源码、官方 Godot.NET.Sdk 4.5.1 及源生成器构建 DLL，并由官方 Godot 4.5.1 导出对应资源 PCK。在 Mac 正式版真实引擎中完成注册、双向同步、两份配置落盘与原生 Mods 控件检查。该证据不等同于官方发布二进制、真人点击或多人框架测试；不把框架打包为依赖。
 

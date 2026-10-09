@@ -1,0 +1,232 @@
+NoSuffering 0.1.4 — final-candidate native UI evidence
+Recorded 2026-10-10 Asia/Shanghai. Manual CUA observations: ../2026-10-09-cua-playthrough.md
+Game: Mac ARM64 public-beta v0.111.0 / 41cef1ea / Steam build 24724944. Steam disabled in isolated lab.
+No gameplay fixture was used for this run. Console card commands are authorized assistance.
+Native log excerpts corroborate room transitions and combat victories; exact UI HP/hand checks are separately documented.
+Raw logs and native save/history files are private ignored artifacts, not redistributed.
+
+RUN artifacts/macos/public-beta/lab-20261009T131806175344Z
+DLL SHA-256 02f63de79fe3d74563c70993c5c81fb0a2f1f6f52735b599d25fff9b849ba7dd
+engine.log SHA-256 99c95252f50c6d0b09849b66735b3bb28306c83997614b065f474f4e15692140
+run-record.json SHA-256 0184c1c2184ec71e9c650a053c73b32179f49d84c661f9033d21473a79cc54a3
+exit_code 0
+load passed
+automated gameplay probe markers: singleplayer=not_executed, multiplayer=not_executed
+diagnostic line counts: WARN=196, WARNING=45, ERROR=12
+Selected log lines (original line numbers):
+15: [INFO] [NoSuffering] 0.1.4 initialized; game=57785517-0b16-42b9-8b36-bad6fb28384b
+143: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=VANTOM_BOSS.
+202: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=VANTOM_BOSS.
+272: [INFO] DevConsole: card BULLET_TIME
+273: [INFO] DevConsole: card HYPERBEAM
+291: [INFO] CHARACTER.SILENT fought ENCOUNTER.VANTOM_BOSS for the first time and WON >:)
+292: [INFO] Epoch obtained for completing Act 1
+303: [INFO] DevConsole: card HYPERBEAM Deck
+304: [INFO] DevConsole: card HYPERBEAM Deck
+305: [INFO] DevConsole: card ADRENALINE Deck
+306: [INFO] DevConsole: card ADRENALINE Deck
+307: [INFO] DevConsole: card WRAITHFORM Deck
+308: [INFO] DevConsole: card BULLETTIME Deck
+309: [INFO] DevConsole: card WRAITH_FORM Deck
+310: [INFO] DevConsole: card BULLET_TIME Deck
+357: [INFO] DevConsole: card HYPERBEAM Deck
+358: [INFO] DevConsole: card HYPERBEAM Deck
+359: [INFO] DevConsole: card ADRENALINE Deck
+360: [INFO] DevConsole: card ADRENALINE Deck
+361: [INFO] DevConsole: card WRAITH_FORM Deck
+362: [INFO] DevConsole: card BULLET_TIME Deck
+375: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=TUNNELER_WEAK.
+397: [INFO] CHARACTER.SILENT fought ENCOUNTER.TUNNELER_WEAK for the first time and WON >:)
+432: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=EXOSKELETONS_WEAK.
+456: [INFO] CHARACTER.SILENT fought ENCOUNTER.EXOSKELETONS_WEAK for the first time and WON >:)
+470: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=THE_OBSCURA_NORMAL.
+504: [INFO] CHARACTER.SILENT fought ENCOUNTER.THE_OBSCURA_NORMAL for the first time and WON >:)
+522: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=SLUMBERING_BEETLE_NORMAL.
+566: [INFO] CHARACTER.SILENT fought ENCOUNTER.SLUMBERING_BEETLE_NORMAL for the first time and WON >:)
+588: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=HUNTER_KILLER_NORMAL.
+633: [INFO] DevConsole: card FIEND_FIRE Hand
+634: [INFO] DevConsole: card ADRENALINE Hand
+640: [INFO] DevConsole: card HYPERBEAM Hand
+643: [INFO] CHARACTER.SILENT fought ENCOUNTER.HUNTER_KILLER_NORMAL for the first time and WON >:)
+667: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=CHOMPERS_NORMAL.
+701: [INFO] CHARACTER.SILENT fought ENCOUNTER.CHOMPERS_NORMAL for the first time and WON >:)
+720: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=ENTOMANCER_ELITE.
+724: [INFO] DevConsole: card WRAITH_FORM Hand
+739: [INFO] DevConsole: card BULLET_TIME Hand
+747: [INFO] DevConsole: card HYPERBEAM Hand
+754: [INFO] DevConsole: card HYPERBEAM Hand
+755: [INFO] DevConsole: card HYPERBEAM Hand
+756: [INFO] DevConsole: card BULLET_TIME Hand
+762: [INFO] CHARACTER.SILENT fought ENCOUNTER.ENTOMANCER_ELITE for the first time and WON >:)
+783: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=BOWLBUGS_NORMAL.
+786: [INFO] DevConsole: card HYPERBEAM Hand
+787: [INFO] DevConsole: card HYPERBEAM Hand
+796: [INFO] CHARACTER.SILENT fought ENCOUNTER.BOWLBUGS_NORMAL for the first time and WON >:)
+817: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=KNOWLEDGE_DEMON_BOSS.
+820: [INFO] DevConsole: card HYPERBEAM Hand
+821: [INFO] DevConsole: card BULLET_TIME Hand
+836: [INFO] DevConsole: card HYPERBEAM Hand
+837: [INFO] DevConsole: card HYPERBEAM Hand
+847: [INFO] DevConsole: card BULLET_TIME Hand
+848: [INFO] DevConsole: card HYPERBEAM Hand
+849: [INFO] DevConsole: card HYPERBEAM Hand
+850: [INFO] DevConsole: card HYPERBEAM Hand
+851: [INFO] DevConsole: card HYPERBEAM Hand
+858: [INFO] DevConsole: card BULLET_TIME Hand
+859: [INFO] DevConsole: card HYPERBEAM Hand
+860: [INFO] DevConsole: card HYPERBEAM Hand
+861: [INFO] DevConsole: card HYPERBEAM Hand
+862: [INFO] DevConsole: card HYPERBEAM Hand
+863: [INFO] DevConsole: card HYPERBEAM Hand
+868: [INFO] DevConsole: card BULLET_TIME Hand
+869: [INFO] DevConsole: card HYPERBEAM Hand
+870: [INFO] DevConsole: card HYPERBEAM Hand
+871: [INFO] DevConsole: card HYPERBEAM Hand
+872: [INFO] DevConsole: card HYPERBEAM Hand
+895: [INFO] CHARACTER.SILENT fought ENCOUNTER.KNOWLEDGE_DEMON_BOSS for the first time and WON >:)
+896: [INFO] Epoch obtained for completing Act 2
+928: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=SCROLLS_OF_BITING_WEAK.
+932: [INFO] DevConsole: card HYPERBEAM Hand
+933: [INFO] DevConsole: card HYPERBEAM Hand
+942: [INFO] CHARACTER.SILENT fought ENCOUNTER.SCROLLS_OF_BITING_WEAK for the first time and WON >:)
+962: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=DEVOTED_SCULPTOR_WEAK.
+964: [INFO] DevConsole: card HYPERBEAM Hand
+965: [INFO] DevConsole: card HYPERBEAM Hand
+966: [INFO] DevConsole: card HYPERBEAM Hand
+974: [INFO] DevConsole: card HYPERBEAM Hand
+975: [INFO] DevConsole: card HYPERBEAM Hand
+976: [INFO] DevConsole: card HYPERBEAM Hand
+977: [INFO] DevConsole: card HYPERBEAM Hand
+999: [INFO] DevConsole: card HYPERBEAM Hand
+1000: [INFO] DevConsole: card HYPERBEAM Hand
+1004: [INFO] CHARACTER.SILENT fought ENCOUNTER.DEVOTED_SCULPTOR_WEAK for the first time and WON >:)
+1040: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=GLOBE_HEAD_NORMAL.
+1044: [INFO] DevConsole: card HYPERBEAM Hand
+1045: [INFO] DevConsole: card HYPERBEAM Hand
+1058: [INFO] DevConsole: card BULLET_TIME Hand
+1059: [INFO] DevConsole: card HYPERBEAM Hand
+1060: [INFO] DevConsole: card HYPERBEAM Hand
+1061: [INFO] DevConsole: card HYPERBEAM Hand
+1067: [INFO] CHARACTER.SILENT fought ENCOUNTER.GLOBE_HEAD_NORMAL for the first time and WON >:)
+1155: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=SCROLLS_OF_BITING_NORMAL.
+1158: [INFO] DevConsole: card HYPERBEAM Hand
+1166: [INFO] CHARACTER.SILENT fought ENCOUNTER.SCROLLS_OF_BITING_NORMAL for the first time and WON >:)
+1249: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=SOUL_NEXUS_ELITE.
+1253: [INFO] DevConsole: card HYPERBEAM Hand
+1254: [INFO] DevConsole: card HYPERBEAM Hand
+1255: [INFO] DevConsole: card HYPERBEAM Hand
+1256: [INFO] DevConsole: card HYPERBEAM Hand
+1270: [INFO] DevConsole: card BULLET_TIME Hand
+1271: [INFO] DevConsole: card HYPERBEAM Hand
+1272: [INFO] DevConsole: card HYPERBEAM Hand
+1273: [INFO] DevConsole: card HYPERBEAM Hand
+1285: [INFO] DevConsole: card HYPERBEAM Hand
+1289: [INFO] CHARACTER.SILENT fought ENCOUNTER.SOUL_NEXUS_ELITE for the first time and WON >:)
+1318: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=FROG_KNIGHT_NORMAL.
+1321: [INFO] DevConsole: card BULLET_TIME Hand
+1322: [INFO] DevConsole: card HYPERBEAM Hand
+1341: [INFO] DevConsole: card HYPERBEAM Hand
+1342: [INFO] DevConsole: card HYPERBEAM Hand
+1351: [INFO] DevConsole: card BULLET_TIME Hand
+1352: [INFO] DevConsole: card HYPERBEAM Hand
+1353: [INFO] DevConsole: card HYPERBEAM Hand
+1361: [INFO] CHARACTER.SILENT fought ENCOUNTER.FROG_KNIGHT_NORMAL for the first time and WON >:)
+1390: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=QUEEN_BOSS.
+1408: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=QUEEN_BOSS.
+1426: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=QUEEN_BOSS.
+1448: WARNING: 87 RIDs of type "CanvasItem" were leaked.
+1450: ERROR: 1 RID allocations of type 'N26RendererEnvironmentStorage11EnvironmentE' were leaked at exit.
+1451: ERROR: 5 shaders of type CanvasShaderRD were never freed
+1453: ERROR: 8 RID allocations of type 'N10RendererRD16ParticlesStorage9ParticlesE' were leaked at exit.
+1454: ERROR: 1 shaders of type ParticlesShaderRD were never freed
+1456: ERROR: 8 RID allocations of type 'N10RendererRD11MeshStorage4MeshE' were leaked at exit.
+1457: ERROR: 13 RID allocations of type 'N10RendererRD15MaterialStorage8MaterialE' were leaked at exit.
+1458: ERROR: 6 RID allocations of type 'N10RendererRD15MaterialStorage6ShaderE' were leaked at exit.
+1459: ERROR: 129 RID allocations of type 'N10RendererRD14TextureStorage7TextureE' were leaked at exit.
+1460: WARNING: 40 RIDs of type "StorageBuffer" were leaked.
+1462: WARNING: 12 RIDs of type "UniformBuffer" were leaked.
+1464: WARNING: 8 RIDs of type "IndexArray" were leaked.
+1466: WARNING: 8 RIDs of type "IndexBuffer" were leaked.
+1468: WARNING: 16 RIDs of type "VertexBuffer" were leaked.
+1470: WARNING: 249 RIDs of type "Texture" were leaked.
+1472: ERROR: 2 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+1473: ERROR: 5 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+1474: ERROR: 4 RID allocations of type 'PN18TextServerAdvanced27FontAdvancedLinkedVariationE' were leaked at exit.
+1475: WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+1477: ERROR: 167 resources still in use at exit (run with --verbose for details).
+
+RUN artifacts/macos/public-beta/lab-20261009T170715555945Z
+DLL SHA-256 02f63de79fe3d74563c70993c5c81fb0a2f1f6f52735b599d25fff9b849ba7dd
+engine.log SHA-256 bf7169765fa6520dc3464f8c03488eddeb91840ce77e2e93e866a023f415342c
+run-record.json SHA-256 33ff5bf7b10394ee3e0379d03fc4aa867f570469f31a80d830dbc36d1ca5a892
+exit_code 0
+load passed
+automated gameplay probe markers: singleplayer=not_executed, multiplayer=not_executed
+diagnostic line counts: WARN=51, WARNING=7, ERROR=12
+Selected log lines (original line numbers):
+15: [INFO] [NoSuffering] 0.1.4 initialized; game=57785517-0b16-42b9-8b36-bad6fb28384b
+145: [INFO] Creating NCombatRoom with mode=ActiveCombat encounter=QUEEN_BOSS.
+150: [INFO] DevConsole: card HYPERBEAM Hand
+151: [INFO] DevConsole: card HYPERBEAM Hand
+173: [INFO] DevConsole: card HYPERBEAM Hand
+174: [INFO] DevConsole: card HYPERBEAM Hand
+175: [INFO] DevConsole: card HYPERBEAM Hand
+176: [INFO] DevConsole: card HYPERBEAM Hand
+190: [INFO] DevConsole: card BULLET_TIME Hand
+191: [INFO] DevConsole: card HYPERBEAM Hand
+192: [INFO] DevConsole: card HYPERBEAM Hand
+193: [INFO] DevConsole: card HYPERBEAM Hand
+202: [INFO] DevConsole: card HYPERBEAM Hand
+203: [INFO] DevConsole: card HYPERBEAM Hand
+209: [INFO] DevConsole: card BULLET_TIME Hand
+210: [INFO] DevConsole: card WRAITH_FORM Hand
+211: [INFO] DevConsole: card HYPERBEAM Hand
+212: [INFO] DevConsole: card HYPERBEAM Hand
+221: [INFO] DevConsole: card HYPERBEAM Hand
+222: [INFO] DevConsole: card HYPERBEAM Hand
+223: [INFO] DevConsole: card HYPERBEAM Hand
+224: [INFO] DevConsole: card HYPERBEAM Hand
+241: [INFO] CHARACTER.SILENT fought ENCOUNTER.QUEEN_BOSS for the first time and WON >:)
+242: [INFO] Epoch obtained for completing Act 3
+259: [INFO] Creating NCombatRoom with mode=VisualOnly encounter=THE_ARCHITECT_EVENT_ENCOUNTER.
+266: [INFO] Epoch obtained for playing a run as CHARACTER.SILENT
+279:        [3] void MegaCrit.Sts2.Core.Models.Events.TheArchitect+<WinRun>d__46.MoveNext()
+384: WARNING: 893 RIDs of type "CanvasItem" were leaked.
+386: ERROR: 1 RID allocations of type 'N26RendererEnvironmentStorage11EnvironmentE' were leaked at exit.
+387: ERROR: 6 shaders of type CanvasShaderRD were never freed
+389: ERROR: 25 RID allocations of type 'N10RendererRD16ParticlesStorage9ParticlesE' were leaked at exit.
+390: ERROR: 1 shaders of type ParticlesShaderRD were never freed
+392: ERROR: 25 RID allocations of type 'N10RendererRD11MeshStorage4MeshE' were leaked at exit.
+393: ERROR: 77 RID allocations of type 'N10RendererRD15MaterialStorage8MaterialE' were leaked at exit.
+394: ERROR: 7 RID allocations of type 'N10RendererRD15MaterialStorage6ShaderE' were leaked at exit.
+395: ERROR: 184 RID allocations of type 'N10RendererRD14TextureStorage7TextureE' were leaked at exit.
+396: WARNING: 144 RIDs of type "UniformBuffer" were leaked.
+398: WARNING: 363 RIDs of type "Texture" were leaked.
+400: ERROR: 312 RID allocations of type 'PN18TextServerAdvanced22ShapedTextDataAdvancedE' were leaked at exit.
+401: ERROR: 9 RID allocations of type 'PN18TextServerAdvanced12FontAdvancedE' were leaked at exit.
+402: ERROR: 7 RID allocations of type 'PN18TextServerAdvanced27FontAdvancedLinkedVariationE' were leaked at exit.
+403: WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+405: ERROR: 242 resources still in use at exit (run with --verbose for details).
+
+Read-only native history corroboration:
+history file basename 1791538564.run
+history SHA-256 a9a762731324adbc3d904ffb459e87988d06048b670ddca04e012dadf320daf6
+{
+  "ascension": 0,
+  "build_id": "v0.111.0",
+  "game_mode": "standard",
+  "killed_by_encounter": "NONE.NONE",
+  "killed_by_event": "NONE.NONE",
+  "platform_type": "none",
+  "run_time": 17604,
+  "schema_version": 10,
+  "seed": "0RNLP90GRNV7",
+  "start_time": 1791538564,
+  "was_abandoned": false,
+  "win": true
+}
+Native score UI: floor 49; obtained gold 780; elite kills 4; Boss kills 3.
+Ending UI: 胜利……？; Architect damage 1,457. Native scripted ending HP 0/115 after Boss victory at 105/115.
+Normal macOS Quit shortcut ended the final process with exit code 0 after opening the native post-run unlock flow.
+Resource/RID leak errors at shutdown are retained above. No attribution to NoSuffering is established.
+No Steam / internet / mixed-OS multiplayer conclusion follows from this UI run.

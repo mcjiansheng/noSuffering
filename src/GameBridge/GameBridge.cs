@@ -13,6 +13,8 @@ using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Rooms;
+using MegaCrit.Sts2.Core.Rewards;
+using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves;
 using MegaCrit.Sts2.Core.Saves.Runs;
@@ -26,6 +28,7 @@ public static class GameBridge
     private static bool _preserveTransport;
     private static bool _loadingMap;
     private static bool _loadingCombat;
+    private static bool _loadingCompletedCombat;
     public static RunState State => RunManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("没有活动运行状态");
     public static string RunKey => Key(RunManager.Instance.ToSave(null));
     public static string Key(SerializableRun save) => Hash(string.Join("/", save.StartTime, save.SerializableRng.Seed,
@@ -89,8 +92,10 @@ public static class GameBridge
         IsRestoring=true;
         _loadingMap=snapshot.PreFinishedRoom?.RoomType==RoomType.Map;
         _loadingCombat=snapshot.PreFinishedRoom is {IsPreFinished:false,EncounterId:not null};
+        _loadingCompletedCombat=snapshot.PreFinishedRoom is {IsPreFinished:true,EncounterId:not null} && Checkpoints.CheckpointService.CompletedCombatAt(new MapLocation(snapshot.VisitedMapCoords.LastOrDefault(),snapshot.CurrentActIndex));
         try {
             UI.Overlay.Close();
+            UI.MapRollbackSelection.Cancel();
             game.GetViewport().GuiReleaseFocus();
             NTargetManager.Instance?.CancelTargeting();
             NHoverTipSet.Clear();
@@ -123,8 +128,11 @@ public static class GameBridge
                 await game.LoadRun(state,snapshot.PreFinishedRoom);
                 lobby.CleanUp(false);
             }
-            await game.Transition.FadeIn();
-        } finally {IsRestoring=false;_loadingMap=false;_loadingCombat=false;}
+            if(_loadingCompletedCombat && State.CurrentRoom?.RoomType!=RoomType.Boss)NRun.Instance!.GlobalUi.MapScreen.Open(true);
+            // RoomFadeOut uses a separate overlay from the full-screen FadeOut.
+            // Pair it with RoomFadeIn so the transparent input blocker releases.
+            await game.Transition.RoomFadeIn();
+        } finally {IsRestoring=false;_loadingMap=false;_loadingCombat=false;_loadingCompletedCombat=false;}
     }
     private sealed class ReloadListener : ILoadRunLobbyListener {
 #if STS2_STABLE
@@ -145,12 +153,31 @@ public static class GameBridge
             if(!__state)return;
             _loadingMap=preFinishedRoom?.RoomType==RoomType.Map;
             _loadingCombat=preFinishedRoom is {IsPreFinished:false,EncounterId:not null} && NoSuffering.Combat.CombatService.Save() is not null;
+            _loadingCompletedCombat=preFinishedRoom is {IsPreFinished:true,EncounterId:not null} && Checkpoints.CheckpointService.CompletedCombatAt(State.MapLocation);
         }
         static void Postfix(bool __state,ref Task __result) {
             if(__state)__result=Finish(__result);
         }
         static async Task Finish(Task load) {
-            try {await load;} finally {_loadingMap=false;_loadingCombat=false;}
+            try {await load;if(_loadingCompletedCombat && State.CurrentRoom?.RoomType!=RoomType.Boss)NRun.Instance!.GlobalUi.MapScreen.Open(true);} finally {_loadingMap=false;_loadingCombat=false;_loadingCompletedCombat=false;}
+        }
+    }
+    [HarmonyPatch(typeof(CombatRoom),nameof(CombatRoom.OfferRoomEndRewards))]
+    private static class SettledCombatRewards {
+        static bool Prefix(CombatRoom __instance,ref Task __result) {
+            if(!_loadingCompletedCombat || !__instance.IsPreFinished)return true;
+            // The snapshot already includes all claimed/skipped victory rewards.
+            // Render the native finished room without generating a second set.
+            if(__instance.RoomType==RoomType.Boss) {
+                foreach(var player in State.Players) {
+                    var empty=new RewardsSet(player).EmptyForRoom(__instance);
+                    AccessTools.Field(typeof(RewardsSet),"_isGenerated").SetValue(empty,true);
+                    // Keep the native boss Proceed/act-ready path without running
+                    // reward generation or reward-modification hooks a second time.
+                    TaskHelper.RunSafely(empty.Offer());
+                }
+            }
+            __result=Task.CompletedTask;return false;
         }
     }
     [HarmonyPatch(typeof(NetHostGameService),nameof(NetHostGameService.Disconnect))]

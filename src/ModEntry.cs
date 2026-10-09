@@ -10,12 +10,12 @@ namespace NoSuffering;
 [ModInitializer(nameof(Initialize))]
 public static class ModEntry
 {
-    public const string Version="0.1.2";
+    public const string Version="0.1.3";
     public static void Initialize() {
         if (OS.GetCmdlineUserArgs().Contains("--ns-lab-probe"))
             Log.Info($"[NoSuffering] LAB user_data={OS.GetUserDataDir()}");
         new Harmony("mcjiansheng.NoSuffering").PatchAll(typeof(ModEntry).Assembly);
-        ConfigStore.Initialize();ConfigStore.Changed+=CheckpointService.Trim;ConfigStore.Changed+=Multiplayer.HostCoordinator.RulesChanged;
+        ConfigStore.Initialize();ConfigStore.Changed+=Multiplayer.HostCoordinator.RulesChanged;
         var tree=(SceneTree)Engine.GetMainLoop();
         Diagnostics.GameplayProbe.Initialize(tree);
         void Attach(){tree.ProcessFrame-=Attach;UI.Overlay.Attach();}

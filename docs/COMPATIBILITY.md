@@ -1,12 +1,12 @@
 # Mac / 正式版适配与副测试环境
 
-实现版本 0.1.1，设计 v1.5。副环境已落地，2026-10-08；详细结果见 [测试记录](testing/2026-10-08-compat.md)。
+本页记录 0.1.1 建立的隔离副测试环境。其历史结果见 [0.1.1 测试记录](testing/2026-10-08-compat.md)；当前版本 0.1.3 的实际验证范围以[本版测试记录](testing/2026-10-09-rollback.md)为准。
 
 ## 实际布局
 
 | 目标 | 环境和证据 |
 | --- | --- |
-| Windows public-beta | xht-rog 原安装保持原状；独立副本 `.tools/game-lab/windows-public-beta/game`，v0.111.0 真实程序集 |
+| Windows public-beta | xht-rog 保留当前 Steam 分支并已安装 0.1.3；独立副本 `.tools/game-lab/windows-public-beta/game`，v0.111.0 真实程序集 |
 | Mac ARM64 public-beta | Steam 正版 depot 2868842，独立下载 `.tools/game-lab/macos-public-beta/game/SlayTheSpire2.app`，v0.111.0 |
 | Windows / Mac ARM64 public | Steam 正版 depot 2868841 / 2868842，独立副环境，v0.107.1 真实程序集；验证状态逐项写入测试记录 |
 
@@ -60,6 +60,10 @@ Windows 使用相同 Python 脚本，或已有 PowerShell 包装。`prepare` 从
 
 ## 验证边界
 
-构建、初始化、单人核心检查、独立进程继续和联机分别记录。四个目标的核心探针与独立进程继续均通过。F6/Fn、UI 缩放、ModConfig 页面、付费刷新、跨幕完整路线、真实重连与多人玩法仍须相应实测。Windows 当前 25 个 Mod 组合已重新验证 0.1.1 启动共存；不能据此推断全部玩法互操作。联机继续按用户“后续考虑”的安排保留未执行。
+0.1.1 历史记录分别记录了当时的构建、初始化、单人探针与独立进程继续；这些结果不代表 0.1.3 的回滚行为或当前兼容性。历史记录中 Windows 的 25 个 Mod 组合只验证了 0.1.1 启动共存，不构成玩法互操作或“兼容全部 Mod”的依据。Intel Mac、未来游戏版本和联机均没有兼容结论；联机测试按用户安排后续进行。
+
+0.1.3 四目标均构建和加载；Windows beta 的当前 25-Mod 组合通过七项地图／设置回归、十项核心检查，以及结算 Boss 和刷新牌序的新进程继续。Mac beta、Mac stable 和 Windows stable 的实际检查分别记录，不能从一个目标推断其他目标。主目录另行完成 Steam 启动检查和 14 份存档／伴随文件摘要比对；未进入主存档测试玩法。ModConfig 0.2.2 仅核对官方 API，其框架内运行未测试。
+
+0.1.3 使用存档格式 2。仅接受已知的 0.1.1/0.1.2 格式 1 记录，且必须匹配游戏与其他 Mod 指纹及原生存档配对；旧格式只恢复可用的战斗检查点。旧记录没有保存的非战斗入口快照无法补造。详细行为及本版测试状态见[回滚测试记录](testing/2026-10-09-rollback.md)。
 
 依据：[Godot exported override](https://docs.godotengine.org/en/stable/classes/class_projectsettings.html)、[用户数据路径](https://docs.godotengine.org/en/stable/tutorials/io/data_paths.html)、[官方引擎设置加载源码](https://github.com/godotengine/godot/blob/4.5/core/config/project_settings.cpp)，以及下载后的真实引擎日志、原生 NGame / CommandLineHelper / SaveManager / ModManager 与程序集指纹。

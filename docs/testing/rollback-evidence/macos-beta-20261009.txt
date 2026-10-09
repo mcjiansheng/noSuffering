@@ -1,0 +1,113 @@
+NoSuffering 0.1.3 rollback test evidence excerpt
+Captured from artifacts/macos/public-beta/lab-20261009T051921672856Z/run-record.json
+This is a small structured excerpt, not a copy of the game environment or full logs.
+
+Environment
+- platform: macos / public-beta
+- game: v0.111.0, commit 41cef1ea, build 24724944
+- runtime: net9.0, Microsoft.NETCore.App 9.0.7
+- sts2.dll SHA-256: 9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4
+- GodotSharp.dll SHA-256: 0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289
+- 0Harmony.dll SHA-256: ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387
+- candidate mod SHA-256: 504e6670ad8b0a45606c39d2f1b68603e07c36df783058be6326f83da039d62e
+- load: passed; isolated user data: passed; offline: passed
+- main user environment: still on 0.1.2
+
+Probe scope
+Isolated native-engine singleplayer regression; generated-coordinate fixture jumps; native diagnostic combat kill; Viewport GUI input and native map/reward handlers. Physical pointer and multiplayer were not tested.
+
+Results
+- shop_entry_rollback: PASS — native shop card purchased via Viewport GUI, entry resources/map restored via visited-node handler, purchased again
+- transition_native_gui: PASS — after transition ends, transparent overlay has MouseIgnore and Viewport mouse click opens the native deck screen; input during transition was not tested
+- standalone_settings: PASS — without ModConfig: F6, GUI settings/toggle/close, disk persistence, subsequent native deck GUI click
+- settled_combat_rollback: PASS — actual monster victory via native diagnostic kill, gold claimed/others skipped; rollback from second combat retained finished room/resources without duplicate reward screen
+- legal_next_node: PASS — normal native travelable-node handler advanced to a generated child after completed-combat rollback
+- past_act_selector_cancel: UNEXECUTED
+- settled_boss_cross_act_proceed: FAIL — Make sure to reset the combat before setting up a new one.
+- acceptance: not_executed
+- process exit code: 1
+
+Failure excerpt from the same run's stdout.log
+System.InvalidOperationException: Initial shuffle has no matching combat baseline.
+  at MegaCrit.Sts2.Core.Combat.CombatManager.SetUpCombat_Patch1(CombatManager this, CombatState state)
+  at MegaCrit.Sts2.Core.Rooms.CombatRoom.StartCombat(IRunState runState)
+
+Diagnosis supplied after inspecting the probe sequence
+The fixture's legal_next_node step waited only for coordinate/current-room state. It began the Boss transition before native preload/StartCombat initialization completed. The two initializations overlapped and the probe baseline was overwritten. The production guard was correct. The fixture was changed to wait for native travel, actions, and room initialization to finish, complete the next fight normally, and only then enter the Boss. Treat the shuffle exception and its subsequent "Make sure to reset the combat" report as probe-fixture concurrency failures, not a production rollback defect.
+
+Probe output also recorded:
+settled_boss_cross_act_proceed System.InvalidOperationException: Make sure to reset the combat before setting up a new one.
+
+Earlier fixture outcomes (run-record summaries only)
+- lab-20261009T050210607044Z: shop_entry_rollback timed out waiting for actual native shop purchase; later checks unexecuted
+- lab-20261009T051107612134Z: same shop-purchase timeout; later checks unexecuted
+- lab-20261009T051333255863Z: same shop-purchase timeout; later checks unexecuted
+- lab-20261009T051459763829Z: shop, transition UI, and standalone settings passed; settled combat timed out waiting for rewards-finished/actionable-map; later checks unexecuted
+
+Later probe progress
+- macOS lab-20261009T052335785933Z: first five checks passed. The cross-act GUI check was blocked by native CombatRulesFtue because the isolated fixture lacked the real completion marker; this was a fixture issue, not a production rollback defect.
+- macOS lab-20261009T052511816961Z: after adding the real combat_rules_ftue completion marker, past-act selector display and Cancel passed. Boss rollback and empty Proceed also succeeded, but the final disk-read marker mismatched. This was confirmed as a production persistence defect: native MapLocation has public fields without JsonInclude, so System.Text.Json wrote {}; MapCoord has JsonInclude and remained correct.
+- Persistence fix: explicit serializable CombatSettlement(Coord, ActIndex) record struct; TimelineData stores serializable properties and converts to/from native MapLocation internally. Network OperationData uses the same type, covering disk and network data.
+- Windows public-beta probe around 2026-10-09T05:23:55Z: headless Clear timed out waiting for the mask to hide. Later 052830 windowed diagnosis showed this was not a headless Tween issue: after Clear, a late third-party NGenericPopup reopened the mask, followed by an UndoAndRestart startup announcement. An isolated fixture is being updated to identify and natively confirm that announcement. No unknown popup was closed and the main config was not changed. Gameplay remains untested in these diagnostics.
+- Latest UI PNG was visually inspected: dark theme passed. Settings path F6 -> native Viewport input -> persistent change -> close -> deck screen passed. Post-close activation now uses nativeUnhandledInput so optional ModConfig UnhandledKeyInput key recording can consume its input first.
+- Optional official ModConfig API adapter: static inspection for 0.2.2 only; runtime remains untested.
+
+Final Mac public-beta rollback run
+Source: artifacts/macos/public-beta/lab-20261009T052709815481Z/run-record.json
+- game: v0.111.0, commit 41cef1ea, build 24724944
+- candidate mod SHA-256: c08b6ed533c92e5560c56b9a0735eeca44c5c30dadcb89fb92ed925364ae0b68
+- load: passed; isolated singleplayer: smoke_passed; acceptance probe: not_executed; multiplayer: not_executed; process exit code: 0
+- scope: isolated native-engine regression with generated-coordinate fixture jumps, native diagnostic combat kill, Viewport GUI and native map/reward handlers. Physical pointer and multiplayer untested.
+- shop_entry_rollback: PASS — actual native shop card purchase, visited-node rollback restored entry resources/map, purchase repeated
+- transition_native_gui: PASS — after transition, transparent overlay is MouseIgnore; Viewport click opened native deck screen
+- standalone_settings: PASS — without ModConfig, F6 GUI setting change persisted to disk; panel closed and native deck GUI opened
+- settled_combat_rollback: PASS — actual monster victory, rewards claimed/skipped; rollback retained the finished room/resources without a duplicate reward screen
+- legal_next_node: PASS — native travel/action and room initialization completed at a generated child after settled-combat rollback
+- past_act_selector_cancel: PASS — actual act-two/three targets; GUI act switch displayed Boss without mutating live run; Cancel restored later-act display/open state/history/resources
+- settled_boss_cross_act_proceed: PASS — naturally captured Boss target; GUI past-act selection committed through visited-Boss handler; native empty Boss reward Proceed advanced the act without repeated resource rewards
+- settled Boss persistence marker: save and readback confirmed for this run
+
+Fresh-process continuation follow-up
+- macOS lab-20261009T052829889837Z: loaded DLL bb84569d7b58997707690ec55f2ac307fdfad31ce69d81bbd3e05e6ddf28ddfe; fresh settled-Boss continue failed with a null reference.
+- Diagnosis: SetUpSavedSingleplayer assigns State, then IncrementNumReloads triggers low-level SaveRun before network InitializeShared completes. CaptureEntry incorrectly assumed IsInProgress implied an available NetService.
+- Initial production fix: a CheckpointService guard avoids capturing a non-new node entry while networking is not initialized; a code comment records the native initialization ordering. In this phase the companion save still occurs and retains LoadedRevision.
+- macOS lab-20261009T052930169381Z: different process; PASS. Disk/companion marker loaded, finished Boss remained settled without repeated rewards, and native empty Proceed advanced to act three with settled resources. Exit code 0; multiplayer not executed.
+- passing continuation DLL SHA-256: b683cf4bd07b6aa756220c102884e936da47f0739f02596be0def3c008a7bc32
+- This b683 continuation predates the later ShouldSave/Revision fix. The latest beta gameplay/core result and same-DLL fresh-process run are recorded below; Windows windowed gameplay and multiplayer remain pending.
+
+Compatibility and log note
+- stable v0.107.1: not tested in the earlier beta runs summarized above; see the separate Mac stable evidence file
+- multiplayer: not executed
+- BaseLib log popup setting reported for reference: %APPDATA%/SlayTheSpire2/mod_configs/BaseLib.cfg, OpenLogWindowOnError=True
+- Screenshot text "Captured snapshot" was attributed to UndoAndRestart; screenshot alone does not establish the specific triggering exception. No other mod setting was changed.
+
+Latest Mac public-beta core regression
+Source: artifacts/macos/public-beta/lab-20261009T053508722132Z/run-record.json
+- release: v0.111.0, commit 41cef1ea, build 24724944
+- candidate mod SHA-256: 82addc86b01e4137404a8f821c5b4fee026874c62847af3d9adbc5ac5375c69d
+- load: passed; isolated singleplayer smoke: passed; process exit code: 0; multiplayer: not executed
+- scope: native-engine singleplayer smoke; act-two lab jump; not multiplayer or broad gameplay acceptance
+- native_run_start: PASS — native RunState/NRun, act-two lab jump, unlocks, singleplayer
+- F02_ancient: PASS — native event replaced through host coordinator
+- F03_options: PASS — same-ancient rewards generated and available
+- map_checkpoint: PASS — act-two map decision captured
+- F01_rollback: PASS — native map snapshot loaded through host coordinator
+- native_combat_start: PASS — native generated monster room and opening draw
+- F04_restart: PASS — attempt zero and actual opening order retained
+- F05_order_refresh: PASS — attempt one changed actual opening order and retained baseline
+- F04_retains_refresh: PASS — refreshed order and attempt one retained
+- native_save_continue_retains_attempt: PASS — actual disk save/read and native continue retained attempt/order
+- same-DLL fresh-process ordinary-combat continuation is separately recorded below; it is not a settled-Boss continuation
+
+Prior F05 fixture failure
+- artifacts/macos/public-beta/lab-20261009T053352297991Z/run-record.json, candidate SHA-256 96689c1b15d36deb63ec82e20b32d6773a9dcabe7e64acfcd5b8c9461cb0b2ec
+- F05 reported disabled because the earlier standalone-settings probe had intentionally set and persisted EnableCombatReroll=false; the later gameplay fixture did not restore it.
+- labGameplayProbe now enables only required settings in isolated probe startup. No product guard was weakened; the corrected 10-item run above passed.
+
+Latest beta same-DLL fresh-process continuation
+Source: artifacts/macos/public-beta/lab-20261009T053631789874Z/run-record.json
+- candidate mod SHA-256: 82addc86b01e4137404a8f821c5b4fee026874c62847af3d9adbc5ac5375c69d (same as 10-item core run)
+- load: passed; isolated singleplayer smoke: passed; process exit code: 0; multiplayer: not executed
+- scope: native-engine fresh-process singleplayer continue smoke; not multiplayer or broad gameplay acceptance
+- fresh_process_continue: PASS — different process read native disk/companion data and the actual opening draw retained the refreshed attempt/order
+- This was an ordinary combat reroll continuation, not a settled-Boss continuation. The earlier b683 Bossfresh PASS predates the final ShouldSave/Revision fix; beta has not tested a Bossfresh Revision assertion on the final build.

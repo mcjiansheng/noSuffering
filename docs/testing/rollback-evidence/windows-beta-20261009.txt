@@ -1,0 +1,44 @@
+NoSuffering 0.1.3 Windows public-beta evidence excerpt
+Source run record: artifacts/windows/public-beta/lab-20261009T054805313889Z/run-record.json
+
+Game and candidate
+- release: v0.111.0, commit 41cef1ea
+- environment: 25-mod windowed test
+- candidate mod SHA-256: 853dc4d800c59b4217955e79a2f136e04d7b7210494cd5887b797d71d25d85f1
+- load: passed; isolated singleplayer smoke: passed; exit code: 0
+- multiplayer: not_executed; aggregate acceptance: not_executed
+- scope: native-engine regression with generated-coordinate fixture jumps, native diagnostic combat kill, Viewport GUI and native map/reward handlers; physical pointer and multiplayer untested
+
+Seven-item rollback probe — all PASS
+- shop_entry_rollback: actual native shop card purchase, visited-node rollback restored entry resources/map, purchase repeated
+- transition_native_gui: after transition, transparent overlay is MouseIgnore; Viewport click opened native deck screen
+- standalone_settings: without ModConfig, F6 GUI setting change persisted; panel closed and native deck GUI opened
+- settled_combat_rollback: actual victory and reward handling; rollback retained finished room/resources without duplicate reward screen
+- legal_next_node: native travel/action and room initialization completed at generated child after settled-combat rollback
+- past_act_selector_cancel: actual later-act targets; switch and Cancel restored later-act display/open state/history/resources
+- settled_boss_cross_act_proceed: visited-Boss handler committed rollback; native empty Boss reward Proceed advanced act without repeated rewards
+
+RitsuToast fixture handling
+- The persistent toast was “遥测授权” / “有 1 个遥测申请方待处理”. It had `persistent=true`, `dismiss_on_click=true`, and a click callback; the persistent notice does not use the default six-second duration.
+- `Ritsu Entry` can pool and reuse entries, so the isolated fixture matches the original dismissible `VisibleToast` and calls public `Host.Close(id, false)`.
+- The fixture records toast content and duration; the windowed Viewport probe calls `Host.Close(id, false)` for the exact dismissible toast, without invoking the click callback or authorizing telemetry. Unrecognized UI blockers remain failures.
+
+Separate settled-Boss new-process continuation
+Source run record: artifacts/windows/public-beta/lab-20261009T054935386756Z/run-record.json
+- same candidate mod SHA-256; load passed, isolated singleplayer smoke passed, exit code 0
+- multiplayer: not_executed; physical pointer untested
+- outcome: different process loaded the native disk/companion marker; the Boss remained settled without repeat rewards, and native empty Proceed advanced to act three with settled resources
+- Revision pairing: confirmed; paired_revision_after_setup was 4 in the probe output
+
+The Windows Settings screenshot at artifacts/windows/public-beta/nosuffering-settings.png was visually checked; text was clear and not clipped. An earlier seven-item runtime path is recorded above.
+
+Extended 10-item headless native-API gameplay regression
+- run: lab-20261009T055034439809Z; same candidate SHA-256 853dc4d800c59b4217955e79a2f136e04d7b7210494cd5887b797d71d25d85f1
+- all 10 checks passed, covering F02/F03 ancient actions, F01 map rollback, F04/F05 combat restart and order refresh, retaining the refreshed attempt after normal restart, and native disk save/continue
+- a separate ordinary-combat new-process continue using this candidate is recorded below
+
+Presentation boundary: the seven-item run above is the 25-mod windowed Viewport GUI regression. The ten-item run is a separate headless native-API gameplay probe; do not label all ten as windowed.
+
+Ordinary-combat new-process continuation
+- run: lab-20261009T055141451960Z; same candidate SHA-256 853dc4d800c59b4217955e79a2f136e04d7b7210494cd5887b797d71d25d85f1
+- different process loaded native disk/companion data; actual opening draw retained refreshed attempt/order; PASS, exit code 0

@@ -50,7 +50,7 @@ public static class HostCoordinator
     private static CancellationTokenSource? _preparation;
     public static long WorldRevision {get;private set;}
     public static bool Busy {get;private set;}
-    public static bool IsHost=>RunManager.Instance.IsInProgress && RunManager.Instance.NetService.Type is NetGameType.Singleplayer or NetGameType.Host;
+    public static bool IsHost=>RunManager.Instance.IsInProgress && RunManager.Instance.NetService is {Type:NetGameType.Singleplayer or NetGameType.Host};
     public static string Status {get;private set;}="";
     public static event Action? Changed;
     public static void Fail(string reason){_failure=reason;Status=reason;Changed?.Invoke();}
@@ -152,7 +152,8 @@ public static class HostCoordinator
             var timeline=CheckpointService.Save(false);
             if(kind==CoreOperation.MapRollback) {
                 var target=CheckpointService.Require(checkpoint);
-                snapshot=target.Snapshot;timeline=new([],target.Combat,target.Ancient);
+                snapshot=target.Snapshot;timeline=new([],target.Combat,target.Ancient)
+                    {SettledCombat=target.CompletedCombat?new CombatSettlement(target.Coord,target.ActIndex):null};
             } else if(kind is CoreOperation.CombatRestart or CoreOperation.CombatReroll) {
                 snapshot=Bridge.Freeze(CombatService.PrepareRestart(kind==CoreOperation.CombatReroll));
                 if(kind==CoreOperation.CombatReroll)CombatService.SetAttempt(CombatService.Attempt+1);

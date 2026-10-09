@@ -19,6 +19,7 @@ public sealed record CompanionCommit(int Format,string ModVersion,string GameAss
 public static class CompanionStore
 {
     private static string? _lastNative;
+    private static TimelineData? _lastNativeTimeline;
     public static long LoadedRevision {get;private set;}
     public static string? Error {get;private set;}
     private static string Root=>ProjectSettings.GlobalizePath("user://NoSuffering/runs");
@@ -32,16 +33,25 @@ public static class CompanionStore
         return Bridge.Hash(Bridge.Freeze(copy));
     }
     public static void PairWithLastNativeSave() {
-        if(_lastNative is not null && RunManager.Instance.IsInProgress && Bridge.Key(Bridge.Thaw(_lastNative))==Bridge.RunKey)Write(Bridge.Thaw(_lastNative));
+        if(_lastNative is not null && RunManager.Instance.IsInProgress && Bridge.Key(Bridge.Thaw(_lastNative))==Bridge.RunKey) {
+            var timeline=CheckpointService.Save();
+            // History may advance after a victory save, but that old native save
+            // still has unclaimed resources. Only retain its request-bound marker.
+            timeline=timeline with {SettledCombat=timeline.SettledCombat==_lastNativeTimeline?.SettledCombat?timeline.SettledCombat:null};
+            Write(Bridge.Thaw(_lastNative),timeline);
+        }
     }
-    public static void Reset() {_lastNative=null;Error=null;LoadedRevision=0;CheckpointService.Reset();}
+    public static void Reset() {_lastNative=null;_lastNativeTimeline=null;Error=null;LoadedRevision=0;CheckpointService.Reset();}
     [HarmonyPatch(typeof(RunManager),nameof(RunManager.SetUpNewSingleplayer))]
     private static class NewSolo {static void Prefix()=>Reset();}
     [HarmonyPatch(typeof(RunManager),nameof(RunManager.SetUpNewMultiplayer))]
     private static class NewMulti {static void Prefix()=>Reset();}
-    private static void Write(SerializableRun save) {
+    private static void Write(SerializableRun save,TimelineData timeline) {
         var digest=NativeDigest(save);var run=Bridge.Key(save);
-        var record=new CompanionCommit(1,ModEntry.Version,GameAssembly,Fingerprint,run,digest,HostCoordinator.WorldRevision,CheckpointService.Save());
+        // Native reload-count writes precede InitializeShared/Launch. Preserve
+        // the loaded revision until the live coordinator has been initialized.
+        var revision=RunManager.Instance.ShouldSave?HostCoordinator.WorldRevision:LoadedRevision;
+        var record=new CompanionCommit(2,ModEntry.Version,GameAssembly,Fingerprint,run,digest,revision,timeline);
         var dir=Path.Combine(Root,run);Directory.CreateDirectory(dir);
         var file=Path.Combine(dir,digest+".json");
         File.WriteAllText(file+".tmp",JsonSerializer.Serialize(record));
@@ -49,32 +59,33 @@ public static class CompanionStore
         // Content-addressed commits pair independently with native primary/backup
         // saves. A failed native write never points at unrelated Mod state.
     }
-    private static async Task Saved(Task nativeWrite,SerializableRun save) {
+    private static async Task Saved(Task nativeWrite,SerializableRun save,TimelineData timeline) {
         await nativeWrite;
         _lastNative=Bridge.Freeze(save);
-        Write(save);
+        _lastNativeTimeline=timeline;
+        Write(save,timeline);
     }
     public static void Read(SerializableRun save) {
         if(Bridge.IsRestoring)return;
         var run=Bridge.Key(save);var digest=NativeDigest(save);
         var file=Path.Combine(Root,run,digest+".json");
-        Error=null;LoadedRevision=0;CheckpointService.Reset();_lastNative=Bridge.Freeze(save);
+        Error=null;LoadedRevision=0;CheckpointService.Reset();_lastNative=Bridge.Freeze(save);_lastNativeTimeline=null;
         if(!File.Exists(file)) {
             if(Directory.Exists(Path.Combine(Root,run)))Error="存档与模组记录未配对，请保留原存档并重新进入";
             return;
         }
         var data=JsonSerializer.Deserialize<CompanionCommit>(File.ReadAllText(file)) ?? throw new InvalidOperationException("伴随存档为空");
-        // 0.1.2 fixes only button routing; its snapshot format and gameplay state
-        // are identical to 0.1.1. Accept that exact predecessor while requiring
-        // the original game, every other gameplay mod, run and native commit.
-        bool versionCompatible=data.ModVersion==ModEntry.Version || (ModEntry.Version=="0.1.2" && data.ModVersion=="0.1.1");
+        // Format 2 adds node entry/settled-combat semantics. Read known format 1
+        // predecessors without inventing entry snapshots absent from their data.
+        bool legacy=data.Format==1 && data.ModVersion is "0.1.1" or "0.1.2";
+        bool versionCompatible=data.Format==2 && data.ModVersion==ModEntry.Version || legacy;
         bool modsCompatible=versionCompatible && data.Mods==FingerprintFor(data.ModVersion);
-        if(data.Format!=1 || !versionCompatible || data.GameAssembly!=GameAssembly || !modsCompatible || data.RunId!=run || data.NativeDigest!=digest) {
-            Log.Warn($"[NoSuffering] Companion mismatch: format={data.Format==1}, version={versionCompatible}, game={data.GameAssembly==GameAssembly}, mods={modsCompatible}, run={data.RunId==run}, native={data.NativeDigest==digest}");
+        if(!versionCompatible || data.GameAssembly!=GameAssembly || !modsCompatible || data.RunId!=run || data.NativeDigest!=digest) {
+            Log.Warn($"[NoSuffering] Companion mismatch: format={data.Format}, version={versionCompatible}, game={data.GameAssembly==GameAssembly}, mods={modsCompatible}, run={data.RunId==run}, native={data.NativeDigest==digest}");
             Error="存档版本或模组组合不符，请保留原存档";return;
         }
-        CheckpointService.Restore(data.Timeline);LoadedRevision=data.Revision;
-        if(data.ModVersion!=ModEntry.Version)Log.Info("[NoSuffering] Loaded compatible 0.1.1 companion; format, game, other mods and native commit matched.");
+        CheckpointService.Restore(data.Timeline);_lastNativeTimeline=data.Timeline;LoadedRevision=data.Revision;
+        if(legacy){CheckpointService.ImportLegacyHistory();Log.Info($"[NoSuffering] Loaded compatible {data.ModVersion} companion; preserved known snapshots without inventing node-entry state.");}
     }
     public static async Task SaveNativeCurrent() {
         var manager=RunManager.Instance;
@@ -84,13 +95,24 @@ public static class CompanionStore
             save=Bridge.Thaw(CombatService.Baseline);
         else save=Bridge.Capture(Bridge.State.CurrentRoom);
         var native=(RunSaveManager)AccessTools.Field(typeof(SaveManager),"_runSaveManager").GetValue(SaveManager.Instance)!;
-        await native.SaveRun(save,manager.NetService.Type==NetGameType.Host);
+        // Participate in the native write slot even when saving a frozen combat
+        // baseline rather than the active, unserializable combat room.
+        var saves=SaveManager.Instance;
+        if(saves.CurrentRunSaveTask is { } pending)await pending;
+        var task=native.SaveRun(save,manager.NetService.Type==NetGameType.Host);
+        var slot=AccessTools.Property(typeof(SaveManager),nameof(SaveManager.CurrentRunSaveTask));
+        slot.SetValue(saves,task);
+        try{await task;}finally{if(ReferenceEquals(saves.CurrentRunSaveTask,task))slot.SetValue(saves,null);}
     }
     [HarmonyPatch(typeof(RunSaveManager),nameof(RunSaveManager.SaveRun),[typeof(SerializableRun),typeof(bool)])]
     private static class PairSave {
         static void Postfix(SerializableRun save,ref Task __result) {
             var frozen=Bridge.Thaw(Bridge.Freeze(save));
-            __result=Saved(__result,frozen);
+            var timeline=CheckpointService.Save();
+            if(save.PreFinishedRoom is not {IsPreFinished:true,EncounterId:not null} ||
+               timeline.SettledCombat!=new CombatSettlement(save.VisitedMapCoords.LastOrDefault(),save.CurrentActIndex))
+                timeline=timeline with {SettledCombat=null};
+            __result=Saved(__result,frozen,timeline);
         }
     }
     [HarmonyPatch(typeof(RunSaveManager),nameof(RunSaveManager.LoadRunSave))]

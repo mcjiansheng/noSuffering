@@ -40,19 +40,20 @@ public static class GameplayProbe
         bool continueProbe = args.Contains("--ns-gameplay-continue-probe");
         bool gameplayProbe = args.Contains("--ns-gameplay-probe");
         bool neowProbe = args.Contains("--ns-neow-probe");
-        if (_attached || (!gameplayProbe && !continueProbe && !neowProbe)) return;
+        bool rollbackProbe = args.Contains("--ns-rollback-probe");
+        if (_attached || (!gameplayProbe && !continueProbe && !neowProbe && !rollbackProbe)) return;
         _attached = true;
         var platform = OS.GetName() == "Windows" ? "windows" : OS.GetName() == "macOS" ? "macos" : "";
         var userDir = OS.GetUserDataDir().Replace('\\', '/').TrimEnd('/');
         var labRoot = OS.GetDataDir().Replace('\\', '/').TrimEnd('/') + "/NoSufferingLab/";
-        if (new[] { gameplayProbe, continueProbe, neowProbe }.Count(flag => flag) != 1 || !args.Contains("--ns-lab-probe") || platform.Length == 0 ||
+        if (new[] { gameplayProbe, continueProbe, neowProbe, rollbackProbe }.Count(flag => flag) != 1 || !args.Contains("--ns-lab-probe") || platform.Length == 0 ||
             !string.Equals(CommandLineHelper.GetValue("force-steam"), "off", StringComparison.OrdinalIgnoreCase) ||
             (userDir != labRoot + platform + "-public-beta" && userDir != labRoot + platform + "-public"))
         {
             Log.Error("[NoSuffering] GAMEPLAY_PROBE refused: requires --force-steam=off and an actual NoSufferingLab user directory.");
             return;
         }
-        void Start() { tree.ProcessFrame -= Start; _ = neowProbe ? RunNeow(tree) : continueProbe ? RunContinue(tree) : Run(tree); }
+        void Start() { tree.ProcessFrame -= Start; _ = rollbackProbe ? RollbackProbe.Run(tree) : neowProbe ? RunNeow(tree) : continueProbe ? RunContinue(tree) : Run(tree); }
         tree.ProcessFrame += Start;
     }
 
@@ -65,6 +66,9 @@ public static class GameplayProbe
         try
         {
             await AwaitStartup();
+            // The separate settings probe intentionally persists this toggle.
+            // Enable the operation required by this isolated gameplay fixture.
+            NoSuffering.Config.ConfigStore.ChangeRules(r => r with { EnableCombatReroll = true });
             var game = NGame.Instance!;
             if (RunManager.Instance.IsInProgress) throw new InvalidOperationException("Lab already has an active run.");
             // The game's NSceneBootstrapper uses this same native setup and scene ownership.
@@ -110,6 +114,8 @@ public static class GameplayProbe
             await Operation(CoreOperation.MapRollback, checkpoint.Id);
             Require(Bridge.State.CurrentRoom is MapRoom && Bridge.State.MapLocation.ToString() == checkpoint.Position,
                 "Rollback did not restore the map decision boundary.");
+            Require(game.Transition.MouseFilter == Control.MouseFilterEnum.Ignore && !game.Transition.InTransition,
+                "Rollback left a transparent transition blocking GUI input.");
             Pass(stage, "native map snapshot loaded through host coordinator");
 
             stage = "native_combat_start";
@@ -182,6 +188,7 @@ public static class GameplayProbe
     {
         const string check = "fresh_process_continue";
         Results[check] = "UNEXECUTED";
+        bool settledContinue=false;
         try
         {
             await AwaitStartup();
@@ -190,6 +197,11 @@ public static class GameplayProbe
             // Native menu startup may already read the saved run and its companion.
             // The different process ID below establishes fresh-process ownership.
             Require(!manager.IsInProgress, "Continue probe requires a fresh process with no active run.");
+            var saved = SaveManager.Instance.LoadRunSave();
+            if(saved.Success && saved.SaveData is {PreFinishedRoom.IsPreFinished:true} data &&
+               CheckpointService.CompletedCombatAt(new MapLocation(data.VisitedMapCoords.LastOrDefault(),data.CurrentActIndex))) {
+                settledContinue=true;await RollbackProbe.RunSettledContinue(tree);return;
+            }
             using var prior = JsonDocument.Parse(File.ReadAllText(Path.Combine(OS.GetUserDataDir(), "nosuffering-gameplay-probe.json")));
             var expected = prior.RootElement;
             Require(expected.GetProperty("process_id").GetInt32() != System.Environment.ProcessId, "Continue probe must run in a different process from the gameplay probe.");
@@ -199,7 +211,6 @@ public static class GameplayProbe
             var attempt = expected.GetProperty("expected_attempt").GetInt32();
             var order = expected.GetProperty("expected_order").GetString();
             Require(attempt > 0 && !string.IsNullOrEmpty(order), "Prior probe has no refreshed attempt/order expectation.");
-            var saved = SaveManager.Instance.LoadRunSave();
             Require(saved.Success && saved.SaveData != null, "Native saved run could not be read: " + saved.ErrorMessage);
             Require(CompanionStore.Error == null && CombatService.Attempt == attempt && Digests() == order,
                 "Fresh companion read did not restore the saved attempt/order.");
@@ -221,6 +232,7 @@ public static class GameplayProbe
         }
         finally
         {
+            if(!settledContinue) {
             var report = JsonSerializer.Serialize(new {
                 scope = "native-engine fresh-process singleplayer continue smoke; no multiplayer/gameplay acceptance",
                 process_id = System.Environment.ProcessId, results = Results
@@ -228,6 +240,7 @@ public static class GameplayProbe
             Log.Info("[NoSuffering] CONTINUE_PROBE_RESULTS " + report);
             File.WriteAllText(Path.Combine(OS.GetUserDataDir(), "nosuffering-continue-probe.json"), report);
             tree.Quit(Results[check].StartsWith("PASS", StringComparison.Ordinal) ? 0 : 1);
+            }
         }
     }
 

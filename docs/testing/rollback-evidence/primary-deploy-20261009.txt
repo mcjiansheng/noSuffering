@@ -1,0 +1,18 @@
+NoSuffering 0.1.3 primary deployment and save-preservation excerpt
+Source summaries: artifacts/rollback-primary-deploy.json and artifacts/rollback-primary-preservation.json
+
+Deployment and startup
+- version: 0.1.3
+- installed mod SHA-256: 853dc4d800c59b4217955e79a2f136e04d7b7210494cd5887b797d71d25d85f1
+- deployment: passed; Steam initialized; load/startup check: passed; exit code: 0
+- loaded mods: 25 (26 installed)
+- primary-save gameplay: not tested; gameplay results come from isolated labs only
+- multiplayer: not executed
+
+Save preservation
+- rollback backup: artifacts/rollback-original-save-20261009-133923
+- backed-up files: 14 total, comprising 4 native singleplayer/multiplayer save files and 10 NoSuffering companion JSON files
+- pre-deployment and post-startup comparison: all 14 file hashes matched; all preserved
+- configuration files were not included in this 14-file save set
+
+The deployment check confirms startup and file preservation; it is not evidence of gameplay acceptance in the primary save.

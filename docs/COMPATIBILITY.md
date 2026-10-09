@@ -65,7 +65,7 @@ Windows 使用相同 Python 脚本，或已有 PowerShell 包装。`prepare` 从
 
 ## 验证边界
 
-各版本、平台和 Mod 组合的结果独立记录。Windows beta 当前及 Mac beta 独立克隆的 25-Mod 组合包含 BaseLib、RitsuLib、UndoAndRestart、AncientSL、Intent Graph、Custom Card Balance、角色与商人皮肤等；加载共存、NoSuffering 原生操作通过与交替调用对方功能是不同范围。未执行对方撤销／刷新按钮的场景不会标为互操作通过。
+各版本、平台和 Mod 组合的结果独立记录。Windows beta 当前及 Mac beta 独立克隆的 25-Mod 组合包含 BaseLib、RitsuLib、UndoAndRestart、AncientSL、Intent Graph、Custom Card Balance、角色与商人皮肤等；加载共存、NoSuffering 原生操作通过与交替调用对方功能是不同范围。Windows beta 最终候选另通过真实原生出牌和 UndoAndRestart 撤销／快速重开处理器的交替调用、AncientSL 保留存档加载后个人刷新领取，共七项检查；新增药水 Busy 拒绝及重试两项，总计九项。该专项调用真实处理器，未据此宣称物理按钮或所有第三方功能已测。
 
 ModConfig 为软依赖，独立设置在未安装框架时可用。官方 v0.2.2 标签没有发布二进制附件，测试使用该标签未修改源码、官方 Godot.NET.Sdk 4.5.1 及源生成器构建 DLL，并由官方 Godot 4.5.1 导出对应资源 PCK。在 Mac 正式版真实引擎中完成注册、双向同步、两份配置落盘与原生 Mods 控件检查。该证据不等同于官方发布二进制、真人点击或多人框架测试；不把框架打包为依赖。
 

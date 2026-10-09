@@ -6,11 +6,13 @@ using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using MegaCrit.Sts2.Core.Multiplayer.Serialization;
 using MegaCrit.Sts2.Core.Multiplayer.Transport;
+using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using NoSuffering.Ancients;
@@ -426,6 +428,12 @@ public static class HostCoordinator
     private static class RunReady{static void Postfix()=>OnRunReady();}
     [HarmonyPatch(typeof(ActionQueueSynchronizer),nameof(ActionQueueSynchronizer.RequestEnqueue))]
     private static class InputBoundary {static bool Prefix()=>!Busy;}
+    // Native potion entry points mutate local queue/holder state before
+    // RequestEnqueue. Reject here so a busy operation leaves them retryable.
+    [HarmonyPatch(typeof(PotionModel),nameof(PotionModel.EnqueueManualUse))]
+    private static class PotionUseBoundary {static bool Prefix()=>!Busy;}
+    [HarmonyPatch(typeof(NPotionPopup),"OnDiscardButtonPressed")]
+    private static class PotionDiscardBoundary {static bool Prefix()=>!Busy;}
     [HarmonyPatch(typeof(EventSynchronizer),nameof(EventSynchronizer.ChooseLocalOption))]
     private static class EventBoundary {static bool Prefix()=>!Busy;}
     [HarmonyPatch(typeof(LoadRunLobby),"HandleClientLoadJoinRequestMessage")]

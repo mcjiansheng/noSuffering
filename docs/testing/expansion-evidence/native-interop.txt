@@ -1,0 +1,129 @@
+Retained pre-correction interoperability evidence (37c24306 DLL); newer candidate evidence follows below.
+
+2026-10-09 Windows public-beta native interoperability fixture
+Game: v0.111.0; game assembly MVID 73b63ee0-6c0a-47bb-b0d1-b21f6d94222e
+Isolation: C:/Users/48811/source/NoSuffering/.tools/game-lab/windows-public-beta/game; custom user directory NoSufferingLab/windows-public-beta; --force-steam=off; headless. Existing 25-mod set plus test-only NativeInterop addon loaded (26 total).
+No primary Windows deployment or Mac GUI/profile changed. No production source or release DLL changed.
+Build: test-only NativeInterop net9.0 project, against existing final NoSuffering.dll and beta native assemblies; 0 warnings, 0 errors.
+Invocation: Start-Process -Wait -PassThru -WorkingDirectory <lab game> SlayTheSpire2.exe --headless --max-fps 30 --log-file <artifacts/native-interop/engine.log> --force-steam=off -- --ns-lab-probe --ns-native-interop
+Exit: 0.
+Binary versions: NoSuffering 0.1.4; UndoAndRestart manifest 0.111.0.4 (assembly 1.0.0.0); AncientSL manifest/assembly 1.0.
+SHA256:
+NoSuffering.dll: 37c24306f950eb1e5c4d6763be2ad40a3a5a2574d47fba6674c4464995f65a2e
+UndoAndRestart.dll: ab3391bde51dbdd2ab2bbc4f970ad78a158cc867ecb1ec766d53a609589d04f3
+AncientSL.dll: b2ebfa5ba94586c153d05d129f5a320ef2890e129a6407dfddd89e8c8f757bd9
+
+RESULTS:
+ancient_f03_claim_proceed: PASS: AncientSL patch loaded; F03 native reward and Proceed callbacks completed
+ancient_sl_load_f03_claim_proceed: PASS: actual UndoAndRestart floor restart reloaded AncientSL-preserved pre-claim opening save; F03 and native claim/Proceed completed
+undo_native_card: PASS: native queued PlayCardAction completed; third-party HandleUndoKey restored card and energy
+nos_restart_invalidates_undo: PASS: NoS F04 rebuilt native combat and invalidated old undo generation/history
+f05_undo_retains_order: PASS: F05, native card play, third-party Undo, NoS F04 retained active attempt/order
+third_restart_retains_f05: PASS: actual third-party quick restart retained NoS F05 active attempt/order
+native_potion_after_restart: PASS: after NoS F04, PotionCmd.TryToProcure EnergyPotion and PotionModel.EnqueueManualUse(self) consumed potion and increased energy
+
+Additional facts: history_after_nos_restart=2 fresh opening snapshots; EnergyPotion energy 3 -> 5, with belt removal and native queue completion asserted.
+Actual callbacks: NEventOptionButton.OnRelease (claim and Proceed); UndoAndRestartCode.UndoRedoManager.HandleUndoKey; UndoAndRestartCode.FloorRestartService.HandleQuickRestartKey. Native PlayCardAction enqueued by ActionQueueSynchronizer.RequestEnqueue. PotionCmd.TryToProcure<EnergyPotion> and PotionModel.EnqueueManualUse(actor.Creature).
+AncientSL 1.0 has no reroll action. Its actual EventRoom.OnEventStateChanged patch suppresses the opening-ancient post-claim save; this test used UndoAndRestart floor restart to load the preserved pre-claim native save, then executed NoS F03 and native claim/Proceed again.
+First fixture iteration: ancient and Undo passed; an overstrict test assertion expected Undo rejection after F04, but native fresh opening legitimately creates two snapshots. Test was corrected to assert increased timeline generation and navigation retaining current attempt/order. No product change resulted.
+Observed logs also contain third-party asset warnings, legacy dependency manifest warnings (including this test addon), and Godot shutdown resource warnings. These do not establish broad log cleanliness; final asserted fixture results and process exit were PASS/0.
+Cleanup verified: addon removed; isolated lab profile restored from profile-before and all 308 files matched SHA256/file count; final NoS DLL SHA256 unchanged. Raw artifacts: artifacts/native-interop/evidence/{result.json,binary-hashes.json,engine.log,stdout.log,stderr.log,attempt1.json,cleanup.txt}.
+Limits: direct native room-entry singleplayer fixtures; no pointer-input, full-run, fresh-process save continuation, stable-version, public-network multiplayer, or universal 25-mod behavior claim.
+
+2026-10-09 deterministic native Busy regression and candidate rerun
+Changed production scope: src/Multiplayer/HostCoordinator.cs only. Added Harmony !Busy prefixes at PotionModel.EnqueueManualUse and NPotionPopup.OnDiscardButtonPressed, preserving the existing later RequestEnqueue gate. No replay, state reset, global input overrides, CanUseOrRemovePotions override, or player-choice continuation changes.
+Mechanism: native EnqueueManualUse invokes BeforeUse and sets IsQueued before RequestEnqueue; native popup discard disables its holder before RequestEnqueue. The old late-only queue gate dropped the action after those local mutations.
+Regression instrumentation: reflection holds actual HostCoordinator.Busy backing flag true, calls native entry point, observes local state and queue, clears flag in finally, then retries exact same potion/callback. This is an artificial hold, not observed physical-input timing, actual F07 concurrency or multiplayer proof.
+Baseline binary SHA256: 37c24306f950eb1e5c4d6763be2ad40a3a5a2574d47fba6674c4464995f65a2e
+Candidate beta binary SHA256: b453c472f989bb67abffb6af2e145fbd477f65f541635b631a01d2d66d54efe8
+Candidate version remains 0.1.4 (unpublished). Built via normal scripts/build.py build --platform windows --branch public-beta --game-dir <isolated beta game>; 0 warnings/errors.
+Candidate HostCoordinator.cs SHA256: 69207d337f15736937146bab2ce727ada8ce6b7fa68695f1cb7a5ef3be0bd334
+Scope: same Windows beta v0.111.0 / MVID, same 25 mods + test-only 26th addon, same isolated NoSufferingLab profile and Steamoff flags. Mac GUI/profile and primary Windows deployment untouched.
+Invocation: same fixture command above; baseline additionally --ns-busy-baseline. Baseline and fixed exit=0.
+PRE-FIX native reproduction: BeforeUse fired 1 time; IsQueued=true; potion still in belt; energy unchanged; queue empty. Actual native popup discard set holder-disabled=true; potion still in belt; queue empty.
+POST-FIX native assertions: BeforeUse=0; IsQueued=false; holder-disabled=false during Busy. After release exact same use potion consumed and energy increased; actual native discard popup callback discarded exact same potion.
+Both old baseline and candidate reran all seven ordinary interop assertions PASS. Candidate passed all nine checks.
+Hashes:
+C:\Users\48811\source\NoSuffering\.tools\game-lab\windows-public-beta\game\mods\NoSuffering\NoSuffering.dll SHA256=b453c472f989bb67abffb6af2e145fbd477f65f541635b631a01d2d66d54efe8
+C:\Users\48811\source\NoSuffering\src\Multiplayer\HostCoordinator.cs SHA256=69207d337f15736937146bab2ce727ada8ce6b7fa68695f1cb7a5ef3be0bd334
+C:\Users\48811\source\NoSuffering\tests\native-interop\bin\Release\net9.0\NativeInterop.dll SHA256=a1bc95d73e8c73f719974f9ea225420f7f5d0f6cbf93feae94e040ceba71c61a
+
+BASELINE REPORT:
+{
+  "scope": "isolated Windows beta headless native callbacks; direct room fixture; no pointer/full-run/multiplayer claim",
+  "results": {
+    "ancient_f03_claim_proceed": "PASS: AncientSL patch loaded; F03 native reward and Proceed callbacks completed",
+    "ancient_sl_load_f03_claim_proceed": "PASS: actual UndoAndRestart floor restart reloaded AncientSL-preserved pre-claim opening save; F03 and native claim/Proceed completed",
+    "undo_native_card": "PASS: native queued PlayCardAction completed; third-party HandleUndoKey restored card and energy",
+    "nos_restart_invalidates_undo": "PASS: NoS F04 rebuilt native combat and invalidated old undo generation/history",
+    "f05_undo_retains_order": "PASS: F05, native card play, third-party Undo, NoS F04 retained active attempt/order",
+    "third_restart_retains_f05": "PASS: actual third-party quick restart retained NoS F05 active attempt/order",
+    "native_potion_after_restart": "PASS: after NoS F04, PotionCmd.TryToProcure EnergyPotion and PotionModel.EnqueueManualUse(self) consumed potion and increased energy",
+    "instrumented_busy_potion_use": "PASS: PRE-FIX REPRODUCED: artificial Busy dropped native enqueue but BeforeUse fired and IsQueued became true; potion remained in belt, energy unchanged",
+    "instrumented_busy_potion_discard": "PASS: PRE-FIX REPRODUCED: actual popup discard callback disabled holder while Busy dropped enqueue; potion remained in belt"
+  },
+  "facts": {
+    "loaded_assemblies": [
+      {
+        "FullName": "NoSuffering, Version=0.1.4.0, Culture=neutral, PublicKeyToken=null",
+        "Location": "C:\\Users\\48811\\source\\NoSuffering\\.tools\\game-lab\\windows-public-beta\\game\\mods\\NoSuffering\\NoSuffering.dll"
+      },
+      {
+        "FullName": "AncientSL, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "Location": "C:\\Users\\48811\\source\\NoSuffering\\.tools\\game-lab\\windows-public-beta\\game\\mods\\workshop-3747566414\\AncientSL.dll"
+      },
+      {
+        "FullName": "UndoAndRestart, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "Location": "C:\\Users\\48811\\source\\NoSuffering\\.tools\\game-lab\\windows-public-beta\\game\\mods\\workshop-3747517414\\UndoAndRestart.dll"
+      }
+    ],
+    "history_after_nos_restart": 2,
+    "potion_energy_before": 3,
+    "potion_energy_after": 5,
+    "busy_use_beforeuse_calls": 1,
+    "busy_use_isqueued": true,
+    "busy_discard_holder_disabled": true
+  }
+}
+
+FIXED REPORT:
+{
+  "scope": "isolated Windows beta headless native callbacks; direct room fixture; no pointer/full-run/multiplayer claim",
+  "results": {
+    "ancient_f03_claim_proceed": "PASS: AncientSL patch loaded; F03 native reward and Proceed callbacks completed",
+    "ancient_sl_load_f03_claim_proceed": "PASS: actual UndoAndRestart floor restart reloaded AncientSL-preserved pre-claim opening save; F03 and native claim/Proceed completed",
+    "undo_native_card": "PASS: native queued PlayCardAction completed; third-party HandleUndoKey restored card and energy",
+    "nos_restart_invalidates_undo": "PASS: NoS F04 rebuilt native combat and invalidated old undo generation/history",
+    "f05_undo_retains_order": "PASS: F05, native card play, third-party Undo, NoS F04 retained active attempt/order",
+    "third_restart_retains_f05": "PASS: actual third-party quick restart retained NoS F05 active attempt/order",
+    "native_potion_after_restart": "PASS: after NoS F04, PotionCmd.TryToProcure EnergyPotion and PotionModel.EnqueueManualUse(self) consumed potion and increased energy",
+    "instrumented_busy_potion_use": "PASS: artificial Busy rejected native use without BeforeUse/IsQueued mutation; exact same potion consumed and granted energy after flag release",
+    "instrumented_busy_potion_discard": "PASS: artificial Busy rejected actual native popup discard before holder disable; same callback discarded exact same potion after flag release"
+  },
+  "facts": {
+    "loaded_assemblies": [
+      {
+        "FullName": "NoSuffering, Version=0.1.4.0, Culture=neutral, PublicKeyToken=null",
+        "Location": "C:\\Users\\48811\\source\\NoSuffering\\.tools\\game-lab\\windows-public-beta\\game\\mods\\NoSuffering\\NoSuffering.dll"
+      },
+      {
+        "FullName": "AncientSL, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "Location": "C:\\Users\\48811\\source\\NoSuffering\\.tools\\game-lab\\windows-public-beta\\game\\mods\\workshop-3747566414\\AncientSL.dll"
+      },
+      {
+        "FullName": "UndoAndRestart, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "Location": "C:\\Users\\48811\\source\\NoSuffering\\.tools\\game-lab\\windows-public-beta\\game\\mods\\workshop-3747517414\\UndoAndRestart.dll"
+      }
+    ],
+    "history_after_nos_restart": 2,
+    "potion_energy_before": 3,
+    "potion_energy_after": 5,
+    "busy_use_beforeuse_calls": 0,
+    "busy_use_isqueued": false,
+    "busy_discard_holder_disabled": false
+  }
+}
+
+Cleanup: test addon removed; isolated profile restored and all 308 files matched SHA256/file count. Candidate b453c472 retained only in isolated beta lab. No primary deployment performed.
+Raw paired evidence: artifacts/native-interop/busy-baseline/{result.json,engine.log}; artifacts/native-interop/busy-fixed/{result.json,engine.log,stdout.log,stderr.log,build-record.json,hashes.json,cleanup.txt}; full local source hash record artifacts/native-interop/candidate-source-hashes.json.
+This bounded correction is demonstrated independently of the earlier uncorrelated CUA potion-popup symptom. Physical-pointer use, full run, real operation-race timing, multiplayer potion-race behavior, and stable runtime are unexecuted here; root owns remaining matrix qualification.

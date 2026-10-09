@@ -1,0 +1,118 @@
+{
+  "scope": "Final Busy potion-boundary builds; two actual native localhost ENet peers; direct fixtures; no Steam/internet/pointer/full-run/potion-race claim",
+  "branches": {
+    "public-beta": {
+      "raw_record": "artifacts/macos/public-beta/mp-20261009-211936/run-record.json",
+      "raw_sha256": "ee47b0a90e89be8d00af5d235d0b40305c6bb1d2a955d34bfa8ae44a95ec78e7",
+      "dll_sha256": "02f63de79fe3d74563c70993c5c81fb0a2f1f6f52735b599d25fff9b849ba7dd",
+      "result": "native_enet_smoke_passed",
+      "peers": {
+        "host": {
+          "mod_sha256": "02f63de79fe3d74563c70993c5c81fb0a2f1f6f52735b599d25fff9b849ba7dd",
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "host",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock"
+            }
+          }
+        },
+        "client": {
+          "mod_sha256": "02f63de79fe3d74563c70993c5c81fb0a2f1f6f52735b599d25fff9b849ba7dd",
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "client",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock"
+            }
+          }
+        }
+      }
+    },
+    "public": {
+      "raw_record": "artifacts/macos/public/mp-20261009-212159/run-record.json",
+      "raw_sha256": "02fb0b4548e2560c32e3903264429e90f18840b773dbec5b868a35d75f36c2c2",
+      "dll_sha256": "c1744bb3b49baa9654570e2276b6b4006e59856d9f01b7eee338aa2548ca97e0",
+      "result": "native_enet_smoke_passed",
+      "peers": {
+        "host": {
+          "mod_sha256": "c1744bb3b49baa9654570e2276b6b4006e59856d9f01b7eee338aa2548ca97e0",
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "host",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock"
+            }
+          }
+        },
+        "client": {
+          "mod_sha256": "c1744bb3b49baa9654570e2276b6b4006e59856d9f01b7eee338aa2548ca97e0",
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "client",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock"
+            }
+          }
+        }
+      }
+    }
+  },
+  "retained_failed_attempt": {
+    "raw_record": "artifacts/macos/public/mp-20261009-211936/run-record.json",
+    "cause": "Parallel beta/stable probes shared native port; stable host CantCreate and lobby timeout; remaining checks UNEXECUTED. Serial stable rerun passed.",
+    "raw_sha256": "2b4598579bf353574b6b1d5e60dad0a5aa8e52964407585c0c57e03777f8a52e"
+  }
+}

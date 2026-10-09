@@ -1,0 +1,53 @@
+2026-10-09 final Windows potion-boundary candidate multiplayer regression
+Scope: scripts/mp-lab.py; two actual native headless localhost ENet processes per branch, copied lab slots and isolated profiles, Steam disabled. No Steam/public-network multiplayer, pointer-input, full-run or actual multiplayer potion-race claim.
+Production change under test: only early !Busy prefixes at PotionModel.EnqueueManualUse and NPotionPopup.OnDiscardButtonPressed; existing RequestEnqueue and event/choice continuation behavior retained.
+Source HostCoordinator.cs SHA256: 69207d337f15736937146bab2ce727ada8ce6b7fa68695f1cb7a5ef3be0bd334
+Native artificial Busy use/discard baseline/fixed evidence remains separate in native-interop.txt; these 12 checks demonstrate normal multiplayer regression behavior, not an actual potion operation race.
+Invocation per branch: python scripts/mp-lab.py --platform windows --branch <public-beta|public> --headless
+No --seed-reload requested/executed in this final regression. Earlier unchanged fresh-process coverage is not rerun here.
+
+BRANCH public-beta
+DLL SHA256 b453c472f989bb67abffb6af2e145fbd477f65f541635b631a01d2d66d54efe8
+Normal build-record build=passed; local stage DLL hash verified exactly against build-record.
+Result native_enet_smoke_passed
+host: exit=0; isolated_user_data=True; checks=12; all PASS; mod SHA256=b453c472f989bb67abffb6af2e145fbd477f65f541635b631a01d2d66d54efe8
+client: exit=0; isolated_user_data=True; checks=12; all PASS; mod SHA256=b453c472f989bb67abffb6af2e145fbd477f65f541635b631a01d2d66d54efe8
+Checks (identical PASS on both peers):
+native_two_peer_start: PASS: native ENet host 1/client 2, native lobby/run/ancient
+authenticated_ancient_choice: PASS: actual client forged host actor choice rejected; no reward committed
+client_F03_after_host_claim: PASS: client request rerolled only own event and charged own 3 HP after host claimed
+independent_claim_native_proceed: PASS: both actual native reward handlers and local Proceed completed
+client_shop_refresh: PASS: actual client shop request replaced only client stock
+courier_purchase_owner_stock: PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock
+host_only_boss_hp: PASS: client host-only request ignored; host increased live boss current/max HP on both peers
+normal_restart: PASS: actual two-peer native combat reload retained boss increment
+new_order_restart: PASS: actual two-peer refreshed-order reload retained boss increment
+map_rollback: PASS: actual native two-peer rollback completed
+pending_ancient_choice_boundary: PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable
+shop_disk_continue: PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock
+Raw local evidence artifacts/windows/public-beta/final-potion-mp/{run-record.json,report-host.json,report-client.json,host-engine.log,client-engine.log,host-stdout.log,client-stdout.log}
+
+BRANCH public
+DLL SHA256 db382947565b2aef8b5493c980730b50690456c893f206e076dcbcedb4697bb8
+Normal build-record build=passed; local stage DLL hash verified exactly against build-record.
+Result native_enet_smoke_passed
+host: exit=0; isolated_user_data=True; checks=12; all PASS; mod SHA256=db382947565b2aef8b5493c980730b50690456c893f206e076dcbcedb4697bb8
+client: exit=0; isolated_user_data=True; checks=12; all PASS; mod SHA256=db382947565b2aef8b5493c980730b50690456c893f206e076dcbcedb4697bb8
+Checks (identical PASS on both peers):
+native_two_peer_start: PASS: native ENet host 1/client 2, native lobby/run/ancient
+authenticated_ancient_choice: PASS: actual client forged host actor choice rejected; no reward committed
+client_F03_after_host_claim: PASS: client request rerolled only own event and charged own 3 HP after host claimed
+independent_claim_native_proceed: PASS: both actual native reward handlers and local Proceed completed
+client_shop_refresh: PASS: actual client shop request replaced only client stock
+courier_purchase_owner_stock: PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock
+host_only_boss_hp: PASS: client host-only request ignored; host increased live boss current/max HP on both peers
+normal_restart: PASS: actual two-peer native combat reload retained boss increment
+new_order_restart: PASS: actual two-peer refreshed-order reload retained boss increment
+map_rollback: PASS: actual native two-peer rollback completed
+pending_ancient_choice_boundary: PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable
+shop_disk_continue: PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock
+Raw local evidence artifacts/windows/public/final-potion-mp/{run-record.json,report-host.json,report-client.json,host-engine.log,client-engine.log,host-stdout.log,client-stdout.log}
+
+Fetched final Windows NoSuffering stages and build-record.json to artifacts/windows/public-beta and artifacts/windows/public; both DLL SHA256 values verified after transfer.
+Full aggregate: artifacts/validation/windows-potion-boundary.json.
+Primary Windows deployment, Mac profiles/GUI and source were not modified by this final validation. Test processes completed normally. Native shutdown logs retain Godot resource warnings; result does not claim log cleanliness.

@@ -1,6 +1,6 @@
 # Mac / 正式版适配与副测试环境
 
-本页记录隔离副测试环境和 0.1.4 的适配方式。具体通过项、DLL 指纹及未执行项目见[本版测试记录](testing/2026-10-09-expansion.md)；物理鼠标／键盘游玩另见 [Mac beta 对局记录](testing/2026-10-09-cua-playthrough.md)。
+本页记录隔离副测试环境。0.1.5 的通过项、DLL 指纹及未执行项目见[本版测试记录](testing/2026-10-11-victory-rewards.md)，以下广泛兼容检查来自 [0.1.4 历史记录](testing/2026-10-09-expansion.md)；物理鼠标／键盘游玩另见 [Mac beta 对局记录](testing/2026-10-09-cua-playthrough.md)。
 
 ## 实际布局
 
@@ -71,6 +71,6 @@ ModConfig 为软依赖，独立设置在未安装框架时可用。官方 v0.2.2
 
 已核查 Shop Enhancement `STS2_0.5.2` 官方发布 DLL。其调用的原生 `MerchantRoom.Inventory` 在本次 beta 中不存在，因此不能宣称该版本兼容；未修改或重新发布对方模组。测试记录列出该静态阻断证据，运行仍标为未执行。
 
-0.1.4 使用存档格式 2，接受已知的 0.1.3 格式 2 和 0.1.1/0.1.2 格式 1，仍须匹配游戏、其他 Mod 指纹及原生存档配对。旧记录没有保存的房间状态无法补造。Intel Mac、Linux、未来游戏版本及未列出的组合没有本版兼容结论。历史 0.1.1–0.1.3 记录仅代表当时范围，不用于填补当前未测项。
+0.1.5 使用存档格式 2，接受已知的 0.1.3/0.1.4 格式 2 和 0.1.1/0.1.2 格式 1，仍须匹配游戏、其他 Mod 指纹及原生存档配对。旧记录没有保存的房间状态无法补造；新胜利节点的领取前快照与原奖励 RNG 见设计 v1.9。BaseLib 设置页为可选注册，仍以 NoSuffering 配置为唯一存储。Intel Mac、Linux、未来游戏版本及未列出的组合没有本版兼容结论。历史 0.1.1–0.1.4 记录仅代表当时范围，不用于填补当前未测项。
 
 依据：[Godot exported override](https://docs.godotengine.org/en/stable/classes/class_projectsettings.html)、[用户数据路径](https://docs.godotengine.org/en/stable/tutorials/io/data_paths.html)、[官方引擎设置加载源码](https://github.com/godotengine/godot/blob/4.5/core/config/project_settings.cpp)，以及下载后的真实引擎日志、原生 NGame / CommandLineHelper / SaveManager / ModManager 与程序集指纹。

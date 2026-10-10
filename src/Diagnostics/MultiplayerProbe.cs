@@ -4,6 +4,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Entities.Rngs;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Logging;
@@ -14,10 +15,14 @@ using MegaCrit.Sts2.Core.Models.Characters;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Events;
+using MegaCrit.Sts2.Core.Nodes.CommonUi;
+using MegaCrit.Sts2.Core.Nodes.Rewards;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
+using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Rooms;
+using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves;
 using MegaCrit.Sts2.Core.Saves.Managers;
@@ -95,7 +100,8 @@ public static class MultiplayerProbe
     {
         string[] checks = ["native_two_peer_start", "authenticated_ancient_choice", "client_F03_after_host_claim",
             "independent_claim_native_proceed", "client_shop_refresh", "courier_purchase_owner_stock",
-            "host_only_boss_hp", "normal_restart", "new_order_restart", "map_rollback", "pending_ancient_choice_boundary", "shop_disk_continue"];
+            "host_only_boss_hp", "normal_restart", "new_order_restart", "map_rollback", "pending_ancient_choice_boundary", "shop_disk_continue",
+            "victory_pending_rewards_rollback"];
         if(SeedStage!="")checks=["fresh_process_seed_"+SeedStage];
         foreach (string check in checks) Results[check] = "UNEXECUTED";
         string stage = checks[0];
@@ -240,6 +246,50 @@ public static class MultiplayerProbe
             Require(ShopService.GetUnavailableReason(2,ConfigStore.Rules)!=null,"Native disk continue unlocked purchased client shop.");
             Pass(stage,"actual host native disk read and two-peer native load retained Courier stock/purchase lock");
 
+            stage=checks[12];
+            var ordinaryMonster=Bridge.State.Map.GetAllMapPoints().Where(p=>p.PointType==MapPointType.Monster)
+                .OrderBy(p=>p.coord.row).ThenBy(p=>p.coord.col).First();
+            int rewardAct=Bridge.State.CurrentActIndex;
+            await Timed(RunManager.Instance.EnterMapCoord(ordinaryMonster.coord),"native ordinary monster reward fixture");
+            await Opening();
+            await Barrier("ordinary_monster_ready");
+            await Timed(CreatureCmd.Kill(CombatManager.Instance.DebugOnlyGetState()!.Enemies.ToList(),true),"peer-symmetric native ordinary victory");
+            await Timed(CombatManager.Instance.CheckWinCondition(),"native ordinary victory safe point");
+            await Wait(()=>!CombatManager.Instance.IsInProgress&&Descendants<NRewardsScreen>(tree.Root).Any(),"native ordinary victory rewards");
+            await Barrier("ordinary_rewards_generated");
+            var originalRewards=Descendants<NRewardsScreen>(tree.Root).Single();
+            var originalResources=LocalResources();
+            var originalRewardCards=RewardCardsFingerprint(originalRewards);
+            var originalRngOdds=RewardRngOddsFingerprint();
+            var originalGold=Descendants<NRewardButton>(originalRewards).First(b=>b.Reward is GoldReward);
+            await ClaimLocalGold(originalGold,"native ordinary gold claimed");
+            var oneClaimResources=LocalResources();
+            await Barrier("ordinary_gold_claimed");
+            var originalProceed=Descendants<NProceedButton>(originalRewards).Single();
+            await Wait(()=>originalProceed.IsEnabled,"native ordinary rewards Proceed enabled");
+            originalProceed.ForceClick();
+            await Wait(()=>NMapScreen.Instance is {IsOpen:true,IsTravelEnabled:true}&&!Descendants<NRewardsScreen>(tree.Root).Any(),"native ordinary rewards settled map");
+            await Barrier("ordinary_rewards_settled");
+            long rewardCheckpoint=Host?CheckpointService.History.Last(c=>c.ActIndex==rewardAct&&c.Coord==ordinaryMonster.coord&&c.BeforeRewards).Id:0;
+            await Operation(CoreOperation.MapRollback,1,"victory_pending_rewards",checkpoint:rewardCheckpoint);
+            Require(Bridge.State.CurrentActIndex==rewardAct&&Bridge.State.CurrentMapCoord==ordinaryMonster.coord&&
+                Bridge.State.CurrentRoom is CombatRoom {IsPreFinished:true}&&!CombatManager.Instance.IsInProgress,
+                "Pending-reward rollback did not restore the completed native combat.");
+            await Wait(()=>Descendants<NRewardsScreen>(tree.Root).Any(),"restored native ordinary victory rewards");
+            var restoredRewards=Descendants<NRewardsScreen>(tree.Root).Single();
+            Require(LocalResources()==originalResources,"Rollback did not restore each peer's pre-claim resources.");
+            Require(RewardCardsFingerprint(restoredRewards)==originalRewardCards,"Rollback changed a peer's native card reward options.");
+            Require(RewardRngOddsFingerprint()==originalRngOdds,"Rollback changed a peer's reward RNG or rarity odds.");
+            var restoredGold=Descendants<NRewardButton>(restoredRewards).First(b=>b.Reward is GoldReward);
+            await ClaimLocalGold(restoredGold,"restored native ordinary gold claim");
+            var restoredProceed=Descendants<NProceedButton>(restoredRewards).Single();
+            await Wait(()=>restoredProceed.IsEnabled,"restored native ordinary rewards Proceed enabled");
+            restoredProceed.ForceClick();
+            await Wait(()=>NMapScreen.Instance is {IsOpen:true,IsTravelEnabled:true}&&!Descendants<NRewardsScreen>(tree.Root).Any(),"restored native ordinary rewards settled map");
+            Require(LocalResources()==oneClaimResources,"Reclaimed native gold/Proceed did not reproduce exactly one original claim.");
+            await Barrier("victory_pending_rewards_complete");
+            Pass(stage,"both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once");
+
             stage=checks[6];
             await Timed(RunManager.Instance.EnterAct(2,false),"act-three fixture");
             await Barrier("act_three");
@@ -334,6 +384,45 @@ public static class MultiplayerProbe
         File.WriteAllText(Path.Combine(Root,$"digest-{HostCoordinator.WorldRevision}-{Role}-native.json"),native);
         File.WriteAllText(Path.Combine(Root,$"digest-{HostCoordinator.WorldRevision}-{Role}-companion.json"),
             JsonSerializer.Serialize(new {ancient,shop,boss,order=CombatService.CurrentOrderDigests}));
+    }
+    private static IEnumerable<T> Descendants<T>(Node parent) where T:Node
+    {
+        if(parent is T result)yield return result;
+        foreach(Node child in parent.GetChildren())foreach(var match in Descendants<T>(child))yield return match;
+    }
+    private static string RewardCardsFingerprint(NRewardsScreen screen)
+    {
+        var field=typeof(NRewardsScreen).GetField("_rewardsSet",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)
+            ??throw new MissingFieldException("Native reward screen set changed.");
+        var set=(RewardsSet)(field.GetValue(screen)??throw new InvalidOperationException("Native reward screen has no RewardsSet."));
+        var options=new JsonSerializerOptions {IncludeFields=true};
+        return string.Join("|",set.Rewards.Select(reward=>reward is CardReward card
+            ?"Card:"+string.Join(",",card.Cards.Select(CardKey))
+            :reward.GetType().Name+":"+JsonSerializer.Serialize(reward.ToSerializable(),options)).OrderBy(value=>value,StringComparer.Ordinal));
+    }
+    private static string CardKey(CardModel card)=>card.Id+":"+card.IsUpgraded;
+    private static string RewardRngOddsFingerprint()
+    {
+        var player=Player(Me);
+#if STS2_STABLE
+        var rng=new {seed=player.PlayerRng.Seed,counter=player.PlayerRng.Rewards.Counter};
+#else
+        var rng=player.PlayerRng.ToSerializable().Rngs[PlayerRngType.Rewards];
+#endif
+        return JsonSerializer.Serialize(new {rewards_rng=rng,odds=player.PlayerOdds.ToSerializable()},new JsonSerializerOptions {IncludeFields=true});
+    }
+    private static string LocalResources()
+    {
+        var player=Player(Me);
+        return JsonSerializer.Serialize(new {player.Gold,hp=player.Creature.CurrentHp,maxHp=player.Creature.MaxHp,
+            deck=player.Deck.Cards.Select(c=>c.Id+":"+c.IsUpgraded).ToArray(),
+            relics=player.Relics.Select(r=>r.Id.ToString()).ToArray(),potions=player.Potions.Select(p=>p.Id.ToString()).ToArray()});
+    }
+    private static async Task ClaimLocalGold(NRewardButton button,string detail)
+    {
+        int before=Player(Me).Gold;
+        button.Call("OnRelease");
+        await Wait(()=>Player(Me).Gold>before,detail);
     }
     private static MegaCrit.Sts2.Core.Entities.Players.Player Player(ulong id)=>Bridge.State.Players.Single(p=>p.NetId==id);
     private static EventModel Event(ulong id)=>RunManager.Instance.EventSynchronizer.GetEventForPlayer(Player(id));

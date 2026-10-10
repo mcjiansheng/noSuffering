@@ -21,9 +21,11 @@ public readonly record struct CombatSettlement(MapCoord? Coord,int ActIndex)
 {
     public static CombatSettlement At(MapLocation location)=>new(location.coord,location.actIndex);
 }
+public sealed record CombatRewardReplay(MapCoord? Coord,int ActIndex,string Snapshot);
 public sealed record TimelineData(List<MapCheckpoint> Checkpoints,CombatRecord? Combat,AncientRecord? Ancient)
 {
     public CombatSettlement? SettledCombat {get;init;}
+    public CombatRewardReplay? PendingCombatRewards {get;init;}
     public ShopRecord? Shop {get;init;}
     public BossHealthRecord? BossHealth {get;init;}
 }
@@ -35,6 +37,7 @@ public sealed record MapCheckpoint(long Id,string RunId,string Position,string L
     public MapCoord? Coord {get;init;}
     public bool BeforeEntry {get;init;}
     public bool CompletedCombat {get;init;}
+    public bool BeforeRewards {get;init;}
     public bool IsNodeTarget=>Coord.HasValue && (CompletedCombat || BeforeEntry && LastRoom is not ("Monster" or "Elite" or "Boss" or ""));
 }
 public static class CheckpointService
@@ -42,17 +45,18 @@ public static class CheckpointService
     private static List<MapCheckpoint> _history=[];
     private static long _nextId;
     private static MapLocation? _settledCombat;
+    public static CombatRewardReplay? PendingCombatRewards {get;private set;}
     private static CombatRoom? _rewardRoom;
     private static readonly HashSet<ulong> RewardsStarted=[];
     public static IReadOnlyList<MapCheckpoint> History=>_history;
-    public static TimelineData Save(bool includeHistory=true)=>new(includeHistory?new(_history):[],CombatService.Save(),AncientService.CaptureState()){SettledCombat=_settledCombat is { } settled?CombatSettlement.At(settled):null,Shop=ShopService.CaptureState(),BossHealth=BossHealthService.CaptureState()};
+    public static TimelineData Save(bool includeHistory=true)=>new(includeHistory?new(_history):[],CombatService.Save(),AncientService.CaptureState()){SettledCombat=_settledCombat is { } settled?CombatSettlement.At(settled):null,PendingCombatRewards=PendingCombatRewards,Shop=ShopService.CaptureState(),BossHealth=BossHealthService.CaptureState()};
     public static void Restore(TimelineData data,bool keepHistory=false,bool live=false) {
         if(!keepHistory)_history=new(data.Checkpoints);
         _nextId=Math.Max(_nextId,_history.Select(p=>p.Id).DefaultIfEmpty().Max());
         CombatService.Restore(data.Combat);AncientService.RestoreState(data.Ancient);ShopService.RestoreState(data.Shop,live);BossHealthService.RestoreState(data.BossHealth);
-        _settledCombat=data.SettledCombat is { } settled?new MapLocation(settled.Coord,settled.ActIndex):null;_rewardRoom=null;RewardsStarted.Clear();
+        _settledCombat=data.SettledCombat is { } settled?new MapLocation(settled.Coord,settled.ActIndex):null;PendingCombatRewards=data.PendingCombatRewards;_rewardRoom=null;RewardsStarted.Clear();
     }
-    public static void Reset(){_history=[];_settledCombat=null;_rewardRoom=null;RewardsStarted.Clear();CombatService.Restore(null);AncientService.RestoreState(null);ShopService.RestoreState(null);BossHealthService.RestoreState(null);}
+    public static void Reset(){_history=[];_settledCombat=null;PendingCombatRewards=null;_rewardRoom=null;RewardsStarted.Clear();CombatService.Restore(null);AncientService.RestoreState(null);ShopService.RestoreState(null);BossHealthService.RestoreState(null);}
     // Native entry saves happen after the coordinate is selected and the old room
     // exits, but before rolling/generating the new room or applying its effects.
     private static void CaptureEntry(SerializableRun save) {
@@ -63,7 +67,7 @@ public static class CheckpointService
            Bridge.State.CurrentRoom is not null || save.PreFinishedRoom is not null || save.VisitedMapCoords.Count==0)return;
         var coord=save.VisitedMapCoords[^1];var act=save.CurrentActIndex;
         if(_history.Any(c=>c.ActIndex==act && c.Coord==coord))return;
-        _settledCombat=null;
+        _settledCombat=null;PendingCombatRewards=null;
         var position=new MapLocation(coord,act).ToString();
         _history.Add(new(++_nextId,Bridge.Key(save),position,"",DateTimeOffset.UtcNow.ToUnixTimeSeconds(),"",Bridge.State.Players.ToDictionary(p=>p.NetId,p=>p.Creature.CurrentHp),Bridge.Freeze(save),null,null)
             {ActIndex=act,Coord=coord,BeforeEntry=true});
@@ -75,6 +79,23 @@ public static class CheckpointService
         var index=_history.FindIndex(c=>c.ActIndex==state.CurrentActIndex && c.Coord==state.CurrentMapCoord && c.BeforeEntry);
         if(index<0)return;
         _history[index]=_history[index] with {LastRoom=state.CurrentRoom!.RoomType.ToString()};
+        CompanionStore.PairWithLastNativeSave();
+    }
+    private static void CaptureVictoryRewards(CombatRoom room) {
+        var manager=RunManager.Instance;
+        if(!manager.IsInProgress || Bridge.IsRestoring || manager.NetService.Type==NetGameType.Client ||
+           !ReferenceEquals(room,Bridge.State.CurrentRoom) || Bridge.State.CurrentRoomCount!=1 || CompletedCombatAt(Bridge.State.MapLocation))return;
+        var state=Bridge.State;
+        if(PendingCombatRewards is { } pending && pending.Coord==state.CurrentMapCoord && pending.ActIndex==state.CurrentActIndex)return;
+        var existing=_history.FindIndex(c=>c.RunId==Bridge.RunKey && c.Position==state.MapLocation.ToString());
+        // Capture once, after victory hooks but before native reward population
+        // consumes Rewards RNG or card rarity odds. Claims never replace it.
+        var snapshot=Bridge.Freeze(Bridge.Capture(room));
+        PendingCombatRewards=new(state.CurrentMapCoord,state.CurrentActIndex,snapshot);
+        if(existing>=0 && _history[existing].BeforeRewards)return;
+        var record=new MapCheckpoint(existing>=0?_history[existing].Id:++_nextId,Bridge.RunKey,state.MapLocation.ToString(),"",DateTimeOffset.UtcNow.ToUnixTimeSeconds(),room.RoomType.ToString(),state.Players.ToDictionary(p=>p.NetId,p=>p.Creature.CurrentHp),snapshot,null,AncientService.CaptureState())
+            {ActIndex=state.CurrentActIndex,Coord=state.CurrentMapCoord,CompletedCombat=true,BeforeRewards=true,Shop=ShopService.CaptureState(),BossHealth=BossHealthService.CaptureState()};
+        if(existing>=0)_history[existing]=record;else _history.Add(record);
         CompanionStore.PairWithLastNativeSave();
     }
     public static void CaptureDecision(bool sealing=false) {
@@ -93,7 +114,10 @@ public static class CheckpointService
            (!ReferenceEquals(_rewardRoom,state.CurrentRoom) || state.Players.Any(p=>!p.Creature.IsDead && !RewardsStarted.Contains(p.NetId))))return;
         var save=Bridge.Capture(finishedCombat?state.CurrentRoom:new MapRoom());
         if(finishedCombat)save.PreFinishedRoom!.IsPreFinished=true;
-        if(finishedCombat)_settledCombat=state.MapLocation;
+        if(finishedCombat) {
+            _settledCombat=state.MapLocation;PendingCombatRewards=null;
+            if(existing>=0 && _history[existing].BeforeRewards){CompanionStore.PairWithLastNativeSave();return;}
+        }
         var snapshot=Bridge.Freeze(save);
         var record=new MapCheckpoint(existing>=0?_history[existing].Id:++_nextId,key,position,"",DateTimeOffset.UtcNow.ToUnixTimeSeconds(),state.CurrentRoom?.RoomType.ToString()??"Map",state.Players.ToDictionary(p=>p.NetId,p=>p.Creature.CurrentHp),snapshot,finishedCombat?null:CombatService.Save(),AncientService.CaptureState())
             {ActIndex=state.CurrentActIndex,Coord=state.CurrentMapCoord,CompletedCombat=finishedCombat,Shop=ShopService.CaptureState(),BossHealth=BossHealthService.CaptureState()};
@@ -125,7 +149,7 @@ public static class CheckpointService
     [HarmonyPatch(typeof(RewardsSetSynchronizer),nameof(RewardsSetSynchronizer.BeginRewardsSet))]
     private static class VictoryRewards {
         static void Postfix(RewardsSet set,ref Task __result) {
-            if(!RunManager.Instance.IsInProgress || Bridge.IsRestoring || set.Room is not CombatRoom room ||
+            if(!RunManager.Instance.IsInProgress || (Bridge.IsRestoring && PendingCombatRewards is null) || set.Room is not CombatRoom room ||
                !ReferenceEquals(room,Bridge.State.CurrentRoom) || CompletedCombatAt(Bridge.State.MapLocation))return;
             if(!ReferenceEquals(_rewardRoom,room)){_rewardRoom=room;RewardsStarted.Clear();}
             RewardsStarted.Add(set.Player.NetId);
@@ -133,6 +157,8 @@ public static class CheckpointService
         }
         static async Task Finish(Task task,CombatRoom room){await task;await SealVictory(room);}
     }
+    [HarmonyPatch(typeof(CombatRoom),nameof(CombatRoom.OfferRoomEndRewards))]
+    private static class VictoryRewardBoundary {static void Prefix(CombatRoom __instance)=>CaptureVictoryRewards(__instance);}
     private static async Task SealVictory(CombatRoom room) {
         if(SaveManager.Instance.CurrentRunSaveTask is { } pending)await pending;
         var manager=RunManager.Instance;

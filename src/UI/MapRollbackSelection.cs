@@ -71,6 +71,7 @@ public static class MapRollbackSelection
     public static void Cancel(bool closeMap=true) {
         if(!Active)return;
         Active=false;
+        try {
         if(_controls is not null && GodotObject.IsInstanceValid(_controls)) {
             _controls.GetViewport().GuiReleaseFocus();_controls.GetParent()?.RemoveChild(_controls);_controls.QueueFree();
         }
@@ -79,7 +80,7 @@ public static class MapRollbackSelection
             _screen.Call(NMapScreen.MethodName.RecalculateTravelability);_screen.RefreshAllPointVisuals();
             if(closeMap && !_wasOpen)_screen.Close(false);
         }
-        _controls=null;_screen=null;_original=null;_preview=false;
+        } finally {_controls=null;_screen=null;_original=null;_preview=false;}
     }
     private static void RefreshPoints() {
         if(!Active || _screen is null)return;
@@ -87,7 +88,9 @@ public static class MapRollbackSelection
             point.State=Targets.Any(c=>c.ActIndex==_act && c.Coord==point.Point.coord)?MapPointState.Traveled:MapPointState.Untravelable;
         _screen.RefreshAllPointVisuals();
     }
-    private static bool CanSelect(NMapPoint point)=>Active && HostCoordinator.IsHost && !HostCoordinator.Busy && _screen is {IsTraveling:false} && Targets.Any(c=>c.ActIndex==_act && c.Coord==point.Point.coord);
+    private static bool CanSelect(NMapPoint point)=>Active && HostCoordinator.IsHost && !HostCoordinator.Busy &&
+        ReferenceEquals(RunManager.Instance.DebugOnlyGetState(),_original) && _screen is {IsTraveling:false} &&
+        Targets.Any(c=>c.ActIndex==_act && c.Coord==point.Point.coord);
     [HarmonyPatch(typeof(NMapPoint),"get_IsTravelable")]
     private static class VisitedNodeInput {
         static bool Prefix(NMapPoint __instance,ref bool __result){if(!Active)return true;__result=CanSelect(__instance);return false;}

@@ -204,6 +204,8 @@ def run(args):
         command.append('--ns-neow-probe')
     if args.rollback_probe:
         command.append('--ns-rollback-probe')
+    if args.baselib_probe:
+        command.append('--ns-baselib-probe')
     if args.expansion_probe:
         command.append('--ns-expansion-probe')
     result = dict(record, command=command, load='running', singleplayer='not_executed',
@@ -263,6 +265,7 @@ def main():
     parser.add_argument('--neow-probe', action='store_true', help='Verify act-one Neow reward reroll, claim and native Proceed button.')
     parser.add_argument('--expansion-probe', action='store_true', help='Verify personal rerolls, native shop relic behavior and act-three boss HP.')
     parser.add_argument('--rollback-probe', action='store_true', help='Verify native map rollback input and independent settings.')
+    parser.add_argument('--baselib-probe', action='store_true', help='Also verify the installed optional BaseLib native settings page during rollback checks.')
     parser.add_argument('--quit-after', type=int, default=300, help='Native frame limit; 0 runs until closed.')
     args = parser.parse_args()
     if args.action == 'prepare' and not args.game_dir:
@@ -271,6 +274,8 @@ def main():
         parser.error('Choose one gameplay, continue, Neow or rollback probe per process.')
     if args.quit_after < 0:
         parser.error('--quit-after must be nonnegative.')
+    if args.baselib_probe and not args.rollback_probe:
+        parser.error('--baselib-probe requires --rollback-probe and an installed BaseLib in the isolated lab.')
     try:
         (prepare if args.action == 'prepare' else run)(args)
     except (OSError, ValueError, KeyError, StopIteration) as error:

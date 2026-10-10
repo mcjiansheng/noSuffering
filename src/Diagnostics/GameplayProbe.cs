@@ -200,7 +200,8 @@ public static class GameplayProbe
             Require(!manager.IsInProgress, "Continue probe requires a fresh process with no active run.");
             var saved = SaveManager.Instance.LoadRunSave();
             if(saved.Success && saved.SaveData is {PreFinishedRoom.IsPreFinished:true} data &&
-               CheckpointService.CompletedCombatAt(new MapLocation(data.VisitedMapCoords.LastOrDefault(),data.CurrentActIndex))) {
+               (CheckpointService.CompletedCombatAt(new MapLocation(data.VisitedMapCoords.LastOrDefault(),data.CurrentActIndex)) ||
+                CheckpointService.PendingCombatRewards is { } pending && pending.Coord==data.VisitedMapCoords.LastOrDefault() && pending.ActIndex==data.CurrentActIndex)) {
                 settledContinue=true;await RollbackProbe.RunSettledContinue(tree);return;
             }
             using var prior = JsonDocument.Parse(File.ReadAllText(Path.Combine(OS.GetUserDataDir(), "nosuffering-gameplay-probe.json")));

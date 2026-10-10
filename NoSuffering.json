@@ -3,7 +3,7 @@
   "name": "不吃苦 · NoSuffering",
   "author": "mcjiansheng",
   "description": "路线回滚、个人先古奖励与商店刷新、战斗重开和第三幕 Boss 生命调整。",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "has_pck": false,
   "has_dll": true,
   "dependencies": [],

@@ -245,9 +245,10 @@ public static class HostCoordinator
         }
     }
     private static async Task Execute(CoreOperation kind,long checkpoint,int percent,ulong actor) {
-        var oldTimeline=CheckpointService.Save();
+        TimelineData? oldTimeline=null;
         string? recovery=null;
         bool committed=false;
+        bool attemptStaged=false;
         try {
             OnRunReady();_activeOperation=++_sequence;Ready.Clear();Done.Clear();
             _preparation=new();
@@ -260,16 +261,17 @@ public static class HostCoordinator
             // captured below, rather than the pre-boundary continuation state.
             oldTimeline=CheckpointService.Save();
             Validate(kind,actor,percent);
-            recovery=CombatManager.Instance.IsInProgress ? CombatService.Baseline : Bridge.Freeze(Bridge.Capture(Bridge.State.CurrentRoom is MerchantRoom ? null : Bridge.State.CurrentRoom));
+            recovery=CombatManager.Instance.IsInProgress ? CombatService.Baseline : CheckpointService.PendingCombatRewards?.Snapshot ?? Bridge.Freeze(Bridge.Capture(Bridge.State.CurrentRoom is MerchantRoom ? null : Bridge.State.CurrentRoom));
             string? snapshot=null;
             var timeline=CheckpointService.Save(false);
             if(kind==CoreOperation.MapRollback) {
                 var target=CheckpointService.Require(checkpoint);
                 snapshot=target.Snapshot;timeline=new([],target.Combat,target.Ancient)
-                    {SettledCombat=target.CompletedCombat?new CombatSettlement(target.Coord,target.ActIndex):null,Shop=target.Shop,BossHealth=target.BossHealth};
+                    {SettledCombat=target.CompletedCombat && !target.BeforeRewards?new CombatSettlement(target.Coord,target.ActIndex):null,
+                     PendingCombatRewards=target.BeforeRewards?new CombatRewardReplay(target.Coord,target.ActIndex,target.Snapshot):null,Shop=target.Shop,BossHealth=target.BossHealth};
             } else if(kind is CoreOperation.CombatRestart or CoreOperation.CombatReroll) {
                 snapshot=Bridge.Freeze(CombatService.PrepareRestart(kind==CoreOperation.CombatReroll));
-                if(kind==CoreOperation.CombatReroll)CombatService.SetAttempt(CombatService.Attempt+1);
+                if(kind==CoreOperation.CombatReroll){attemptStaged=true;CombatService.SetAttempt(CombatService.Attempt+1);}
                 timeline=CheckpointService.Save(false);
             }
             var data=new OperationData(kind,checkpoint,Bridge.StableSeed(_run,kind.ToString(),checked(WorldRevision+1).ToString(),actor.ToString()),_net.NetId,ConfigStore.Rules,snapshot,timeline,actor,percent);
@@ -291,11 +293,17 @@ public static class HostCoordinator
             if(_net.Type==NetGameType.Host)_net.SendMessage(Message(Phase.Release));
         } catch(Exception e) {
             Status=e.Message;Log.Error("[NoSuffering] "+e);
-            if(!committed){CheckpointService.Restore(oldTimeline);if(_net?.Type==NetGameType.Host)_net.SendMessage(Message(Phase.Abort,e.Message));}
+            if(!committed){
+                // Preparation can await a live enemy turn or native reward UI.
+                // Those completed facts must survive an aborted request. Only
+                // the explicitly staged attempt is speculative before commit.
+                if(attemptStaged)CombatService.Restore(oldTimeline!.Combat);
+                if(_net?.Type==NetGameType.Host)_net.SendMessage(Message(Phase.Abort,e.Message));
+            }
             else {
                 // Never let only some peers continue the abandoned world.
                 // The preserved native save is the recovery point for native rejoin.
-                CheckpointService.Restore(oldTimeline);
+                CheckpointService.Restore(oldTimeline!);
                 if(recovery is not null) {
                     try{await Bridge.LoadAsync(Bridge.Thaw(recovery));}catch(Exception load){Log.Error("[NoSuffering] Recovery failed: "+load);}
                 }

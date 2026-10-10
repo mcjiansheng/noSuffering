@@ -38,6 +38,7 @@ public static class CompanionStore
             // History may advance after a victory save, but that old native save
             // still has unclaimed resources. Only retain its request-bound marker.
             timeline=timeline with {SettledCombat=timeline.SettledCombat==_lastNativeTimeline?.SettledCombat?timeline.SettledCombat:null,
+                PendingCombatRewards=timeline.PendingCombatRewards==_lastNativeTimeline?.PendingCombatRewards?timeline.PendingCombatRewards:null,
                 Shop=_lastNativeTimeline?.Shop,Ancient=_lastNativeTimeline?.Ancient};
             Write(Bridge.Thaw(_lastNative),timeline);
         }
@@ -79,7 +80,7 @@ public static class CompanionStore
         // Format 2 adds node entry/settled-combat semantics. Read known format 1
         // predecessors without inventing entry snapshots absent from their data.
         bool legacy=data.Format==1 && data.ModVersion is "0.1.1" or "0.1.2";
-        bool versionCompatible=data.Format==2 && (data.ModVersion==ModEntry.Version || data.ModVersion=="0.1.3") || legacy;
+        bool versionCompatible=data.Format==2 && (data.ModVersion==ModEntry.Version || data.ModVersion is "0.1.3" or "0.1.4") || legacy;
         bool modsCompatible=versionCompatible && data.Mods==FingerprintFor(data.ModVersion);
         if(!versionCompatible || data.GameAssembly!=GameAssembly || !modsCompatible || data.RunId!=run || data.NativeDigest!=digest) {
             Log.Warn($"[NoSuffering] Companion mismatch: format={data.Format}, version={versionCompatible}, game={data.GameAssembly==GameAssembly}, mods={modsCompatible}, run={data.RunId==run}, native={data.NativeDigest==digest}");
@@ -92,7 +93,9 @@ public static class CompanionStore
         var manager=RunManager.Instance;
         if(manager.NetService.Type==NetGameType.Client)return;
         SerializableRun save;
-        if(MegaCrit.Sts2.Core.Combat.CombatManager.Instance.IsInProgress && CombatService.Baseline is not null)
+        if(CheckpointService.PendingCombatRewards is { } rewards)
+            save=Bridge.Thaw(rewards.Snapshot);
+        else if(MegaCrit.Sts2.Core.Combat.CombatManager.Instance.IsInProgress && CombatService.Baseline is not null)
             save=Bridge.Thaw(CombatService.Baseline);
         // Native room deserialization cannot load MerchantRoom. Its current map
         // coordinate is re-entered normally; ShopService restores the saved stock.
@@ -109,12 +112,27 @@ public static class CompanionStore
     }
     [HarmonyPatch(typeof(RunSaveManager),nameof(RunSaveManager.SaveRun),[typeof(SerializableRun),typeof(bool)])]
     private static class PairSave {
+        [HarmonyPriority(Priority.First)]
+        static void Prefix(ref SerializableRun save) {
+            // Native saves serialize reward generation inputs, not rolled card
+            // options. While choices are pending, retain the pre-generation
+            // resources and RNG together so Continue cannot reroll or duplicate.
+            if(CheckpointService.PendingCombatRewards is not { } rewards ||
+               save.PreFinishedRoom is not {IsPreFinished:true,EncounterId:not null} ||
+               save.CurrentActIndex!=rewards.ActIndex || save.VisitedMapCoords.LastOrDefault()!=rewards.Coord)return;
+            var baseline=Bridge.Thaw(rewards.Snapshot);
+            baseline.NumReloads=save.NumReloads;baseline.SaveTime=save.SaveTime;baseline.RunTime=save.RunTime;
+            save=baseline;
+        }
         static void Postfix(SerializableRun save,ref Task __result) {
             var frozen=Bridge.Thaw(Bridge.Freeze(save));
             var timeline=CheckpointService.Save();
             if(save.PreFinishedRoom is not {IsPreFinished:true,EncounterId:not null} ||
                timeline.SettledCombat!=new CombatSettlement(save.VisitedMapCoords.LastOrDefault(),save.CurrentActIndex))
                 timeline=timeline with {SettledCombat=null};
+            if(save.PreFinishedRoom is not {IsPreFinished:true,EncounterId:not null} ||
+               timeline.PendingCombatRewards is { } rewards && (save.CurrentActIndex!=rewards.ActIndex || save.VisitedMapCoords.LastOrDefault()!=rewards.Coord))
+                timeline=timeline with {PendingCombatRewards=null};
             __result=Saved(__result,frozen,timeline);
         }
     }

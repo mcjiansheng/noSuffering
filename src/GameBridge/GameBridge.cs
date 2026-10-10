@@ -65,22 +65,42 @@ public static class GameBridge
     public static async Task BoundaryAsync(CancellationToken cancellation=default)
     {
         var manager=RunManager.Instance;
+        var state=State;
         // Let submitted effects finish, including native player-choice continuations.
         // Do not pause a task that still needs its selection screen to finish.
+        // Native loss ends combat without clearing its enemy-turn flag. The
+        // retained run can still be restored through native cleanup/loading;
+        // that historical flag is no longer an active enemy action boundary.
         var deadline=Time.GetTicksMsec()+20000;
-        while(manager.ActionExecutor.CurrentlyRunningAction is not null ||
-              CombatManager.Instance.IsStarting || CombatManager.Instance.IsEnemyTurnStarted || NoSuffering.Shops.ShopService.HasPendingPurchases) {
+        while(HasUnsettledAction() || CombatManager.Instance.IsStarting ||
+              (CombatManager.Instance.IsInProgress && CombatManager.Instance.IsEnemyTurnStarted) || NoSuffering.Shops.ShopService.HasPendingPurchases) {
             cancellation.ThrowIfCancellationRequested();
+            RequireSameRun();
             if(Time.GetTicksMsec()>deadline) throw new InvalidOperationException("请先完成当前动作或选择");
             await Frame();
         }
         cancellation.ThrowIfCancellationRequested();
+        RequireSameRun();
         manager.ActionExecutor.Pause();
         CombatManager.Instance.Pause();
         if (State.CurrentRoom is MerchantRoom)
         {
             manager.CombatStateSynchronizer.StartSync();
             await manager.CombatStateSynchronizer.WaitForSync().WaitAsync(TimeSpan.FromSeconds(20), cancellation);
+        }
+        bool HasUnsettledAction()
+        {
+            var executor=manager.ActionExecutor;
+            var action=executor.CurrentlyRunningAction;
+            // A native canceled/finished action can remain referenced after its
+            // executor stops. A real player-choice continuation is incomplete
+            // even when the executor has yielded, and must still be awaited.
+            return action is not null && (executor.IsRunning || !action.CompletionTask.IsCompleted);
+        }
+        void RequireSameRun()
+        {
+            if(manager.IsCleaningUp || !ReferenceEquals(manager.DebugOnlyGetState(),state))
+                throw new InvalidOperationException("本局已关闭，请重新进入后操作");
         }
     }
     public static async Task Frame() => await ((SceneTree)Engine.GetMainLoop()).ToSignal(Engine.GetMainLoop(),SceneTree.SignalName.ProcessFrame);

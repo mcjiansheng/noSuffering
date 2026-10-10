@@ -55,13 +55,19 @@ public static class ConfigStore
         if (_initialized) return;
         _initialized = true;
         LoadLocal();
+        BaseLibSettings.Initialize();
 
         if (Engine.GetMainLoop() is SceneTree tree)
             tree.ProcessFrame += DetectModConfig;
     }
 
     /// <summary>Marks host rules editable only for the authoritative host.</summary>
-    public static void SetRulesWritable(bool writable) => _rulesWritable = writable;
+    public static void SetRulesWritable(bool writable)
+    {
+        if (_rulesWritable == writable) return;
+        _rulesWritable = writable;
+        Changed?.Invoke();
+    }
 
     /// <summary>Updates the saved solo rules and applies them immediately when outside multiplayer.</summary>
     public static void SetLocalRules(HostRules rules)

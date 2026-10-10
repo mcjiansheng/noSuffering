@@ -1,0 +1,476 @@
+{
+  "version": "0.1.5",
+  "design": "1.9",
+  "date": "2026-10-11",
+  "build_and_singleplayer": {
+    "macos-public-beta": {
+      "platform": "macos",
+      "branch": "public-beta",
+      "release": {
+        "commit": "41cef1ea",
+        "version": "v0.111.0",
+        "date": "2026-08-13T17:39:18-07:00",
+        "branch": "v0.111.0",
+        "main_assembly_hash": 1172974615
+      },
+      "runtime": {
+        "runtimeOptions": {
+          "tfm": "net9.0",
+          "includedFrameworks": [
+            {
+              "name": "Microsoft.NETCore.App",
+              "version": "9.0.7"
+            }
+          ],
+          "configProperties": {
+            "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+            "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+          }
+        }
+      },
+      "build": "passed",
+      "version": "0.1.5",
+      "mod_sha256": "521c45e65286d8c62cc06fcb5c1607eb777d3a1580dae907069fe07ea7d84848",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "build_warnings": 0,
+      "build_errors": 0,
+      "combination": "25 loaded mods, including BaseLib 3.4.7; isolated copy",
+      "load": "passed",
+      "runs": [
+        {
+          "kind": "rollback",
+          "exit_code": 0,
+          "scope": "isolated native-engine singleplayer regression; generated-coordinate fixture jumps; native diagnostic combat kill; Viewport GUI and native map/reward handlers; physical pointer and multiplayer untested",
+          "results": {
+            "shop_entry_rollback": "PASS: native shop card purchased via Viewport GUI, entry resources/map restored via visited-node handler, purchased again",
+            "transition_native_gui": "PASS: inactive transition ignores input; Viewport mouse click really opened native deck screen",
+            "standalone_settings": "PASS: without ModConfig: F6, GUI settings/toggle/close, disk persistence, subsequent native deck GUI click",
+            "victory_combat_pending_rewards_rollback": "PASS: actual monster victory; restored pre-reward resources, native rewards, card options, RNG and odds; reclaimed gold/card exactly once and proceeded",
+            "legal_next_node": "PASS: normal native travelable-node handler completed travel/action and room initialization at a generated child after completed-combat rollback",
+            "past_act_selector_cancel": "PASS: actual targets in acts two/three; GUI act switch displays boss without mutating live run; GUI Cancel restores later-act display/open state/history/resources",
+            "victory_boss_pending_rewards_cross_act_proceed": "PASS: boss target captured before rewards; cross-act restore reproduced the full native reward set/RNG, one gold claim and Proceed matched original resources, and pending boss was saved for fresh Continue",
+            "optional_baselib_settings": "PASS: actual optional BaseLib registry/page/native settings controls, persistence and shared configuration"
+          },
+          "state": {
+            "shop_coord": "MapCoord (2, 2)",
+            "deck_opened_via_viewport": true,
+            "persisted_combat_reroll": false,
+            "baselib_settings": {
+              "native_rows": 14,
+              "callbacks": "native toggle, slider, dropdown, shortcut button and captured key",
+              "sync": "existing config persisted; standalone update reflected; client rule mutation rejected and display restored"
+            },
+            "combat_before_rewards_resources": "{\"Gold\":63,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.DISMANTLE:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "combat_original_reward_fingerprint": "Card:CARD.HEMOKINESIS:False,CARD.COLOSSUS:False,CARD.TREMBLE:False|GoldReward:{\"reward_type\":2,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":14,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}|PotionReward:{\"reward_type\":3,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":0,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}",
+            "combat_original_card_options": "CARD.HEMOKINESIS:False,CARD.COLOSSUS:False,CARD.TREMBLE:False",
+            "combat_original_reward_rng_odds": "{\"rewards_rng\":{\"counter\":27,\"s0\":1544725074306297340,\"s1\":17830107224918432941,\"s2\":1471612509879991723,\"s3\":9886650025662790043},\"odds\":{\"card_rarity_odds_value\":-0.02,\"potion_reward_odds_value\":0.3}}",
+            "settled_coord": "MapCoord (1, 1)",
+            "combat_resources_after_one_gold_and_card_claim": "{\"Gold\":77,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.DISMANTLE:False\",\"CARD.HEMOKINESIS:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "next_coord": "MapCoord (0, 2)",
+            "boss_before_claim_resources": "{\"Gold\":77,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.DISMANTLE:False\",\"CARD.HEMOKINESIS:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "boss_original_reward_fingerprint": "Card:CARD.STOKE:False,CARD.FEED:False,CARD.FIEND_FIRE:False|GoldReward:{\"reward_type\":2,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":100,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}",
+            "boss_original_card_options": "CARD.STOKE:False,CARD.FEED:False,CARD.FIEND_FIRE:False",
+            "boss_original_reward_rng_odds": "{\"rewards_rng\":{\"counter\":49,\"s0\":9004058127298554915,\"s1\":5385401977074571997,\"s2\":4596036616327064777,\"s3\":17601085862961068655},\"odds\":{\"card_rarity_odds_value\":-0.05,\"potion_reward_odds_value\":0.5}}",
+            "boss_target_captured_naturally": true,
+            "boss_coord": "MapCoord (3, 15)",
+            "boss_resources_after_one_gold_claim": "{\"Gold\":177,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.DISMANTLE:False\",\"CARD.HEMOKINESIS:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "saved_pending_boss": true,
+            "partial_gold_claim_before_save": true
+          }
+        },
+        {
+          "kind": "continue",
+          "exit_code": 0,
+          "scope": "isolated native-engine fresh-process singleplayer pending-boss Continue; physical pointer and multiplayer untested",
+          "results": {
+            "fresh_pending_boss_continue": "PASS: different process, paired pending marker/native boss save, exact rewards/card options/RNG/odds, one native gold claim, Proceed advances act three without duplication"
+          },
+          "state": {
+            "prior_process_id": 31032,
+            "paired_revision_after_setup": 6,
+            "resources_after_proceed": "{\"Gold\":177,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.DISMANTLE:False\",\"CARD.HEMOKINESIS:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "act_after_proceed": 2
+          }
+        }
+      ],
+      "profile_restored": true,
+      "override_restored": true
+    },
+    "macos-public": {
+      "platform": "macos",
+      "branch": "public",
+      "release": {
+        "commit": "59260271",
+        "version": "v0.107.1",
+        "date": "2026-06-18T15:43:56-07:00",
+        "branch": "v0.107.1",
+        "main_assembly_hash": -1718063421
+      },
+      "runtime": {
+        "runtimeOptions": {
+          "tfm": "net9.0",
+          "includedFrameworks": [
+            {
+              "name": "Microsoft.NETCore.App",
+              "version": "9.0.7"
+            }
+          ],
+          "configProperties": {
+            "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+            "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+          }
+        }
+      },
+      "build": "passed",
+      "version": "0.1.5",
+      "mod_sha256": "fd4b08f4b95cef58c0571ef611299d517d41c8118df282ef7b02e2ba5f036cc3",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "e7ceb80669bfaf5c8fccabaa126ae2bb283aba514be5b5b55612579cfd285f18"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "build_warnings": 0,
+      "build_errors": 0,
+      "combination": "NoSuffering only, BaseLib absent",
+      "runs": [
+        {
+          "kind": "rollback",
+          "exit_code": 0,
+          "load": "passed",
+          "scope": "isolated native-engine singleplayer regression; generated-coordinate fixture jumps; native diagnostic combat kill; Viewport GUI and native map/reward handlers; physical pointer and multiplayer untested",
+          "results": {
+            "shop_entry_rollback": "PASS: native shop card purchased via Viewport GUI, entry resources/map restored via visited-node handler, purchased again",
+            "transition_native_gui": "PASS: inactive transition ignores input; Viewport mouse click really opened native deck screen",
+            "standalone_settings": "PASS: without ModConfig: F6, GUI settings/toggle/close, disk persistence, subsequent native deck GUI click",
+            "victory_combat_pending_rewards_rollback": "PASS: actual monster victory; restored pre-reward resources, native rewards, card options, RNG and odds; reclaimed gold/card exactly once and proceeded",
+            "legal_next_node": "PASS: normal native travelable-node handler completed travel/action and room initialization at a generated child after completed-combat rollback",
+            "past_act_selector_cancel": "PASS: actual targets in acts two/three; GUI act switch displays boss without mutating live run; GUI Cancel restores later-act display/open state/history/resources",
+            "victory_boss_pending_rewards_cross_act_proceed": "PASS: boss target captured before rewards; cross-act restore reproduced the full native reward set/RNG, one gold claim and Proceed matched original resources, and pending boss was saved for fresh Continue"
+          },
+          "state": {
+            "shop_coord": "MapCoord (3, 4)",
+            "deck_opened_via_viewport": true,
+            "persisted_combat_reroll": true,
+            "combat_before_rewards_resources": "{\"Gold\":74,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.HEADBUTT:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "combat_original_reward_fingerprint": "Card:CARD.BREAKTHROUGH:True,CARD.BODY_SLAM:False,CARD.HAVOC:False|GoldReward:{\"reward_type\":2,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":15,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}",
+            "combat_original_card_options": "CARD.BREAKTHROUGH:True,CARD.BODY_SLAM:False,CARD.HAVOC:False",
+            "combat_original_reward_rng_odds": "{\"rewards_rng\":{\"seed\":3862885950,\"counter\":25},\"odds\":{\"card_rarity_odds_value\":-0.02,\"potion_reward_odds_value\":0.5}}",
+            "settled_coord": "MapCoord (0, 1)",
+            "combat_resources_after_one_gold_and_card_claim": "{\"Gold\":89,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.HEADBUTT:False\",\"CARD.BREAKTHROUGH:True\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "next_coord": "MapCoord (0, 2)",
+            "boss_before_claim_resources": "{\"Gold\":89,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.HEADBUTT:False\",\"CARD.BREAKTHROUGH:True\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "boss_original_reward_fingerprint": "Card:CARD.IMPERVIOUS:False,CARD.ONE_TWO_PUNCH:False,CARD.MANGLE:False|GoldReward:{\"reward_type\":2,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":100,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}|PotionReward:{\"reward_type\":3,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":0,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}",
+            "boss_original_card_options": "CARD.IMPERVIOUS:False,CARD.ONE_TWO_PUNCH:False,CARD.MANGLE:False",
+            "boss_original_reward_rng_odds": "{\"rewards_rng\":{\"seed\":3862885950,\"counter\":51},\"odds\":{\"card_rarity_odds_value\":-0.05,\"potion_reward_odds_value\":0.3}}",
+            "boss_target_captured_naturally": true,
+            "boss_coord": "MapCoord (3, 15)",
+            "boss_resources_after_one_gold_claim": "{\"Gold\":189,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.HEADBUTT:False\",\"CARD.BREAKTHROUGH:True\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "saved_pending_boss": true,
+            "partial_gold_claim_before_save": true
+          }
+        },
+        {
+          "kind": "continue",
+          "exit_code": 0,
+          "load": "passed",
+          "scope": "isolated native-engine fresh-process singleplayer pending-boss Continue; physical pointer and multiplayer untested",
+          "results": {
+            "fresh_pending_boss_continue": "PASS: different process, paired pending marker/native boss save, exact rewards/card options/RNG/odds, one native gold claim, Proceed advances act three without duplication"
+          },
+          "state": {}
+        }
+      ],
+      "load": "passed"
+    },
+    "windows-public-beta": {
+      "platform": "windows",
+      "branch": "public-beta",
+      "release": {
+        "commit": "41cef1ea",
+        "version": "v0.111.0",
+        "date": "2026-08-13T17:39:18-07:00",
+        "branch": "v0.111.0",
+        "main_assembly_hash": 222455745
+      },
+      "runtime": {
+        "runtimeOptions": {
+          "tfm": "net9.0",
+          "includedFrameworks": [
+            {
+              "name": "Microsoft.NETCore.App",
+              "version": "9.0.7"
+            }
+          ],
+          "configProperties": {
+            "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+            "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+          }
+        }
+      },
+      "build": "passed",
+      "version": "0.1.5",
+      "mod_sha256": "37cdc68df75dab053d67422f2793d621edc8ceedc54a0d905c63be0ae9eb4dc1",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "build_warnings": 0,
+      "build_errors": 0,
+      "combination": "25 loaded mods including BaseLib 3.4.7",
+      "runs": [
+        {
+          "kind": "rollback",
+          "exit_code": 0,
+          "load": "passed",
+          "scope": "isolated native-engine singleplayer regression; generated-coordinate fixture jumps; native diagnostic combat kill; Viewport GUI and native map/reward handlers; physical pointer and multiplayer untested",
+          "results": {
+            "shop_entry_rollback": "PASS: native shop card purchased via Viewport GUI, entry resources/map restored via visited-node handler, purchased again",
+            "transition_native_gui": "PASS: inactive transition ignores input; Viewport mouse click really opened native deck screen",
+            "standalone_settings": "PASS: without ModConfig: F6, GUI settings/toggle/close, disk persistence, subsequent native deck GUI click",
+            "victory_combat_pending_rewards_rollback": "PASS: actual monster victory; restored pre-reward resources, native rewards, card options, RNG and odds; reclaimed gold/card exactly once and proceeded",
+            "legal_next_node": "PASS: normal native travelable-node handler completed travel/action and room initialization at a generated child after completed-combat rollback",
+            "past_act_selector_cancel": "PASS: actual targets in acts two/three; GUI act switch displays boss without mutating live run; GUI Cancel restores later-act display/open state/history/resources",
+            "victory_boss_pending_rewards_cross_act_proceed": "PASS: boss target captured before rewards; cross-act restore reproduced the full native reward set/RNG, one gold claim and Proceed matched original resources, and pending boss was saved for fresh Continue",
+            "optional_baselib_settings": "PASS: actual optional BaseLib registry/page/native settings controls, persistence and shared configuration"
+          },
+          "state": {
+            "shop_coord": "MapCoord (2, 2)",
+            "deck_opened_via_viewport": true,
+            "persisted_combat_reroll": true,
+            "baselib_settings": {
+              "native_rows": 14,
+              "callbacks": "native toggle, slider, dropdown, shortcut button and captured key",
+              "sync": "existing config persisted; standalone update reflected; client rule mutation rejected and display restored"
+            },
+            "combat_before_rewards_resources": "{\"Gold\":63,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.DISMANTLE:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "combat_original_reward_fingerprint": "Card:CARD.HEMOKINESIS:False,CARD.COLOSSUS:False,CARD.TREMBLE:False|GoldReward:{\"reward_type\":2,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":14,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}|PotionReward:{\"reward_type\":3,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":0,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}",
+            "combat_original_card_options": "CARD.HEMOKINESIS:False,CARD.COLOSSUS:False,CARD.TREMBLE:False",
+            "combat_original_reward_rng_odds": "{\"rewards_rng\":{\"counter\":27,\"s0\":1544725074306297340,\"s1\":17830107224918432941,\"s2\":1471612509879991723,\"s3\":9886650025662790043},\"odds\":{\"card_rarity_odds_value\":-0.02,\"potion_reward_odds_value\":0.3}}",
+            "settled_coord": "MapCoord (1, 1)",
+            "combat_resources_after_one_gold_and_card_claim": "{\"Gold\":77,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.DISMANTLE:False\",\"CARD.HEMOKINESIS:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "next_coord": "MapCoord (0, 2)",
+            "boss_before_claim_resources": "{\"Gold\":77,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.DISMANTLE:False\",\"CARD.HEMOKINESIS:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "boss_original_reward_fingerprint": "Card:CARD.STOKE:False,CARD.FEED:False,CARD.FIEND_FIRE:False|GoldReward:{\"reward_type\":2,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":100,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}",
+            "boss_original_card_options": "CARD.STOKE:False,CARD.FEED:False,CARD.FIEND_FIRE:False",
+            "boss_original_reward_rng_odds": "{\"rewards_rng\":{\"counter\":49,\"s0\":9004058127298554915,\"s1\":5385401977074571997,\"s2\":4596036616327064777,\"s3\":17601085862961068655},\"odds\":{\"card_rarity_odds_value\":-0.05,\"potion_reward_odds_value\":0.5}}",
+            "boss_target_captured_naturally": true,
+            "boss_coord": "MapCoord (3, 15)",
+            "boss_resources_after_one_gold_claim": "{\"Gold\":177,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.DISMANTLE:False\",\"CARD.HEMOKINESIS:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "saved_pending_boss": true,
+            "partial_gold_claim_before_save": true
+          }
+        },
+        {
+          "kind": "continue",
+          "exit_code": 0,
+          "load": "passed",
+          "scope": "isolated native-engine fresh-process singleplayer pending-boss Continue; physical pointer and multiplayer untested",
+          "results": {
+            "fresh_pending_boss_continue": "PASS: different process, paired pending marker/native boss save, exact rewards/card options/RNG/odds, one native gold claim, Proceed advances act three without duplication"
+          },
+          "state": {}
+        }
+      ],
+      "load": "passed"
+    },
+    "windows-public": {
+      "platform": "windows",
+      "branch": "public",
+      "release": {
+        "commit": "59260271",
+        "version": "v0.107.1",
+        "date": "2026-06-18T15:43:56-07:00",
+        "branch": "v0.107.1",
+        "main_assembly_hash": -1555940892
+      },
+      "runtime": {
+        "runtimeOptions": {
+          "tfm": "net9.0",
+          "includedFrameworks": [
+            {
+              "name": "Microsoft.NETCore.App",
+              "version": "9.0.7"
+            }
+          ],
+          "configProperties": {
+            "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+            "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+          }
+        }
+      },
+      "build": "passed",
+      "version": "0.1.5",
+      "mod_sha256": "b8bdc913f406b2fc6836ffc4246dbae5dd14d4065fd8355ddba4443b34b6cd48",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "a1f9e653f1e28e4076558fee1e60d218619cb7e057b887c6417f62c62c6d7a52"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "build_warnings": 0,
+      "build_errors": 0,
+      "combination": "NoSuffering only, BaseLib absent",
+      "runs": [
+        {
+          "kind": "rollback",
+          "exit_code": 0,
+          "load": "passed",
+          "scope": "isolated native-engine singleplayer regression; generated-coordinate fixture jumps; native diagnostic combat kill; Viewport GUI and native map/reward handlers; physical pointer and multiplayer untested",
+          "results": {
+            "shop_entry_rollback": "PASS: native shop card purchased via Viewport GUI, entry resources/map restored via visited-node handler, purchased again",
+            "transition_native_gui": "PASS: inactive transition ignores input; Viewport mouse click really opened native deck screen",
+            "standalone_settings": "PASS: without ModConfig: F6, GUI settings/toggle/close, disk persistence, subsequent native deck GUI click",
+            "victory_combat_pending_rewards_rollback": "PASS: actual monster victory; restored pre-reward resources, native rewards, card options, RNG and odds; reclaimed gold/card exactly once and proceeded",
+            "legal_next_node": "PASS: normal native travelable-node handler completed travel/action and room initialization at a generated child after completed-combat rollback",
+            "past_act_selector_cancel": "PASS: actual targets in acts two/three; GUI act switch displays boss without mutating live run; GUI Cancel restores later-act display/open state/history/resources",
+            "victory_boss_pending_rewards_cross_act_proceed": "PASS: boss target captured before rewards; cross-act restore reproduced the full native reward set/RNG, one gold claim and Proceed matched original resources, and pending boss was saved for fresh Continue"
+          },
+          "state": {
+            "shop_coord": "MapCoord (3, 4)",
+            "deck_opened_via_viewport": true,
+            "persisted_combat_reroll": true,
+            "combat_before_rewards_resources": "{\"Gold\":74,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.HEADBUTT:False\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "combat_original_reward_fingerprint": "Card:CARD.BREAKTHROUGH:True,CARD.BODY_SLAM:False,CARD.HAVOC:False|GoldReward:{\"reward_type\":2,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":15,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}",
+            "combat_original_card_options": "CARD.BREAKTHROUGH:True,CARD.BODY_SLAM:False,CARD.HAVOC:False",
+            "combat_original_reward_rng_odds": "{\"rewards_rng\":{\"seed\":3862885950,\"counter\":25},\"odds\":{\"card_rarity_odds_value\":-0.02,\"potion_reward_odds_value\":0.5}}",
+            "settled_coord": "MapCoord (0, 1)",
+            "combat_resources_after_one_gold_and_card_claim": "{\"Gold\":89,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.HEADBUTT:False\",\"CARD.BREAKTHROUGH:True\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "next_coord": "MapCoord (0, 2)",
+            "boss_before_claim_resources": "{\"Gold\":89,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.HEADBUTT:False\",\"CARD.BREAKTHROUGH:True\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "boss_original_reward_fingerprint": "Card:CARD.IMPERVIOUS:False,CARD.ONE_TWO_PUNCH:False,CARD.MANGLE:False|GoldReward:{\"reward_type\":2,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":100,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}|PotionReward:{\"reward_type\":3,\"predetermined_model_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"},\"special_card\":null,\"gold_amount\":0,\"was_gold_stolen_back\":false,\"source\":0,\"rarity_odds\":0,\"card_pools\":[],\"option_count\":0,\"custom_description_encounter_source_id\":{\"Category\":\"NONE\",\"Entry\":\"NONE\"}}",
+            "boss_original_card_options": "CARD.IMPERVIOUS:False,CARD.ONE_TWO_PUNCH:False,CARD.MANGLE:False",
+            "boss_original_reward_rng_odds": "{\"rewards_rng\":{\"seed\":3862885950,\"counter\":51},\"odds\":{\"card_rarity_odds_value\":-0.05,\"potion_reward_odds_value\":0.3}}",
+            "boss_target_captured_naturally": true,
+            "boss_coord": "MapCoord (3, 15)",
+            "boss_resources_after_one_gold_claim": "{\"Gold\":189,\"hp\":80,\"maxHp\":80,\"deck\":[\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.STRIKE_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.DEFEND_IRONCLAD:False\",\"CARD.BASH:False\",\"CARD.HEADBUTT:False\",\"CARD.BREAKTHROUGH:True\"],\"relics\":[\"RELIC.BURNING_BLOOD\"],\"potions\":[]}",
+            "saved_pending_boss": true,
+            "partial_gold_claim_before_save": true
+          }
+        },
+        {
+          "kind": "continue",
+          "exit_code": 0,
+          "load": "passed",
+          "scope": "isolated native-engine fresh-process singleplayer pending-boss Continue; physical pointer and multiplayer untested",
+          "results": {
+            "fresh_pending_boss_continue": "PASS: different process, paired pending marker/native boss save, exact rewards/card options/RNG/odds, one native gold claim, Proceed advances act three without duplication"
+          },
+          "state": {}
+        }
+      ],
+      "load": "passed"
+    }
+  },
+  "windows_beta_native_multiplayer": {
+    "scope": "two actual native localhost ENet processes; direct fixture entries; no Steam multiplayer claim",
+    "platform": "windows",
+    "branch": "public-beta",
+    "multiplayer": "native_enet_smoke_passed",
+    "peers": {
+      "host": {
+        "mod_sha256": "37cdc68df75dab053d67422f2793d621edc8ceedc54a0d905c63be0ae9eb4dc1",
+        "exit_code": 0,
+        "report": {
+          "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+          "role": "host",
+          "results": {
+            "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+            "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+            "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+            "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+            "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+            "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+            "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+            "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+            "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+            "map_rollback": "PASS: actual native two-peer rollback completed",
+            "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+            "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+            "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+          }
+        }
+      },
+      "client": {
+        "mod_sha256": "37cdc68df75dab053d67422f2793d621edc8ceedc54a0d905c63be0ae9eb4dc1",
+        "exit_code": 0,
+        "report": {
+          "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+          "role": "client",
+          "results": {
+            "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+            "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+            "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+            "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+            "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+            "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+            "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+            "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+            "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+            "map_rollback": "PASS: actual native two-peer rollback completed",
+            "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+            "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+            "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+          }
+        }
+      }
+    }
+  },
+  "baselib_computer_use": {
+    "platform": "macos-arm64",
+    "branch": "public-beta",
+    "framework": "BaseLib 3.4.7",
+    "combination": "BaseLib + NoSuffering",
+    "result": "passed",
+    "observed": "Main menu Mods configuration -> NoSuffering; 14 native settings visible with scrolling; route checkbox tick -> untick -> tick; existing config.json SinglePlayerRules.EnableMapRollback changed false then true; native Back returned to main menu; quit normally.",
+    "full_25_mod_pointer_test": "unresolved: main menu entries highlighted but did not activate after other-mod welcome; standalone BaseLib + NoSuffering page operated successfully. 25-mod native callback tests passed separately.",
+    "profile_restored": true
+  },
+  "death_race": {
+    "result": "human_test_not_executed",
+    "basis": "xht-rog native death log and actual beta ProcessPendingLoss/BoundaryAsync inspection; ended combat no longer waits stale enemy-turn flag; completed retained action no longer blocks; meaningful pending selections still wait; abort releases busy."
+  },
+  "complete_playthrough": "not_repeated_for_0.1.5; see explicitly labeled 0.1.4 historical record",
+  "steam_and_internet_multiplayer": "not_executed",
+  "stable_baselib_runtime": "not_executed",
+  "third_party_arbitrary_reward_hooks": "not_guaranteed"
+}

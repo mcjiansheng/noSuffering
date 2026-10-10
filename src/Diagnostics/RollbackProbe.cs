@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Godot;
+using MegaCrit.Sts2.Core.Entities.Rngs;
 using MegaCrit.Sts2.Core.Assets;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Commands;
@@ -14,11 +15,13 @@ using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Screens;
+using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
 using MegaCrit.Sts2.Core.Nodes.Screens.Capstones;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.MainMenu;
 using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
 using MegaCrit.Sts2.Core.Rooms;
+using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves;
 using MegaCrit.Sts2.Core.Unlocks;
@@ -36,8 +39,10 @@ public static class RollbackProbe
 {
     public static async Task Run(SceneTree tree)
     {
-        string[] checks = ["shop_entry_rollback", "transition_native_gui", "standalone_settings", "settled_combat_rollback", "legal_next_node", "past_act_selector_cancel", "settled_boss_cross_act_proceed"];
+        string[] checks = ["shop_entry_rollback", "transition_native_gui", "standalone_settings", "victory_combat_pending_rewards_rollback", "legal_next_node", "past_act_selector_cancel", "victory_boss_pending_rewards_cross_act_proceed"];
         var results = checks.ToDictionary(c => c, _ => "UNEXECUTED");
+        bool baseLibProbe=OS.GetCmdlineUserArgs().Contains("--ns-baselib-probe");
+        if(baseLibProbe)results["optional_baselib_settings"]="UNEXECUTED";
         var state = new Dictionary<string, object>();
         string stage = checks[0];
         void Pass(string detail) { results[stage] = "PASS: " + detail; }
@@ -58,7 +63,7 @@ public static class RollbackProbe
             await Timed(manager.EnterAct(1, false), "native act-two fixture");
             HostCoordinator.OnRunReady();
             // Suppress native tutorial modals only in the caller's isolated lab save.
-            foreach (var ftue in new[] { "map_select_ftue", "merchant_ftue", "combat_reward_ftue", "combat_rules_ftue" }) SaveManager.Instance.MarkFtueAsComplete(ftue);
+            foreach (var ftue in new[] { "map_select_ftue", "merchant_ftue", "combat_reward_ftue", "combat_rules_ftue", "power_card_ftue" }) SaveManager.Instance.MarkFtueAsComplete(ftue);
             var map = MapFingerprint();
             var shop = Bridge.State.Map.GetAllMapPoints().Where(p => p.PointType == MapPointType.Shop)
                 .OrderBy(p => p.coord.row).ThenBy(p => p.coord.col).First();
@@ -116,6 +121,13 @@ public static class RollbackProbe
             state["persisted_combat_reroll"] = !before;
             Pass("without ModConfig: F6, GUI settings/toggle/close, disk persistence, subsequent native deck GUI click");
 
+            if(baseLibProbe) {
+                stage="optional_baselib_settings";
+                using var framework=JsonDocument.Parse(await Config.BaseLibSettings.ProbeAsync());
+                state["baselib_settings"]=framework.RootElement.Clone();
+                Pass("actual optional BaseLib registry/page/native settings controls, persistence and shared configuration");
+            }
+
             stage = checks[3];
             var monster = Bridge.State.Map.GetAllMapPoints().Where(p => p.PointType == MapPointType.Monster && p.Children.Any())
                 .OrderBy(p => p.coord.row).ThenBy(p => p.coord.col).First();
@@ -125,28 +137,49 @@ public static class RollbackProbe
             await Wait(() => !CombatManager.Instance.IsInProgress && Descendants<NRewardsScreen>(tree.Root).Any(), "native rewards");
             var rewards = Descendants<NRewardsScreen>(tree.Root).Single();
             var gold = Descendants<NRewardButton>(rewards).First(b => b.Reward is MegaCrit.Sts2.Core.Rewards.GoldReward);
-            var goldBefore = Bridge.State.Players.Single().Gold;
-            gold.Call("OnRelease");
-            await Wait(() => Bridge.State.Players.Single().Gold > goldBefore, "gold reward claimed");
+            var originalResources = Resources();
+            var originalRewardFingerprint = RewardFingerprint(rewards);
+            var originalCardOptions = CardOptionsFingerprint(rewards);
+            var originalRngOdds = RewardRngOddsFingerprint();
+            var completed = MapRollbackSelection.Targets.Single(c => c.Coord == monster.coord && c.BeforeRewards);
+            Require(completed.BeforeRewards, "Victory target was not captured before reward generation.");
+            state["combat_before_rewards_resources"] = originalResources;
+            state["combat_original_reward_fingerprint"] = originalRewardFingerprint;
+            state["combat_original_card_options"] = originalCardOptions;
+            state["combat_original_reward_rng_odds"] = originalRngOdds;
+            await ClaimGold(gold, "gold reward claimed");
+            await ClaimCard(rewards, tree, null, "combat card reward claimed");
+            var claimedResources = Resources();
+            Require(claimedResources != originalResources, "Gold/card reward claims did not change resources.");
             // Skip remaining rewards via the actual native terminal Proceed handler.
             var rewardProceed = Descendants<NProceedButton>(rewards).Single();
             await Wait(() => rewardProceed.IsEnabled, "native reward proceed enabled");
             rewardProceed.ForceClick();
             await Wait(() => NMapScreen.Instance is { IsOpen: true, IsTravelEnabled: true } && !Descendants<NRewardsScreen>(tree.Root).Any(), "rewards finished/actionable map");
-            var completed = MapRollbackSelection.Targets.Single(c => c.Coord == monster.coord && c.CompletedCombat);
-            var settledResources = Resources();
             var second = Bridge.State.Map.GetAllMapPoints().Where(p => p.PointType == MapPointType.Monster && p.coord != monster.coord)
                 .OrderBy(p => p.coord.row).ThenBy(p => p.coord.col).First();
             await Timed(manager.EnterMapCoord(second.coord), "second native combat fixture");
             await Wait(() => CombatManager.Instance.IsInProgress && !CombatManager.Instance.IsStarting, "second combat opening");
             await SelectRollback(completed);
             Require(Bridge.State.CurrentRoom is CombatRoom { IsPreFinished: true } && !CombatManager.Instance.IsInProgress, "Completed combat replayed instead of loading finished room.");
-            Require(Resources() == settledResources, "Settled gold/deck/resources not preserved.");
-            Require(!Descendants<NRewardsScreen>(tree.Root).Any(), "Completed combat produced a second rewards screen.");
+            await Wait(() => Descendants<NRewardsScreen>(tree.Root).Any(), "restored native victory rewards");
+            var restoredRewards = Descendants<NRewardsScreen>(tree.Root).Single();
+            Require(Resources() == originalResources, "Pre-reward gold/deck/resources were not restored.");
+            Require(RewardFingerprint(restoredRewards) == originalRewardFingerprint, "Native reward set differed after victory rollback.");
+            Require(CardOptionsFingerprint(restoredRewards) == originalCardOptions, "Native card choices differed after victory rollback.");
+            Require(RewardRngOddsFingerprint() == originalRngOdds, "Reward RNG or rarity odds differed after victory rollback.");
+            var restoredGold = Descendants<NRewardButton>(restoredRewards).First(b => b.Reward is GoldReward);
+            await ClaimGold(restoredGold, "restored gold reward claimed");
+            await ClaimCard(restoredRewards, tree, originalCardOptions.Split('|')[0].Split(',')[0], "restored card reward claimed");
+            Require(Resources() == claimedResources, "Reclaimed gold/card did not reproduce exactly one original claim.");
+            var restoredProceed = Descendants<NProceedButton>(restoredRewards).Single();
+            await Wait(() => restoredProceed.IsEnabled, "restored native reward proceed enabled");
+            restoredProceed.ForceClick();
+            await Wait(() => NMapScreen.Instance is { IsOpen: true, IsTravelEnabled: true } && !Descendants<NRewardsScreen>(tree.Root).Any(), "restored rewards finished/actionable map");
             Require(MapFingerprint() == map, "Completed-combat rollback changed map.");
             state["settled_coord"] = monster.coord.ToString();
-            state["settled_resources"] = settledResources;
-            Pass("actual monster victory via native diagnostic kill, gold claimed/others skipped; rollback from second combat retained finished room/resources without duplicate reward screen");
+            state["combat_resources_after_one_gold_and_card_claim"] = Resources();
+            Pass("actual monster victory; restored pre-reward resources, native rewards, card options, RNG and odds; reclaimed gold/card exactly once and proceeded");
 
             stage = checks[4];
             await Wait(() => NMapScreen.Instance is { IsOpen: true, IsTravelEnabled: true, IsTraveling: false }, "restored travel map");
@@ -189,17 +222,23 @@ public static class RollbackProbe
             await Wait(() => !CombatManager.Instance.IsInProgress && Descendants<NRewardsScreen>(tree.Root).Any(), "boss native rewards");
             var bossRewards = Descendants<NRewardsScreen>(tree.Root).Single();
             var bossGold = Descendants<NRewardButton>(bossRewards).First(b => b.Reward is MegaCrit.Sts2.Core.Rewards.GoldReward);
-            var beforeBossGold = Bridge.State.Players.Single().Gold;
-            bossGold.Call("OnRelease");
-            await Wait(() => Bridge.State.Players.Single().Gold > beforeBossGold, "native boss gold claim");
-            var bossResources = Resources();
+            var bossBeforeClaimResources = Resources();
+            var bossRewardFingerprint = RewardFingerprint(bossRewards);
+            var bossCardOptions = CardOptionsFingerprint(bossRewards);
+            var bossRngOdds = RewardRngOddsFingerprint();
+            var bossTarget = MapRollbackSelection.Targets.SingleOrDefault(c => c.ActIndex == 1 && c.Coord == bossCoord && c.BeforeRewards)
+                ?? throw new InvalidOperationException("Natural boss victory did not capture a pre-reward target.");
+            state["boss_before_claim_resources"] = bossBeforeClaimResources;
+            state["boss_original_reward_fingerprint"] = bossRewardFingerprint;
+            state["boss_original_card_options"] = bossCardOptions;
+            state["boss_original_reward_rng_odds"] = bossRngOdds;
+            await ClaimGold(bossGold, "native boss gold claim");
+            var bossClaimedResources = Resources();
             var bossProceed = Descendants<NProceedButton>(bossRewards).Single();
             await Wait(() => bossProceed.IsEnabled, "native boss reward proceed");
             bossProceed.ForceClick();
             await Wait(() => Bridge.State.CurrentActIndex == 2 && Bridge.State.CurrentRoom is MapRoom && !Descendants<NRewardsScreen>(tree.Root).Any(), "native boss advances to act three", 60000);
             await IdleTransition();
-            var bossTarget = MapRollbackSelection.Targets.SingleOrDefault(c => c.ActIndex == 1 && c.Coord == bossCoord && c.CompletedCombat)
-                ?? throw new InvalidOperationException("Natural boss reward completion did not capture a completed boss target.");
             Require(Bridge.Thaw(bossTarget.Snapshot).PreFinishedRoom is { IsPreFinished: true, RoomType: RoomType.Boss }, "Boss target does not contain a native finished boss.");
             state["boss_target_captured_naturally"] = true;
             state["boss_coord"] = bossCoord.ToString();
@@ -213,6 +252,7 @@ public static class RollbackProbe
             stage = checks[5];
             var liveState = Bridge.State;
             var laterMap = MapFingerprint();
+            state["act3_map_after_boss"] = laterMap;
             var laterResources = Resources();
             var laterPosition = Bridge.State.MapLocation;
             var historyBeforePreview = string.Join(",", CheckpointService.History.Select(c => c.Id));
@@ -239,27 +279,52 @@ public static class RollbackProbe
             await SelectRollback(bossTarget);
             Require(Bridge.State.CurrentActIndex == 1 && Bridge.State.CurrentMapCoord == bossCoord && Bridge.State.CurrentRoom is CombatRoom { IsPreFinished: true, RoomType: RoomType.Boss } && !CombatManager.Instance.IsInProgress,
                 "Past-act boss selection did not load the finished native boss.");
-            Require(Resources() == bossResources && MapFingerprint() == map, "Past-act boss rollback lost settled resources or changed its map.");
-            await Wait(() => Descendants<NRewardsScreen>(tree.Root).Any(), "native empty boss rewards/proceed");
-            var emptyBossRewards = Descendants<NRewardsScreen>(tree.Root).Single();
-            Require(!Descendants<NRewardButton>(emptyBossRewards).Any(), "Completed boss offered a second resource reward.");
-            var emptyBossProceed = Descendants<NProceedButton>(emptyBossRewards).Single();
-            await Wait(() => emptyBossProceed.IsEnabled, "native empty boss proceed enabled");
-            emptyBossProceed.ForceClick();
+            Require(Resources() == bossBeforeClaimResources && MapFingerprint() == map, "Past-act boss rollback did not restore pre-reward resources or its map.");
+            await Wait(() => Descendants<NRewardsScreen>(tree.Root).Any(), "native restored boss rewards/proceed");
+            var restoredBossRewards = Descendants<NRewardsScreen>(tree.Root).Single();
+            Require(RewardFingerprint(restoredBossRewards) == bossRewardFingerprint, "Restored boss reward set differed from the original set.");
+            Require(CardOptionsFingerprint(restoredBossRewards) == bossCardOptions, "Restored boss card options differed from the original options.");
+            Require(RewardRngOddsFingerprint() == bossRngOdds, "Restored boss reward RNG or rarity odds differed from the original.");
+            await Timed(CompanionStore.SaveNativeCurrent(), "native pending-boss save for fresh continue");
+            var pendingDisk = SaveManager.Instance.LoadRunSave();
+            var pendingMarker = CheckpointService.Save().PendingCombatRewards;
+            var pendingRecord = pendingMarker ?? throw new InvalidOperationException("Pending combat reward marker is missing.");
+            Require(pendingDisk.Success && pendingDisk.SaveData?.PreFinishedRoom is { IsPreFinished: true, RoomType: RoomType.Boss } &&
+                CompanionStore.Error == null && pendingRecord.ActIndex == 1 && pendingRecord.Snapshot.Length > 0 && pendingRecord.Coord == bossCoord,
+                "Pending boss native save and companion marker were not paired: " + CompanionStore.Error);
+            var restoredBossGold = Descendants<NRewardButton>(restoredBossRewards).First(b => b.Reward is GoldReward);
+            await ClaimGold(restoredBossGold, "restored boss gold claim");
+            var restoredBossProceed = Descendants<NProceedButton>(restoredBossRewards).Single();
+            await Wait(() => restoredBossProceed.IsEnabled, "restored boss native Proceed enabled");
+            restoredBossProceed.ForceClick();
             await Wait(() => Bridge.State.CurrentActIndex == 2 && Bridge.State.CurrentRoom is MapRoom && !Descendants<NRewardsScreen>(tree.Root).Any(), "restored boss native Proceed advances act", 60000);
             await IdleTransition();
-            Require(Resources() == bossResources, "Empty restored boss Proceed granted duplicate resources.");
+            Require(Resources() == bossClaimedResources, "Restored boss gold claim/Proceed did not reproduce exactly one original claim.");
             Require(MapFingerprint() == laterMap, "Restored boss Proceed regenerated a different later-act map.");
-            state["boss_resources_after_empty_proceed"] = Resources();
-            // Leave a real paired settled-boss disk save for the existing
-            // fresh-process continue mode, after proving empty Proceed works.
+            state["boss_resources_after_one_gold_claim"] = Resources();
+            // Restore once more and leave the actual pending-reward state on disk
+            // for the fresh-process native Continue regression.
             await SelectRollback(bossTarget);
-            await Timed(CompanionStore.SaveNativeCurrent(), "native settled-boss save for fresh continue");
-            var settledDisk = SaveManager.Instance.LoadRunSave();
-            Require(settledDisk.Success && settledDisk.SaveData?.PreFinishedRoom is { IsPreFinished: true, RoomType: RoomType.Boss } && CompanionStore.Error == null &&
-                CheckpointService.Save().SettledCombat == new CombatSettlement(bossCoord, 1), "Settled boss native save/companion marker was not persisted.");
-            state["saved_settled_boss"] = true;
-            Pass("boss target captured naturally; GUI past-act selection committed through visited boss handler; native empty boss reward Proceed advanced act without repeated resource rewards");
+            await Wait(() => Descendants<NRewardsScreen>(tree.Root).Any(), "final pending boss rewards");
+            var finalPendingBossRewards = Descendants<NRewardsScreen>(tree.Root).Single();
+            Require(Resources() == bossBeforeClaimResources && RewardFingerprint(finalPendingBossRewards) == bossRewardFingerprint &&
+                CardOptionsFingerprint(finalPendingBossRewards) == bossCardOptions && RewardRngOddsFingerprint() == bossRngOdds,
+                "Final pending boss restore did not reproduce the original reward state.");
+            await ClaimGold(Descendants<NRewardButton>(finalPendingBossRewards).First(b=>b.Reward is GoldReward), "partial boss gold claim before quit");
+            Require(Resources()==bossClaimedResources,"Partial boss claim did not match the original gold reward.");
+            // Exercise the normal native save entry as well as the operation
+            // save: both must persist pre-claim resources with pre-generation RNG.
+            await Timed(SaveManager.Instance.SaveRun(Bridge.State.CurrentRoom,false), "native partial-reward boss save");
+            await Timed(CompanionStore.SaveNativeCurrent(), "native pending-boss save for fresh continue");
+            var finalPendingDisk = SaveManager.Instance.LoadRunSave();
+            var finalPendingMarker = CheckpointService.Save().PendingCombatRewards;
+            var finalPendingRecord = finalPendingMarker ?? throw new InvalidOperationException("Final pending combat reward marker is missing.");
+            Require(finalPendingDisk.Success && finalPendingDisk.SaveData?.PreFinishedRoom is { IsPreFinished: true, RoomType: RoomType.Boss } &&
+                CompanionStore.Error == null && finalPendingRecord.ActIndex == 1 && finalPendingRecord.Snapshot.Length > 0 && finalPendingRecord.Coord == bossCoord,
+                "Pending boss native save and companion marker were not persisted: " + CompanionStore.Error);
+            state["saved_pending_boss"] = true;
+            state["partial_gold_claim_before_save"] = true;
+            Pass("boss target captured before rewards; cross-act restore reproduced the full native reward set/RNG, one gold claim and Proceed matched original resources, and pending boss was saved for fresh Continue");
         }
         catch (Exception error)
         {
@@ -278,7 +343,7 @@ public static class RollbackProbe
 
     public static async Task RunSettledContinue(SceneTree tree)
     {
-        const string check = "fresh_settled_boss_continue";
+        const string check = "fresh_pending_boss_continue";
         var results = new Dictionary<string, string> { [check] = "UNEXECUTED" };
         var state = new Dictionary<string, object>();
         try
@@ -292,44 +357,62 @@ public static class RollbackProbe
             var priorPid = prior.GetProperty("process_id").GetInt32();
             Require(priorPid != System.Environment.ProcessId, "Settled continue must run in a different process.");
             var priorChecks = prior.GetProperty("results").EnumerateObject().ToList();
-            Require(priorChecks.Count == 7 && priorChecks.All(p => p.Value.GetString()?.StartsWith("PASS", StringComparison.Ordinal) == true), "Prior rollback probe must pass every check.");
-            Require(prior.GetProperty("state").GetProperty("saved_settled_boss").GetBoolean(), "Prior rollback probe did not prepare a settled boss disk save.");
-            var expectedResources = prior.GetProperty("state").GetProperty("boss_resources_after_empty_proceed").GetString();
-            Require(!string.IsNullOrEmpty(expectedResources), "Prior probe has no settled resource expectation.");
+            Require(priorChecks.Count is 7 or 8 && priorChecks.All(p => p.Value.GetString()?.StartsWith("PASS", StringComparison.Ordinal) == true), "Prior rollback probe must pass every check.");
+            Require(prior.GetProperty("state").GetProperty("saved_pending_boss").GetBoolean(), "Prior rollback probe did not prepare a pending-reward boss disk save.");
+            var priorState = prior.GetProperty("state");
+            var expectedBeforeClaimResources = priorState.GetProperty("boss_before_claim_resources").GetString();
+            var expectedClaimedResources = priorState.GetProperty("boss_resources_after_one_gold_claim").GetString();
+            var expectedRewardFingerprint = priorState.GetProperty("boss_original_reward_fingerprint").GetString();
+            var expectedCardOptions = priorState.GetProperty("boss_original_card_options").GetString();
+            var expectedRngOdds = priorState.GetProperty("boss_original_reward_rng_odds").GetString();
+            var expectedActThreeMap = priorState.GetProperty("act3_map_after_boss").GetString();
+            Require(!string.IsNullOrEmpty(expectedBeforeClaimResources) && !string.IsNullOrEmpty(expectedClaimedResources) &&
+                !string.IsNullOrEmpty(expectedRewardFingerprint) && !string.IsNullOrEmpty(expectedCardOptions) &&
+                !string.IsNullOrEmpty(expectedRngOdds) && !string.IsNullOrEmpty(expectedActThreeMap), "Prior probe has incomplete pending-boss expectations.");
             var saved = SaveManager.Instance.LoadRunSave();
-            Require(saved.Success && saved.SaveData != null, "Native settled-boss save could not be read: " + saved.ErrorMessage);
+            Require(saved.Success && saved.SaveData != null, "Native pending-boss save could not be read: " + saved.ErrorMessage);
             var nativeSave = saved.SaveData!;
             var location = new MapLocation(nativeSave.VisitedMapCoords.LastOrDefault(), nativeSave.CurrentActIndex);
-            Require(CompanionStore.Error == null && CheckpointService.Save().SettledCombat == CombatSettlement.At(location) &&
+            var timeline = CheckpointService.Save();
+            var pending = timeline.PendingCombatRewards ?? throw new InvalidOperationException("Loaded pending combat reward marker is missing.");
+            Require(CompanionStore.Error == null && pending.Snapshot.Length > 0 && pending.ActIndex == location.actIndex && pending.Coord == location.coord &&
                 nativeSave.CurrentActIndex == 1 && nativeSave.PreFinishedRoom is { IsPreFinished: true, RoomType: RoomType.Boss },
-                "Disk native boss and companion settled marker are not paired: " + CompanionStore.Error);
+                "Disk native boss and companion pending-reward marker are not paired: " + CompanionStore.Error);
+            var pendingSnapshot = Bridge.Thaw(pending.Snapshot);
+            Require(pendingSnapshot.PreFinishedRoom is { IsPreFinished: true, RoomType: RoomType.Boss }, "Pending marker snapshot does not contain a finished native boss.");
             var restored = RunState.FromSerializable(nativeSave);
             var expectedRevision = CompanionStore.LoadedRevision;
             Require(expectedRevision > 0, "Prepared settled-boss save has no operation revision.");
-            await Timed(manager.SetUpSavedSingleplayer(restored, nativeSave), "fresh native settled-boss setup");
+            await Timed(manager.SetUpSavedSingleplayer(restored, nativeSave), "fresh native pending-boss setup");
             var afterSetup = SaveManager.Instance.LoadRunSave();
             Require(afterSetup.Success && CompanionStore.LoadedRevision == expectedRevision,
                 "Native reload-count save reset the paired operation revision.");
             game.ReactionContainer.InitializeNetworking(manager.NetService);
-            await Timed(game.LoadRun(restored, nativeSave.PreFinishedRoom), "fresh native settled-boss continue");
+            await Timed(game.LoadRun(restored, nativeSave.PreFinishedRoom), "fresh native pending-boss continue");
             await IdleTransition();
             Require(Bridge.State.CurrentRoom is CombatRoom { IsPreFinished: true, RoomType: RoomType.Boss } && !CombatManager.Instance.IsInProgress,
-                "Fresh continue replayed the settled boss.");
-            Require(Resources() == expectedResources, "Fresh continue changed settled gold/deck/resources.");
-            await Wait(() => Descendants<NRewardsScreen>(tree.Root).Any(), "fresh native empty boss rewards");
+                "Fresh continue replayed the boss combat.");
+            await Wait(() => Descendants<NRewardsScreen>(tree.Root).Any(), "fresh native pending boss rewards");
             var rewards = Descendants<NRewardsScreen>(tree.Root).Single();
-            Require(!Descendants<NRewardButton>(rewards).Any(), "Fresh settled boss offered duplicate resource rewards.");
+            Require(Resources() == expectedBeforeClaimResources, "Fresh continue changed pre-claim boss resources.");
+            Require(RewardFingerprint(rewards) == expectedRewardFingerprint, "Fresh continue generated a different native boss reward set.");
+            Require(CardOptionsFingerprint(rewards) == expectedCardOptions, "Fresh continue generated different boss card options.");
+            Require(RewardRngOddsFingerprint() == expectedRngOdds, "Fresh continue generated different reward RNG or rarity odds.");
+            var gold = Descendants<NRewardButton>(rewards).First(b => b.Reward is GoldReward);
+            await ClaimGold(gold, "fresh continued boss gold claimed");
             var proceed = Descendants<NProceedButton>(rewards).Single();
-            await Wait(() => proceed.IsEnabled, "fresh native boss Proceed enabled");
+            await Wait(() => proceed.IsEnabled, "fresh pending boss Proceed enabled");
             proceed.ForceClick();
-            await Wait(() => Bridge.State.CurrentActIndex == 2 && Bridge.State.CurrentRoom is MapRoom && !Descendants<NRewardsScreen>(tree.Root).Any(), "fresh settled boss Proceed advances to act three", 60000);
+            await Wait(() => Bridge.State.CurrentActIndex == 2 && Bridge.State.CurrentRoom is MapRoom && !Descendants<NRewardsScreen>(tree.Root).Any(), "fresh pending boss Proceed advances to act three", 60000);
             await IdleTransition();
-            Require(Resources() == expectedResources, "Fresh continued boss Proceed duplicated resources.");
+            Require(Resources() == expectedClaimedResources, "Fresh continued boss claim did not reproduce exactly one original gold reward.");
+            Require(MapFingerprint() == expectedActThreeMap, "Fresh continued boss Proceed generated a different act-three map.");
             state["prior_process_id"] = priorPid;
             state["paired_revision_after_setup"] = CompanionStore.LoadedRevision;
             state["resources_after_proceed"] = Resources();
             state["act_after_proceed"] = Bridge.State.CurrentActIndex;
-            results[check] = "PASS: different process, native disk/companion marker, finished boss without repeat rewards, native empty Proceed advances act three with settled resources";
+            state["map_after_proceed"] = MapFingerprint();
+            results[check] = "PASS: different process, paired pending marker/native boss save, exact rewards/card options/RNG/odds, one native gold claim, Proceed advances act three without duplication";
         }
         catch (Exception error)
         {
@@ -338,7 +421,7 @@ public static class RollbackProbe
         }
         finally
         {
-            var report = JsonSerializer.Serialize(new { scope = "isolated native-engine fresh-process singleplayer settled-boss continue; physical pointer and multiplayer untested", process_id = System.Environment.ProcessId, results, state });
+            var report = JsonSerializer.Serialize(new { scope = "isolated native-engine fresh-process singleplayer pending-boss Continue; physical pointer and multiplayer untested", process_id = System.Environment.ProcessId, results, state });
             Log.Info("[NoSuffering] CONTINUE_PROBE_RESULTS " + report);
             File.WriteAllText(Path.Combine(OS.GetUserDataDir(), "nosuffering-continue-probe.json"), report);
             tree.Quit(results[check].StartsWith("PASS", StringComparison.Ordinal) ? 0 : 1);
@@ -444,6 +527,68 @@ public static class RollbackProbe
         await Screenshot("nosuffering-shop-before-purchase.png");
         await Click(slot.Hitbox);
         await Wait(() => player.Deck.Cards.Count == count + 1 && player.Gold < gold && !slot.Entry.IsStocked, "actual native shop purchase");
+    }
+
+    private static string RewardFingerprint(NRewardsScreen screen)
+    {
+        var field = typeof(NRewardsScreen).GetField("_rewardsSet", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?? throw new MissingFieldException("Native reward screen set changed.");
+        var set = (RewardsSet)(field.GetValue(screen) ?? throw new InvalidOperationException("Native reward screen has no RewardsSet."));
+        var options = new JsonSerializerOptions { IncludeFields = true };
+        return string.Join("|", set.Rewards.Select(reward => reward is CardReward card
+            ? "Card:" + string.Join(",", card.Cards.Select(CardKey))
+            : reward.GetType().Name + ":" + JsonSerializer.Serialize(reward.ToSerializable(), options)).OrderBy(value => value, StringComparer.Ordinal));
+    }
+
+    private static string CardOptionsFingerprint(NRewardsScreen screen)
+    {
+        var field = typeof(NRewardsScreen).GetField("_rewardsSet", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?? throw new MissingFieldException("Native reward screen set changed.");
+        var set = (RewardsSet)(field.GetValue(screen) ?? throw new InvalidOperationException("Native reward screen has no RewardsSet."));
+        return string.Join("|", set.Rewards.OfType<CardReward>()
+            .Select(card => string.Join(",", card.Cards.Select(CardKey))));
+    }
+
+    private static string CardKey(MegaCrit.Sts2.Core.Models.CardModel card) => card.Id + ":" + card.IsUpgraded;
+
+    private static string RewardRngOddsFingerprint()
+    {
+        var player = Bridge.State.Players.Single();
+#if STS2_STABLE
+        // Stable stores per-stream counters; beta stores each stream's full state.
+        var rng = new { seed = player.PlayerRng.Seed, counter = player.PlayerRng.Rewards.Counter };
+#else
+        var rng = player.PlayerRng.ToSerializable().Rngs[PlayerRngType.Rewards];
+#endif
+        var odds = player.PlayerOdds.ToSerializable();
+        return JsonSerializer.Serialize(new { rewards_rng = rng, odds }, new JsonSerializerOptions { IncludeFields = true });
+    }
+
+    private static async Task ClaimGold(NRewardButton button, string detail)
+    {
+        var player = Bridge.State.Players.Single();
+        var before = player.Gold;
+        button.Call("OnRelease");
+        await Wait(() => player.Gold > before, detail);
+    }
+
+    private static async Task ClaimCard(NRewardsScreen rewards, SceneTree tree, string? expectedCard, string detail)
+    {
+        var button = Descendants<NRewardButton>(rewards).Single(b => b.Reward is CardReward);
+        var reward = button.Reward as CardReward ?? throw new InvalidOperationException("Native card reward button has no CardReward.");
+        var selected = reward.Cards.FirstOrDefault(card => expectedCard == null || CardKey(card) == expectedCard)
+            ?? throw new InvalidOperationException("Expected card option is missing from the native reward.");
+        var cardKey = CardKey(selected);
+        var player = Bridge.State.Players.Single();
+        var deckCount = player.Deck.Cards.Count;
+        button.Call("OnRelease");
+        await Wait(() => Descendants<NCardRewardSelectionScreen>(tree.Root).Any(), "native card reward selector");
+        var selector = Descendants<NCardRewardSelectionScreen>(tree.Root).Single();
+        var holder = selector.GetCardHolder(selected);
+        await Wait(() => holder.IsVisibleInTree(), "native card reward option visible");
+        await Wait(() => holder.Get("_isClickable").AsBool(), "native card reward option clickable");
+        await Click(holder);
+        await Wait(() => player.Deck.Cards.Count == deckCount + 1 && player.Deck.Cards.Any(card => CardKey(card) == cardKey), detail);
     }
 
     private static async Task SelectRollback(MapCheckpoint checkpoint)

@@ -10,7 +10,7 @@ namespace NoSuffering;
 [ModInitializer(nameof(Initialize))]
 public static class ModEntry
 {
-    public const string Version="0.1.4";
+    public const string Version="0.1.5";
     public static void Initialize() {
         if (OS.GetCmdlineUserArgs().Contains("--ns-lab-probe"))
             Log.Info($"[NoSuffering] LAB user_data={OS.GetUserDataDir()}");

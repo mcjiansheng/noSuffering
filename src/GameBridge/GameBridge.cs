@@ -4,6 +4,7 @@ using System.Text;
 using HarmonyLib;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Entities.Actions;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
@@ -12,6 +13,7 @@ using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
+using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Helpers;
@@ -26,6 +28,7 @@ public static class GameBridge
 {
     public static bool IsRestoring { get; private set; }
     private static bool _preserveTransport;
+    private static readonly List<(Node Node, Node.ProcessModeEnum Mode)> _choiceInputLocks = new();
     private static bool _loadingMap;
     private static bool _loadingCombat;
     private static bool _loadingCompletedCombat;
@@ -62,12 +65,12 @@ public static class GameBridge
             };
         return Thaw(Freeze(save)); // Break every mutable history/model reference.
     }
-    public static async Task BoundaryAsync(CancellationToken cancellation=default)
+    public static async Task BoundaryAsync(CancellationToken cancellation=default, bool replacingCombat=false)
     {
         var manager=RunManager.Instance;
         var state=State;
-        // Let submitted effects finish, including native player-choice continuations.
-        // Do not pause a task that still needs its selection screen to finish.
+        // Live edits must finish choices. Snapshot replacement may instead pause at
+        // a yielded choice; cancellation belongs to committed loading, not preparation.
         // Native loss ends combat without clearing its enemy-turn flag. The
         // retained run can still be restored through native cleanup/loading;
         // that historical flag is no longer an active enemy action boundary.
@@ -83,6 +86,13 @@ public static class GameBridge
         RequireSameRun();
         manager.ActionExecutor.Pause();
         CombatManager.Instance.Pause();
+        if (replacingCombat && state.CurrentRoom is CombatRoom)
+        {
+            // Freeze native choice input before Ready; keep its task intact so
+            // an aborted preparation can resume the original choice.
+            LockChoiceInput(NPlayerHand.Instance);
+            LockChoiceInput(NOverlayStack.Instance);
+        }
         if (State.CurrentRoom is MerchantRoom)
         {
             manager.CombatStateSynchronizer.StartSync();
@@ -95,7 +105,9 @@ public static class GameBridge
             // A native canceled/finished action can remain referenced after its
             // executor stops. A real player-choice continuation is incomplete
             // even when the executor has yielded, and must still be awaited.
-            return action is not null && (executor.IsRunning || !action.CompletionTask.IsCompleted);
+            return action is not null && (executor.IsRunning ||
+                (!action.CompletionTask.IsCompleted &&
+                 !(replacingCombat && state.CurrentRoom is CombatRoom && action.State == GameActionState.GatheringPlayerChoice)));
         }
         void RequireSameRun()
         {
@@ -104,7 +116,26 @@ public static class GameBridge
         }
     }
     public static async Task Frame() => await ((SceneTree)Engine.GetMainLoop()).ToSignal(Engine.GetMainLoop(),SceneTree.SignalName.ProcessFrame);
-    public static void Unlock() { if(RunManager.Instance.IsInProgress) {RunManager.Instance.ActionExecutor.Unpause();CombatManager.Instance.Unpause();} }
+    private static void LockChoiceInput(Node? node)
+    {
+        if (node is null || _choiceInputLocks.Any(item => ReferenceEquals(item.Node,node))) return;
+        _choiceInputLocks.Add((node,node.ProcessMode));
+        node.ProcessMode=Node.ProcessModeEnum.Disabled;
+        // Mods may opt descendants out of inherited processing. Freeze those
+        // overrides too, and restore their exact modes on abort or teardown.
+        foreach(var child in node.GetChildren()) LockChoiceInput(child);
+    }
+    private static void ReleaseChoiceInput()
+    {
+        foreach(var (node,mode) in _choiceInputLocks)
+            if(GodotObject.IsInstanceValid(node)) node.ProcessMode=mode;
+        _choiceInputLocks.Clear();
+    }
+    public static void Unlock()
+    {
+        ReleaseChoiceInput();
+        if(RunManager.Instance.IsInProgress) {RunManager.Instance.ActionExecutor.Unpause();CombatManager.Instance.Unpause();}
+    }
 
     public static async Task LoadAsync(SerializableRun snapshot)
     {
@@ -124,6 +155,15 @@ public static class GameBridge
             game.GetViewport().GuiReleaseFocus();
             NTargetManager.Instance?.CancelTargeting();
             NHoverTipSet.Clear();
+            // Native queue reset only removes references. Cancel suspended combat
+            // actions and the hand choice before tree exit can resolve it as
+            // an empty selection against the replacement run.
+            if (manager.DebugOnlyGetState()?.CurrentRoom is CombatRoom)
+            {
+                manager.ActionQueueSet.CombatEnded();
+                if (NPlayerHand.Instance?.IsInCardSelection == true) NPlayerHand.Instance.AnimOut();
+            }
+            NOverlayStack.Instance?.Clear();
             await game.Transition.RoomFadeOut();
             // Keep transport alive only for this synchronous native teardown.
             // Native cleanup owns cancellation, UI and synchronizer lifetimes.
@@ -133,6 +173,9 @@ public static class GameBridge
                 manager.OneOffSynchronizer.Dispose();
                 manager.CleanUp();
             } finally {_preserveTransport=false;}
+            // The overlay stack survives run teardown. New opening effects must
+            // be able to present their own choices while the replacement loads.
+            ReleaseChoiceInput();
             if(net.Type==NetGameType.Singleplayer) {
                 await manager.SetUpSavedSingleplayer(state,snapshot);
                 game.ReactionContainer.InitializeNetworking(manager.NetService);

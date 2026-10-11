@@ -149,10 +149,10 @@ public static class HostCoordinator
                 if(m.Operation==_activeOperation){Status=m.Payload;Release();}break;
         }
     }
-    private static async Task PreparationBoundaryAsync(CancellationToken cancellation)
+    private static async Task PreparationBoundaryAsync(CoreOperation kind,CancellationToken cancellation)
     {
         await AncientService.WaitForPendingChoicesAsync(cancellation);
-        await Bridge.BoundaryAsync(cancellation);
+        await Bridge.BoundaryAsync(cancellation,kind is CoreOperation.MapRollback or CoreOperation.CombatRestart or CoreOperation.CombatReroll);
         if (AncientService.IsAncientRoom)
         {
             // Native reward acquisition updates owner-only discovery/player data.
@@ -166,8 +166,8 @@ public static class HostCoordinator
     private static async Task ClientPrepare(ControlMessage request,CancellationToken cancellation) {
         string error="";
         try {
-            await PreparationBoundaryAsync(cancellation);
             var prepared=JsonSerializer.Deserialize<PrepareData>(request.Payload) ?? throw new InvalidOperationException("准备内容缺失");
+            await PreparationBoundaryAsync(prepared.Kind,cancellation);
             ValidateContext(prepared.Kind,prepared.Actor,prepared.Percent);
         } catch(OperationCanceledException){return;} catch(Exception e){error=e.Message;}
         if(cancellation.IsCancellationRequested || !Busy || _activeOperation!=request.Operation || _epoch!=request.Epoch)return;
@@ -253,7 +253,7 @@ public static class HostCoordinator
             OnRunReady();_activeOperation=++_sequence;Ready.Clear();Done.Clear();
             _preparation=new();
             if(_net!.Type==NetGameType.Host)_net.SendMessage(Message(Phase.Prepare,JsonSerializer.Serialize(new PrepareData(kind,actor,percent))));
-            await PreparationBoundaryAsync(_preparation.Token);ShopService.MergeOwnedState(ShopService.CaptureOwnedState(),_net.NetId);Ready.Add(_net.NetId);
+            await PreparationBoundaryAsync(kind,_preparation.Token);ShopService.MergeOwnedState(ShopService.CaptureOwnedState(),_net.NetId);Ready.Add(_net.NetId);
             await Wait(()=>Ready.Count==Bridge.State.Players.Count,"有玩家未完成当前动作");
             if(_failure is not null)throw new InvalidOperationException(_failure);
             // Native reward/purchase tasks may have completed during preparation.

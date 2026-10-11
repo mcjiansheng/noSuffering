@@ -2,15 +2,21 @@ using System.Text.Json;
 using Godot;
 using MegaCrit.Sts2.Core.Assets;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Entities.Actions;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Characters;
+using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Nodes;
+using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Events;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
@@ -133,17 +139,21 @@ public static class GameplayProbe
             Pass(stage, "native generated monster room and opening draw; route selected by lab");
 
             stage = "F04_restart";
+            var restartSelection = await BeginPendingDiscard();
             await Operation(CoreOperation.CombatRestart);
+            await RequireSelectionReplaced(restartSelection);
             Require(CombatService.Attempt == 0 && Digests() == zero && CombatService.Baseline == baseline,
                 "Normal restart changed attempt zero or its opening order/baseline.");
-            Pass(stage, "attempt zero and actual opening order retained");
+            Pass(stage, "pending native Prepared discard canceled; selection overlay removed; attempt zero and opening order retained");
 
             stage = "F05_order_refresh";
+            var rerollSelection = await BeginPendingDiscard();
             await Operation(CoreOperation.CombatReroll);
+            await RequireSelectionReplaced(rerollSelection);
             var refreshed = Digests();
             Require(CombatService.Attempt == 1 && refreshed != zero && CombatService.Baseline == baseline,
                 "Refreshed attempt/order or immutable baseline assertion failed.");
-            Pass(stage, "attempt one changed actual opening order and retained baseline");
+            Pass(stage, "pending native Prepared discard canceled; selection overlay removed; attempt one changed opening order and retained baseline");
 
             stage = "F04_retains_refresh";
             await Operation(CoreOperation.CombatRestart);
@@ -340,6 +350,65 @@ public static class GameplayProbe
     }
 
     private static string Digests() => string.Join("/", CombatService.CurrentOrderDigests.OrderBy(p => p.Key).Select(p => p.Key + ":" + p.Value));
+    private sealed record PendingDiscard(PlayCardAction Action, NPlayerHand Hand);
+
+    private static async Task<PendingDiscard> BeginPendingDiscard()
+    {
+        await Wait(() => RunManager.Instance.ActionQueueSynchronizer.CombatState == ActionSynchronizerCombatState.PlayPhase &&
+            NPlayerHand.Instance?.CurrentMode == NPlayerHand.Mode.Play, "play phase before pending discard");
+        Require(CardSelectCmd.Selector == null
+#if !STS2_STABLE
+            && CardSelectCmd.LocalSelector == null
+#endif
+            ,
+            "Pending selection regression requires the native hand selector.");
+        var player = Bridge.State.Players.Single();
+        // Generate only in the live combat scope, after its immutable opening baseline.
+        // Playing the real card through the native queue creates the suspended action
+        // and UI; the probe never chooses or confirms a card before replacement.
+        var prepared = player.Creature.CombatState!.CreateCard<Prepared>(player);
+        await Timed(CardPileCmd.AddGeneratedCardToCombat(prepared, PileType.Hand, player), "generate Prepared fixture");
+        var action = new PlayCardAction(prepared, null);
+        var hand = NPlayerHand.Instance!;
+        RunManager.Instance.ActionQueueSynchronizer.RequestEnqueue(action);
+        await Wait(() => action.State == GameActionState.GatheringPlayerChoice &&
+            hand.CurrentMode == NPlayerHand.Mode.SimpleSelect && hand.GetNode<Control>("%SelectModeBackstop").Visible,
+            "native Prepared discard awaiting choice");
+        Require(!action.CompletionTask.IsCompleted, "Prepared completed before its discard choice was replaced.");
+        // Preparation must freeze native input without consuming the choice;
+        // aborting the barrier must restore the exact pending selection.
+        await Bridge.BoundaryAsync(replacingCombat: true);
+        try
+        {
+            Require(AllInputDisabled(hand), "Prepared hand still accepts input during the readiness barrier.");
+            Require(action.State == GameActionState.GatheringPlayerChoice && !action.CompletionTask.IsCompleted,
+                "Preparation canceled the choice before commit.");
+        }
+        finally { Bridge.Unlock(); }
+        Require(hand.CanProcess() && hand.CurrentMode == NPlayerHand.Mode.SimpleSelect,
+            "Aborted preparation did not restore native selection input.");
+        return new PendingDiscard(action, hand);
+
+        static bool AllInputDisabled(Node node) => !node.CanProcess() && node.GetChildren().All(AllInputDisabled);
+    }
+
+    private static async Task RequireSelectionReplaced(PendingDiscard pending)
+    {
+        Log.Info($"[NoSuffering] Selection replacement: oldAction={pending.Action.State}, completion={pending.Action.CompletionTask.Status}, newHand={NPlayerHand.Instance?.CurrentMode}");
+        await Wait(() => pending.Action.State == GameActionState.Canceled &&
+            NPlayerHand.Instance?.CurrentMode == NPlayerHand.Mode.Play, "discard action cancellation and replacement hand");
+#if !STS2_STABLE
+        await Wait(() => pending.Action.CompletionTask.IsCanceled, "native canceled action completion");
+#endif
+        // Stable Cancel marks the action Canceled but does not complete its task.
+        // In both versions the discarded selection must no longer own live UI.
+        var hand = NPlayerHand.Instance!;
+        Require(hand != pending.Hand && (!GodotObject.IsInstanceValid(pending.Hand) || !pending.Hand.IsInsideTree()),
+            "Old selection hand is still attached to the scene.");
+        Require(!hand.GetNode<Control>("%SelectModeBackstop").Visible,
+            "Replacement combat retained the native selection overlay.");
+    }
+
     private static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
     private static void Pass(string check, string detail) { Results[check] = "PASS: " + detail; Log.Info("[NoSuffering] GAMEPLAY_PROBE " + check + " " + Results[check]); }
     private static async Task Operation(CoreOperation kind, long checkpoint = 0)

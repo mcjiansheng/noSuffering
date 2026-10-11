@@ -175,10 +175,8 @@ public static class Overlay
         Toggle(T("重开并刷新牌序", "Restart with new deck order"), r.EnableCombatReroll, (rules, value) => rules with { EnableCombatReroll = value });
         Toggle(T("刷新商店", "Reroll shop"), r.EnableShopReroll, (rules, value) => rules with { EnableShopReroll = value });
         Toggle(T("增加第三幕 Boss 生命", "Increase act-three boss health"), r.EnableBossHealthIncrease, (rules, value) => rules with { EnableBossHealthIncrease = value });
-        Toggle(T("刷新先古之民", "Reroll ancient"), r.EnableAncientReroll, (rules, value) => rules with { EnableAncientReroll = value });
-        CostSetting(T("费用", "Cost"), r.AncientCostMode, r.AncientHpCost, true);
-        Toggle(T("刷新先古之民奖励", "Reroll ancient rewards"), r.EnableAncientOptionsReroll, (rules, value) => rules with { EnableAncientOptionsReroll = value });
-        CostSetting(T("费用", "Cost"), r.OptionsCostMode, r.OptionsHpCost, false);
+        CostSetting(T("刷新先古之民", "Reroll ancient"), r.EnableAncientReroll, r.AncientCostMode, r.AncientHpCost, true);
+        CostSetting(T("刷新先古之民奖励", "Reroll ancient rewards"), r.EnableAncientOptionsReroll, r.OptionsCostMode, r.OptionsHpCost, false);
     }
 
     private static void Toggle(string text, bool enabled, Func<HostRules, bool, HostRules> update)
@@ -188,17 +186,22 @@ public static class Overlay
         toggle.Toggled += value => ConfigStore.ChangeRules(r => update(r, value));
     }
 
-    private static void CostSetting(string label, RefreshCostMode mode, int amount, bool ancient)
+    private static void CostSetting(string label, bool enabled, RefreshCostMode mode, int amount, bool ancient)
     {
         var row = Row(label);
+        var toggle = new CheckButton { ButtonPressed = enabled, Disabled = !ConfigStore.RulesWritable };
+        row.AddChild(toggle);
+        toggle.Toggled += value => ConfigStore.ChangeRules(r => ancient ? r with { EnableAncientReroll = value } : r with { EnableAncientOptionsReroll = value });
         var select = new OptionButton { Disabled = !ConfigStore.RulesWritable };
-        select.AddItem(T("免费", "Free")); select.AddItem("HP"); select.Selected = (int)mode; row.AddChild(select);
-        var hp = new SpinBox { MinValue = 1, MaxValue = 99, Step = 1, Value = amount, Editable = ConfigStore.RulesWritable && mode == RefreshCostMode.Hp, CustomMinimumSize = new Vector2(92, 0) };
+        select.AddItem(T("免费", "Free")); select.AddItem(T("扣血", "Pay HP")); select.Selected = (int)mode; row.AddChild(select);
+        var hp = new SpinBox { MinValue = 1, MaxValue = 99, Step = 1, Value = amount, Suffix = T("生命", "HP"), Visible = mode == RefreshCostMode.Hp, Editable = ConfigStore.RulesWritable, CustomMinimumSize = new Vector2(128, 0) };
         row.AddChild(hp);
         select.ItemSelected += index =>
         {
             ConfigStore.ChangeRules(r => ancient ? r with { AncientCostMode = (RefreshCostMode)index } : r with { OptionsCostMode = (RefreshCostMode)index });
-            hp.Editable = ConfigStore.RulesWritable && index == 1;
+            hp.Visible = index == (int)RefreshCostMode.Hp;
+            BindFocus();
+            select.GrabFocus();
         };
         hp.ValueChanged += value => ConfigStore.ChangeRules(r => ancient ? r with { AncientHpCost = (int)value } : r with { OptionsHpCost = (int)value });
     }
@@ -232,6 +235,7 @@ public static class Overlay
         controls[0].GrabFocus();
         void Collect(Node node)
         {
+            if (node is Control hidden && !hidden.IsVisibleInTree()) return;
             if (node is Control control && control.FocusMode == Control.FocusModeEnum.All && (control is not BaseButton button || !button.Disabled)) controls.Add(control);
             foreach (var child in node.GetChildren()) Collect(child);
         }

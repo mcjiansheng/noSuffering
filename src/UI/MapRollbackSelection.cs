@@ -14,7 +14,7 @@ namespace NoSuffering.UI;
 public static class MapRollbackSelection
 {
     private static NMapScreen? _screen;
-    private static HBoxContainer? _controls;
+    private static CenterContainer? _controls;
     private static RunState? _original;
     private static bool _wasOpen;
     private static bool _preview;
@@ -34,18 +34,25 @@ public static class MapRollbackSelection
         _original=Bridge.State;_screen=NMapScreen.Instance!;_wasOpen=_screen.IsOpen;
         _act=_original.CurrentActIndex;Active=true;
         _screen.Open(true);
-        _controls=new HBoxContainer {Theme=Overlay.MakeTheme(),MouseFilter=Control.MouseFilterEnum.Pass};
+        // Keep navigation in the map footer, clear of the persistent relic bar.
+        // The full-width centering wrapper does not consume map clicks outside
+        // the panel, and anchors track native UI scaling/window resizing.
+        _controls=new CenterContainer {Theme=Overlay.MakeTheme(),MouseFilter=Control.MouseFilterEnum.Ignore};
         _screen.AddChild(_controls);
-        _controls.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.CenterTop);
-        _controls.Position=new Vector2(_screen.Size.X/2-260,100);_controls.CustomMinimumSize=new Vector2(520,44);
-        _controls.AddChild(new Label {Text=T("选择要返回的节点","Choose a node to return to"),SizeFlagsHorizontal=Control.SizeFlags.ExpandFill});
+        _controls.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomWide);
+        _controls.OffsetTop=-88;_controls.OffsetBottom=-24;
+        var panel=new PanelContainer {MouseFilter=Control.MouseFilterEnum.Stop};
+        _controls.AddChild(panel);
+        var row=new HBoxContainer {CustomMinimumSize=new Vector2(520,44)};
+        panel.AddChild(row);
+        row.AddChild(new Label {Text=T("选择要返回的节点","Choose a node to return to"),SizeFlagsHorizontal=Control.SizeFlags.ExpandFill});
         foreach(int act in Targets.Select(c=>c.ActIndex).Distinct().Order()) {
             if(Targets.Select(c=>c.ActIndex).Distinct().Count()==1)break;
             int selected=act;
             var button=new Button {Text=T($"第 {act+1} 幕",$"Act {act+1}"),FocusMode=Control.FocusModeEnum.All};
-            button.Pressed+=()=>ShowAct(selected);_controls.AddChild(button);
+            button.Pressed+=()=>ShowAct(selected);row.AddChild(button);
         }
-        var cancel=new Button {Text=T("取消","Cancel"),FocusMode=Control.FocusModeEnum.All};cancel.Pressed+=()=>Cancel();_controls.AddChild(cancel);
+        var cancel=new Button {Text=T("取消","Cancel"),FocusMode=Control.FocusModeEnum.All};cancel.Pressed+=()=>Cancel();row.AddChild(cancel);
         if(!Targets.Any(c=>c.ActIndex==_act))ShowAct(Targets.Last().ActIndex);
         RefreshPoints();
     }

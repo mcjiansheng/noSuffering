@@ -111,6 +111,16 @@ public static class AncientService
         AccessTools.Method(typeof(EventSynchronizer), "ChooseOptionForEvent").Invoke(RunManager.Instance.EventSynchronizer, [player, index]);
     }
 
+    public static void RestoreRejectedLocalChoice()
+    {
+        if (!IsAncientRoom || NEventRoom.Instance?.Layout is not { } layout || layout.OptionButtons.Any()) return;
+        var model = RunManager.Instance.EventSynchronizer.GetLocalEvent();
+        if (model.IsFinished || model.CurrentOptions.Any(o => o.WasChosen)) return;
+        // Native OptionButtonClicked clears the layout before sending the choice.
+        // The existing options still own their native BeforeChosen subscriptions.
+        layout.AddOptions(model.CurrentOptions);
+    }
+
     private static RunState State => RunManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("没有活动运行状态");
     private static string Context => $"{State.Rng.Seed}:{State.MapLocation}";
     public static AncientRecord? CaptureState() => _state is null ? null : _state with { GenerationHp = new(_state.GenerationHp), Players = new(_state.Players.ToDictionary(p => p.Key, p => p.Value with { Finished = CurrentFinished(p.Key, p.Value.Finished) })) };
@@ -368,9 +378,9 @@ public static class AncientService
             // Native SetOptions creates Proceed separately after the event finishes;
             // it is not a reward in EventModel.CurrentOptions. Leave its native
             // action intact, including custom event layouts supplied by other mods.
-            if (option.IsProceed) return !_busy;
+            if (option.IsProceed) return !_busy && !HostCoordinator.Busy;
             var options = RunManager.Instance.EventSynchronizer.GetLocalEvent().CurrentOptions;
-            return !_busy && index >= 0 && index < options.Count && ReferenceEquals(option, options[index]);
+            return !_busy && !HostCoordinator.Busy && index >= 0 && index < options.Count && ReferenceEquals(option, options[index]);
         }
     }
 

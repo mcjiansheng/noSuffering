@@ -65,7 +65,14 @@ public static class HostCoordinator
     public static void Attach(INetGameService net) {
         if(ReferenceEquals(net,_net))return;
         if(_net is not null){_net.UnregisterMessageHandler<ControlMessage>(OnMessage);_net.Disconnected-=OnDisconnected;}
-        _net=net;net.RegisterMessageHandler<ControlMessage>(OnMessage);net.Disconnected+=OnDisconnected;
+        _net=net;
+        // Failures belong to the replaced transport; a retained transport keeps
+        // its failure so active preparation still stops on real disconnects.
+        _failure=null;
+        // A new client transport must receive its own authenticated State before
+        // saved-room factories consume companion data. Snapshot loads reuse net.
+        if(net.Type==NetGameType.Client)_epoch="";
+        net.RegisterMessageHandler<ControlMessage>(OnMessage);net.Disconnected+=OnDisconnected;
     }
     private static void OnDisconnected(NetErrorInfo info){Fail("连接已断开");Release();}
     public static void OnRunReady() {
@@ -89,8 +96,12 @@ public static class HostCoordinator
     private static void OnMessage(ControlMessage m,ulong sender) {
         if(m.Phase==Phase.Hello){if(IsHost)SyncTo(sender);return;}
         if(m.Phase==Phase.State) {
-            if(!FromHost(sender) || (Busy && m.Epoch!=_epoch))return;
+            if(!FromHost(sender) || (Busy && m.Epoch!=_epoch) ||
+                RunManager.Instance.IsInProgress && m.Run!=Bridge.RunKey)return;
             var data=JsonSerializer.Deserialize<SessionData>(m.Payload) ?? throw new InvalidOperationException("同步状态缺失");
+            // Operation sequence numbers belong to one host lifetime. A native
+            // reconnect can retain this run while its restarted host starts at 1.
+            if(m.Run!=_run || m.Epoch!=_epoch){_appliedOperation=0;_activeOperation=0;_choicePending=false;}
             _run=m.Run;_epoch=m.Epoch;WorldRevision=m.Revision;
             ConfigStore.ApplyHostRules(data.Rules);
             bool liveShop=RunManager.Instance.IsInProgress && Bridge.State.CurrentRoom is MerchantRoom &&
@@ -128,7 +139,9 @@ public static class HostCoordinator
         if(!FromHost(sender))return;
         switch(m.Phase) {
             case Phase.RequestRejected:
-                _choicePending=false;Status=m.Payload;++_completionSerial;Changed?.Invoke();break;
+                bool rejectedChoice=_choicePending;_choicePending=false;
+                if(rejectedChoice)AncientService.RestoreRejectedLocalChoice();
+                Status=m.Payload;++_completionSerial;Changed?.Invoke();break;
             case Phase.AncientChoiceCommit:
                 if(m.Revision!=WorldRevision || Busy)throw new InvalidOperationException("先古选择顺序与房主不同，请重新加入");
                 var choice=JsonSerializer.Deserialize<AncientChoiceData>(m.Payload) ?? throw new InvalidOperationException("选择内容缺失");
@@ -240,7 +253,7 @@ public static class HostCoordinator
             AncientService.Choose(sender,choice.Index,choice.Context);
             if(sender==_net.NetId)_choicePending=false;
         } catch(Exception e) {
-            if(sender==_net!.NetId){_choicePending=false;Status=e.Message;Changed?.Invoke();}
+            if(sender==_net!.NetId){_choicePending=false;AncientService.RestoreRejectedLocalChoice();Status=e.Message;Changed?.Invoke();}
             else _net.SendMessage(Message(Phase.RequestRejected,e.Message),sender);
         }
     }
@@ -312,7 +325,9 @@ public static class HostCoordinator
         } finally {Release();}
     }
     private static async Task Apply(OperationData data) {
-        ConfigStore.ApplyHostRules(data.Rules);
+        // The host may edit pending rules while this operation uses its captured
+        // rules. Only clients adopt the operation snapshot as host rules.
+        if(!IsHost)ConfigStore.ApplyHostRules(data.Rules);
         if(data.Snapshot is null)ShopService.ApplySynchronizedState(data.Timeline.Shop);
         if(data.Snapshot is not null){CheckpointService.Restore(data.Timeline,true);await Bridge.LoadAsync(Bridge.Thaw(data.Snapshot));}
         else switch(data.Kind) {

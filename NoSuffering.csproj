@@ -3,8 +3,9 @@
     <TargetFramework>net9.0</TargetFramework><LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
     <DefineConstants Condition="'$(Sts2Branch)' == 'public'">$(DefineConstants);STS2_STABLE</DefineConstants>
-    <Version>0.1.9</Version><AssemblyName>NoSuffering</AssemblyName>
+    <Version>0.1.10</Version><AssemblyName>NoSuffering</AssemblyName>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <Sts2InstallDir Condition="'$(Sts2InstallDir)' == ''">$(STS2_INSTALL_DIR)</Sts2InstallDir>
     <Sts2AssemblyDir Condition="'$(Sts2AssemblyDir)' == ''">$(STS2_ASSEMBLY_DIR)</Sts2AssemblyDir>
     <Sts2AssemblyDir Condition="'$(Sts2AssemblyDir)' == ''">$(Sts2InstallDir)/data_sts2_windows_x86_64</Sts2AssemblyDir>

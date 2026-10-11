@@ -6,4 +6,5 @@
 - Normal restart preserves the active attempt; refreshed draw order persists. Native immutable snapshots and native multiplayer load paths are required.
 - Prioritize latest public-beta; verify stable separately. Never claim untested game versions or mod combinations compatible.
 - Continue A/B/C without routine approval requests. Record build/load/singleplayer/multiplayer separately; unexecuted tests remain unexecuted.
+- After each completed update, commit and push promptly. For versioned updates, publish the matching release artifacts and test records as part of delivery. This is the user's standing instruction from 2026-10-11.
 - DSH disabled. Bounded Codex subagents are allowed; avoid needless abstractions and excessive testing.

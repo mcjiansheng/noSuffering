@@ -1,6 +1,6 @@
 # Mac / 正式版适配与副测试环境
 
-本页记录隔离副测试环境。0.1.6 的语言专项检查、DLL 指纹及未执行项目见[本版测试记录](testing/2026-10-11-language.md)，0.1.5 的回滚检查见[历史记录](testing/2026-10-11-victory-rewards.md)，以下广泛兼容检查来自 [0.1.4 历史记录](testing/2026-10-09-expansion.md)；物理鼠标／键盘游玩另见 [Mac beta 对局记录](testing/2026-10-09-cua-playthrough.md)。
+本页记录隔离副测试环境。0.1.10 的真实进程复现与四目标回归见 [代码审查修复记录](testing/2026-10-11-review-regressions.md)。0.1.6 的语言专项检查、DLL 指纹及未执行项目见[本版测试记录](testing/2026-10-11-language.md)，0.1.5 的回滚检查见[历史记录](testing/2026-10-11-victory-rewards.md)，以下广泛兼容检查来自 [0.1.4 历史记录](testing/2026-10-09-expansion.md)；物理鼠标／键盘游玩另见 [Mac beta 对局记录](testing/2026-10-09-cua-playthrough.md)。
 
 ## 实际布局
 

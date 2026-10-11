@@ -1,0 +1,1496 @@
+{
+  "mod_version": "0.1.10",
+  "date": "2026-10-11",
+  "baseline_commit": "e39fdb6",
+  "method": "native headless game processes; actual engine, disk saves and loopback ENet; separate test addon",
+  "not_executed": [
+    "manual full playthrough",
+    "gamepad input",
+    "Steam/Internet multiplayer",
+    "third-party mod combinations"
+  ],
+  "targets": [
+    {
+      "platform": "macos",
+      "branch": "public-beta",
+      "version": "0.1.10",
+      "release": {
+        "commit": "41cef1ea",
+        "version": "v0.111.0",
+        "date": "2026-08-13T17:39:18-07:00",
+        "branch": "v0.111.0",
+        "main_assembly_hash": 1172974615
+      },
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "mod_sha256": "a6e6b8f6135e7b1ecd4cd2a44124a64b03ad1f4fc9de1ee23c13f0ecfa272237",
+      "build": "passed",
+      "load": "passed",
+      "singleplayer": "passed",
+      "multiplayer": "passed"
+    },
+    {
+      "platform": "macos",
+      "branch": "public",
+      "version": "0.1.10",
+      "release": {
+        "commit": "59260271",
+        "version": "v0.107.1",
+        "date": "2026-06-18T15:43:56-07:00",
+        "branch": "v0.107.1",
+        "main_assembly_hash": -1718063421
+      },
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "e7ceb80669bfaf5c8fccabaa126ae2bb283aba514be5b5b55612579cfd285f18"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "mod_sha256": "13f04131957b4c3d9f15d994e94c70024c64107746ecc42e799572750d685826",
+      "build": "passed",
+      "load": "passed",
+      "singleplayer": "passed",
+      "multiplayer": "passed"
+    },
+    {
+      "platform": "windows",
+      "branch": "public-beta",
+      "version": "0.1.10",
+      "release": {
+        "commit": "41cef1ea",
+        "version": "v0.111.0",
+        "date": "2026-08-13T17:39:18-07:00",
+        "branch": "v0.111.0",
+        "main_assembly_hash": 222455745
+      },
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "mod_sha256": "2d8b5eee0e9a7afe814d3e4bf953793a0710ca93aac426eec2e620afd94ba982",
+      "build": "passed",
+      "load": "passed",
+      "singleplayer": "passed",
+      "multiplayer": "passed"
+    },
+    {
+      "platform": "windows",
+      "branch": "public",
+      "version": "0.1.10",
+      "release": {
+        "commit": "59260271",
+        "version": "v0.107.1",
+        "date": "2026-06-18T15:43:56-07:00",
+        "branch": "v0.107.1",
+        "main_assembly_hash": -1555940892
+      },
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "a1f9e653f1e28e4076558fee1e60d218619cb7e057b887c6417f62c62c6d7a52"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "mod_sha256": "56e1a3ead3fd7f132551e3a6e89191feabd6524a248dee8ba3028e7de0e0b56f",
+      "build": "passed",
+      "load": "passed",
+      "singleplayer": "passed",
+      "multiplayer": "passed"
+    }
+  ],
+  "runs": [
+    {
+      "phase": "baseline",
+      "case": "storage",
+      "platform": "macos",
+      "branch": "public-beta",
+      "passed": true,
+      "source_record": "artifacts/review-regression/baseline/macos-public-beta-storage-20261011-142715-388845/run-record.json",
+      "peers": {
+        "solo": {
+          "pid": 84563,
+          "exit_code": 0,
+          "product_sha256": "c6676fa9bf2bc39390bfb41fb055fbb5431cafe3550da18022569a1a0393ad2d",
+          "fixture_sha256": "fcab0f9c38fe47dce4ab29df2479319ee6c576ca8e27509daebb8f61cd82e18d",
+          "report": {
+            "version": "0.1.9",
+            "process": 84563,
+            "role": "solo",
+            "testCase": "storage",
+            "expectFixed": false,
+            "passed": true,
+            "results": {
+              "storage_incompatible_game_preserves_history": {
+                "status": "REPRODUCED",
+                "facts": {
+                  "mismatch": "game",
+                  "bytesPreserved": false,
+                  "historyRecovered": false,
+                  "errorPreserved": true,
+                  "reloadsBefore": 0,
+                  "reloadsAfter": 1,
+                  "reloadsPersisted": 1,
+                  "originalHistory": 2,
+                  "historyAfterSetup": 0,
+                  "recoveredHistory": 0,
+                  "sameDigest": true
+                }
+              },
+              "storage_incompatible_mods_preserves_history": {
+                "status": "REPRODUCED",
+                "facts": {
+                  "mismatch": "mods",
+                  "bytesPreserved": false,
+                  "historyRecovered": false,
+                  "errorPreserved": true,
+                  "reloadsBefore": 1,
+                  "reloadsAfter": 2,
+                  "reloadsPersisted": 2,
+                  "originalHistory": 2,
+                  "historyAfterSetup": 0,
+                  "recoveredHistory": 0,
+                  "sameDigest": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "phase": "baseline",
+      "case": "config-ui",
+      "platform": "macos",
+      "branch": "public-beta",
+      "passed": true,
+      "source_record": "artifacts/review-regression/baseline/macos-public-beta-config-ui-20261011-142718-866282/run-record.json",
+      "peers": {
+        "solo": {
+          "pid": 84607,
+          "exit_code": 0,
+          "product_sha256": "c6676fa9bf2bc39390bfb41fb055fbb5431cafe3550da18022569a1a0393ad2d",
+          "fixture_sha256": "fcab0f9c38fe47dce4ab29df2479319ee6c576ca8e27509daebb8f61cd82e18d",
+          "report": {
+            "version": "0.1.9",
+            "process": 84607,
+            "role": "solo",
+            "testCase": "config-ui",
+            "expectFixed": false,
+            "passed": true,
+            "results": {
+              "overlay_closes_on_native_room_travel": {
+                "status": "REPRODUCED",
+                "facts": {
+                  "beforeRoom": "EventRoom",
+                  "afterRoom": "CombatRoom",
+                  "Visible": true,
+                  "sameNRun": true
+                }
+              },
+              "settings_edit_survives_operation_commit": {
+                "status": "REPRODUCED",
+                "facts": {
+                  "edited": true,
+                  "editStatus": "等待当前动作完成",
+                  "editRevision": 0,
+                  "revisionAfter": 1,
+                  "active": true,
+                  "editable": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "phase": "baseline",
+      "case": "network",
+      "platform": "macos",
+      "branch": "public-beta",
+      "passed": true,
+      "source_record": "artifacts/review-regression/baseline/macos-public-beta-network-20261011-143404-922642/run-record.json",
+      "peers": {
+        "host": {
+          "pid": 89196,
+          "pid_resume": 90193,
+          "exit_code": 0,
+          "product_sha256": "c6676fa9bf2bc39390bfb41fb055fbb5431cafe3550da18022569a1a0393ad2d",
+          "fixture_sha256": "ed1c2edcce25a8dec03baa089af35d3ff4be18ba8a68a36efaa893271c7648ac",
+          "report": {
+            "version": "0.1.9",
+            "process": 90193,
+            "role": "host",
+            "testCase": "network",
+            "expectFixed": false,
+            "passed": true,
+            "results": {
+              "same_process_reconnect_new_epoch": {
+                "status": "REPRODUCED",
+                "facts": {
+                  "previous": {
+                    "Run": "AAC550254F7B483265EFBFFC4DC786BF7DF124A9E949FC20AAE931198ED6C419",
+                    "Epoch": "49b7064f17174d7d9e7abeaa7fccb92a",
+                    "Applied": 3
+                  },
+                  "run": "AAC550254F7B483265EFBFFC4DC786BF7DF124A9E949FC20AAE931198ED6C419",
+                  "epoch": "e6e7be84ee1846118b312c06b7ac0ef6",
+                  "appliedAtState": 0,
+                  "activeOperation": 1,
+                  "revisionBefore": 1,
+                  "revisionAfter": 1,
+                  "Status": "The operation has timed out."
+                }
+              }
+            }
+          }
+        },
+        "client": {
+          "pid": 89313,
+          "exit_code": 0,
+          "product_sha256": "c6676fa9bf2bc39390bfb41fb055fbb5431cafe3550da18022569a1a0393ad2d",
+          "fixture_sha256": "ed1c2edcce25a8dec03baa089af35d3ff4be18ba8a68a36efaa893271c7648ac",
+          "report": {
+            "version": "0.1.9",
+            "process": 89313,
+            "role": "client",
+            "testCase": "network",
+            "expectFixed": false,
+            "passed": true,
+            "results": {
+              "ancient_click_during_prepare_keeps_buttons": {
+                "status": "REPRODUCED",
+                "facts": {
+                  "countAfterAbort": 0,
+                  "click": "{\"countBefore\":3,\"countAfter\":0,\"selected\":false}",
+                  "Status": "请先完成正在选择的先古奖励"
+                }
+              },
+              "ancient_rejected_choice_restores_buttons": {
+                "status": "REPRODUCED",
+                "facts": {
+                  "countAfterRejected": 0,
+                  "Status": "先古奖励已刷新，请重新选择",
+                  "Busy": true
+                }
+              },
+              "same_process_reconnect_new_epoch": {
+                "status": "REPRODUCED",
+                "facts": {
+                  "previous": {
+                    "Run": "AAC550254F7B483265EFBFFC4DC786BF7DF124A9E949FC20AAE931198ED6C419",
+                    "Epoch": "49b7064f17174d7d9e7abeaa7fccb92a",
+                    "Applied": 3
+                  },
+                  "run": "AAC550254F7B483265EFBFFC4DC786BF7DF124A9E949FC20AAE931198ED6C419",
+                  "epoch": "e6e7be84ee1846118b312c06b7ac0ef6",
+                  "appliedAtState": 3,
+                  "activeOperation": 3,
+                  "revisionBefore": 1,
+                  "revisionAfter": 1,
+                  "Status": "连接已断开"
+                }
+              },
+              "local_rules_after_network_cleanup": {
+                "status": "REPRODUCED",
+                "facts": {
+                  "saved": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "beforeCleanup": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 5
+                  },
+                  "afterCleanup": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 5
+                  },
+                  "afterSoloLaunch": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 5
+                  },
+                  "RulesWritable": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "first_host_report": {
+        "version": "0.1.9",
+        "process": 89196,
+        "role": "host",
+        "testCase": "network",
+        "expectFixed": false,
+        "passed": true,
+        "results": {}
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "storage",
+      "platform": "macos",
+      "branch": "public-beta",
+      "passed": true,
+      "source_record": "artifacts/review-regression/fixed/macos-public-beta-storage-20261011-144410-448193/run-record.json",
+      "peers": {
+        "solo": {
+          "pid": 96798,
+          "exit_code": 0,
+          "product_sha256": "a6e6b8f6135e7b1ecd4cd2a44124a64b03ad1f4fc9de1ee23c13f0ecfa272237",
+          "fixture_sha256": "ddc15fc1374f55e9e0e044574958c4e5082b5768163d1e88c27f06d928283743",
+          "report": {
+            "version": "0.1.10",
+            "process": 96798,
+            "role": "solo",
+            "testCase": "storage",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "storage_incompatible_game_preserves_history": {
+                "status": "FIXED",
+                "facts": {
+                  "mismatch": "game",
+                  "bytesPreserved": true,
+                  "historyRecovered": true,
+                  "errorPreserved": true,
+                  "reloadsBefore": 0,
+                  "reloadsAfter": 1,
+                  "reloadsPersisted": 1,
+                  "originalHistory": 2,
+                  "historyAfterSetup": 2,
+                  "recoveredHistory": 2,
+                  "sameDigest": true
+                }
+              },
+              "storage_incompatible_mods_preserves_history": {
+                "status": "FIXED",
+                "facts": {
+                  "mismatch": "mods",
+                  "bytesPreserved": true,
+                  "historyRecovered": true,
+                  "errorPreserved": true,
+                  "reloadsBefore": 1,
+                  "reloadsAfter": 2,
+                  "reloadsPersisted": 2,
+                  "originalHistory": 2,
+                  "historyAfterSetup": 2,
+                  "recoveredHistory": 2,
+                  "sameDigest": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "config-ui",
+      "platform": "macos",
+      "branch": "public-beta",
+      "passed": true,
+      "source_record": "artifacts/review-regression/fixed/macos-public-beta-config-ui-20261011-144413-040647/run-record.json",
+      "peers": {
+        "solo": {
+          "pid": 96813,
+          "exit_code": 0,
+          "product_sha256": "a6e6b8f6135e7b1ecd4cd2a44124a64b03ad1f4fc9de1ee23c13f0ecfa272237",
+          "fixture_sha256": "ddc15fc1374f55e9e0e044574958c4e5082b5768163d1e88c27f06d928283743",
+          "report": {
+            "version": "0.1.10",
+            "process": 96813,
+            "role": "solo",
+            "testCase": "config-ui",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "overlay_closes_on_native_room_travel": {
+                "status": "FIXED",
+                "facts": {
+                  "beforeRoom": "EventRoom",
+                  "afterRoom": "CombatRoom",
+                  "Visible": false,
+                  "sameNRun": true
+                }
+              },
+              "settings_edit_survives_operation_commit": {
+                "status": "FIXED",
+                "facts": {
+                  "edited": true,
+                  "editStatus": "等待当前动作完成",
+                  "editRevision": 0,
+                  "revisionAfter": 1,
+                  "active": false,
+                  "editable": false,
+                  "savedShopReroll": false
+                }
+              },
+              "settings_edit_survives_subsequent_operation": {
+                "status": "FIXED",
+                "facts": {
+                  "revisionAfter": 2,
+                  "active": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "network",
+      "platform": "macos",
+      "branch": "public-beta",
+      "passed": true,
+      "source_record": "artifacts/review-regression/fixed/macos-public-beta-network-20261011-144304-669206/run-record.json",
+      "peers": {
+        "host": {
+          "pid": 96086,
+          "pid_resume": 96687,
+          "exit_code": 0,
+          "product_sha256": "a6e6b8f6135e7b1ecd4cd2a44124a64b03ad1f4fc9de1ee23c13f0ecfa272237",
+          "fixture_sha256": "ddc15fc1374f55e9e0e044574958c4e5082b5768163d1e88c27f06d928283743",
+          "report": {
+            "version": "0.1.10",
+            "process": 96687,
+            "role": "host",
+            "testCase": "network",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "same_process_reconnect_new_epoch": {
+                "status": "FIXED",
+                "facts": {
+                  "previous": {
+                    "Run": "4AF56D37937D86C9097D4E526FF0FF7DA85F7FB461A2A66340C520A109E11F62",
+                    "Epoch": "dbe7182d3d82414b825c0a79f539d7c4",
+                    "Applied": 3
+                  },
+                  "run": "4AF56D37937D86C9097D4E526FF0FF7DA85F7FB461A2A66340C520A109E11F62",
+                  "epoch": "81c6dd87a6214d6cb5d6f5873afdad73",
+                  "appliedAtState": 0,
+                  "activeOperation": 1,
+                  "revisionBefore": 1,
+                  "revisionAfter": 2,
+                  "Status": "操作完成"
+                }
+              }
+            }
+          }
+        },
+        "client": {
+          "pid": 96133,
+          "exit_code": 0,
+          "product_sha256": "a6e6b8f6135e7b1ecd4cd2a44124a64b03ad1f4fc9de1ee23c13f0ecfa272237",
+          "fixture_sha256": "ddc15fc1374f55e9e0e044574958c4e5082b5768163d1e88c27f06d928283743",
+          "report": {
+            "version": "0.1.10",
+            "process": 96133,
+            "role": "client",
+            "testCase": "network",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "ancient_click_during_prepare_keeps_buttons": {
+                "status": "FIXED",
+                "facts": {
+                  "countAfterAbort": 3,
+                  "click": "{\"countBefore\":3,\"countAfter\":3,\"selected\":false}",
+                  "Status": "请先完成正在选择的先古奖励"
+                }
+              },
+              "ancient_rejected_choice_restores_buttons": {
+                "status": "FIXED",
+                "facts": {
+                  "countAfterRejected": 3,
+                  "Status": "先古奖励已刷新，请重新选择",
+                  "Busy": true
+                }
+              },
+              "same_process_reconnect_new_epoch": {
+                "status": "FIXED",
+                "facts": {
+                  "previous": {
+                    "Run": "4AF56D37937D86C9097D4E526FF0FF7DA85F7FB461A2A66340C520A109E11F62",
+                    "Epoch": "dbe7182d3d82414b825c0a79f539d7c4",
+                    "Applied": 3
+                  },
+                  "run": "4AF56D37937D86C9097D4E526FF0FF7DA85F7FB461A2A66340C520A109E11F62",
+                  "epoch": "81c6dd87a6214d6cb5d6f5873afdad73",
+                  "appliedAtState": 0,
+                  "activeOperation": 1,
+                  "revisionBefore": 1,
+                  "revisionAfter": 2,
+                  "Status": "操作完成"
+                }
+              },
+              "local_rules_after_network_cleanup": {
+                "status": "FIXED",
+                "facts": {
+                  "saved": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "beforeCleanup": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 5
+                  },
+                  "afterCleanup": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "writableAfterCleanup": true,
+                  "afterSoloLaunch": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "RulesWritable": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "first_host_report": {
+        "version": "0.1.10",
+        "process": 96086,
+        "role": "host",
+        "testCase": "network",
+        "expectFixed": true,
+        "passed": true,
+        "results": {}
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "storage",
+      "platform": "macos",
+      "branch": "public",
+      "passed": true,
+      "source_record": "artifacts/review-regression/fixed/macos-public-storage-20261011-144307-572433/run-record.json",
+      "peers": {
+        "solo": {
+          "pid": 96097,
+          "exit_code": 0,
+          "product_sha256": "13f04131957b4c3d9f15d994e94c70024c64107746ecc42e799572750d685826",
+          "fixture_sha256": "873f10ef06e80d6e7a8167d60d70e7685eac2df9e93b68100885d70ab25a4be7",
+          "report": {
+            "version": "0.1.10",
+            "process": 96097,
+            "role": "solo",
+            "testCase": "storage",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "storage_incompatible_game_preserves_history": {
+                "status": "FIXED",
+                "facts": {
+                  "mismatch": "game",
+                  "bytesPreserved": true,
+                  "historyRecovered": true,
+                  "errorPreserved": true,
+                  "reloadsBefore": 0,
+                  "reloadsAfter": 1,
+                  "reloadsPersisted": 1,
+                  "originalHistory": 2,
+                  "historyAfterSetup": 2,
+                  "recoveredHistory": 2,
+                  "sameDigest": true
+                }
+              },
+              "storage_incompatible_mods_preserves_history": {
+                "status": "FIXED",
+                "facts": {
+                  "mismatch": "mods",
+                  "bytesPreserved": true,
+                  "historyRecovered": true,
+                  "errorPreserved": true,
+                  "reloadsBefore": 1,
+                  "reloadsAfter": 2,
+                  "reloadsPersisted": 2,
+                  "originalHistory": 2,
+                  "historyAfterSetup": 2,
+                  "recoveredHistory": 2,
+                  "sameDigest": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "config-ui",
+      "platform": "macos",
+      "branch": "public",
+      "passed": true,
+      "source_record": "artifacts/review-regression/fixed/macos-public-config-ui-20261011-144310-543362/run-record.json",
+      "peers": {
+        "solo": {
+          "pid": 96124,
+          "exit_code": 0,
+          "product_sha256": "13f04131957b4c3d9f15d994e94c70024c64107746ecc42e799572750d685826",
+          "fixture_sha256": "873f10ef06e80d6e7a8167d60d70e7685eac2df9e93b68100885d70ab25a4be7",
+          "report": {
+            "version": "0.1.10",
+            "process": 96124,
+            "role": "solo",
+            "testCase": "config-ui",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "overlay_closes_on_native_room_travel": {
+                "status": "FIXED",
+                "facts": {
+                  "beforeRoom": "EventRoom",
+                  "afterRoom": "CombatRoom",
+                  "Visible": false,
+                  "sameNRun": true
+                }
+              },
+              "settings_edit_survives_operation_commit": {
+                "status": "FIXED",
+                "facts": {
+                  "edited": true,
+                  "editStatus": "等待当前动作完成",
+                  "editRevision": 0,
+                  "revisionAfter": 1,
+                  "active": false,
+                  "editable": false,
+                  "savedShopReroll": false
+                }
+              },
+              "settings_edit_survives_subsequent_operation": {
+                "status": "FIXED",
+                "facts": {
+                  "revisionAfter": 2,
+                  "active": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "network",
+      "platform": "macos",
+      "branch": "public",
+      "passed": true,
+      "source_record": "artifacts/review-regression/fixed/macos-public-network-20261011-144424-286269/run-record.json",
+      "peers": {
+        "host": {
+          "pid": 96960,
+          "pid_resume": 97612,
+          "exit_code": 0,
+          "product_sha256": "13f04131957b4c3d9f15d994e94c70024c64107746ecc42e799572750d685826",
+          "fixture_sha256": "873f10ef06e80d6e7a8167d60d70e7685eac2df9e93b68100885d70ab25a4be7",
+          "report": {
+            "version": "0.1.10",
+            "process": 97612,
+            "role": "host",
+            "testCase": "network",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "same_process_reconnect_new_epoch": {
+                "status": "FIXED",
+                "facts": {
+                  "previous": {
+                    "Run": "779D14FB5A92F216A90250F107FF4E2074AF0E52C4A63202EB0CA4B8E82066D5",
+                    "Epoch": "87ea26ddd6484c0ea64bdd1a7bba1290",
+                    "Applied": 4
+                  },
+                  "run": "779D14FB5A92F216A90250F107FF4E2074AF0E52C4A63202EB0CA4B8E82066D5",
+                  "epoch": "1a58f554914e44128d95a4e706bd440b",
+                  "appliedAtState": 0,
+                  "activeOperation": 1,
+                  "revisionBefore": 2,
+                  "revisionAfter": 3,
+                  "Status": "操作完成"
+                }
+              }
+            }
+          }
+        },
+        "client": {
+          "pid": 97049,
+          "exit_code": 0,
+          "product_sha256": "13f04131957b4c3d9f15d994e94c70024c64107746ecc42e799572750d685826",
+          "fixture_sha256": "873f10ef06e80d6e7a8167d60d70e7685eac2df9e93b68100885d70ab25a4be7",
+          "report": {
+            "version": "0.1.10",
+            "process": 97049,
+            "role": "client",
+            "testCase": "network",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "ancient_click_during_prepare_keeps_buttons": {
+                "status": "FIXED",
+                "facts": {
+                  "countAfterAbort": 3,
+                  "click": "{\"countBefore\":3,\"countAfter\":3,\"selected\":false}",
+                  "Status": "请先完成正在选择的先古奖励"
+                }
+              },
+              "ancient_rejected_choice_restores_buttons": {
+                "status": "FIXED",
+                "facts": {
+                  "countAfterRejected": 3,
+                  "Status": "先古奖励已刷新，请重新选择",
+                  "Busy": true
+                }
+              },
+              "same_process_reconnect_new_epoch": {
+                "status": "FIXED",
+                "facts": {
+                  "previous": {
+                    "Run": "779D14FB5A92F216A90250F107FF4E2074AF0E52C4A63202EB0CA4B8E82066D5",
+                    "Epoch": "87ea26ddd6484c0ea64bdd1a7bba1290",
+                    "Applied": 4
+                  },
+                  "run": "779D14FB5A92F216A90250F107FF4E2074AF0E52C4A63202EB0CA4B8E82066D5",
+                  "epoch": "1a58f554914e44128d95a4e706bd440b",
+                  "appliedAtState": 0,
+                  "activeOperation": 1,
+                  "revisionBefore": 2,
+                  "revisionAfter": 3,
+                  "Status": "操作完成"
+                }
+              },
+              "local_rules_after_network_cleanup": {
+                "status": "FIXED",
+                "facts": {
+                  "saved": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "beforeCleanup": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 5
+                  },
+                  "afterCleanup": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "writableAfterCleanup": true,
+                  "afterSoloLaunch": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "RulesWritable": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "first_host_report": {
+        "version": "0.1.10",
+        "process": 96960,
+        "role": "host",
+        "testCase": "network",
+        "expectFixed": true,
+        "passed": true,
+        "results": {}
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "config-ui",
+      "platform": "windows",
+      "branch": "public-beta",
+      "passed": true,
+      "source_record": "artifacts/review-regression/windows-evidence/runs/windows-public-beta-config-ui-20261011-144536-287244/run-record.json",
+      "peers": {
+        "solo": {
+          "pid": 40616,
+          "exit_code": 0,
+          "product_sha256": "2d8b5eee0e9a7afe814d3e4bf953793a0710ca93aac426eec2e620afd94ba982",
+          "fixture_sha256": "7fe25c2b275e94f92ffd796d501b6a265d808eb04a5494443300da4b1f14fd43",
+          "report": {
+            "version": "0.1.10",
+            "process": 40616,
+            "role": "solo",
+            "testCase": "config-ui",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "overlay_closes_on_native_room_travel": {
+                "status": "FIXED",
+                "facts": {
+                  "beforeRoom": "EventRoom",
+                  "afterRoom": "CombatRoom",
+                  "Visible": false,
+                  "sameNRun": true
+                }
+              },
+              "settings_edit_survives_operation_commit": {
+                "status": "FIXED",
+                "facts": {
+                  "edited": true,
+                  "editStatus": "等待当前动作完成",
+                  "editRevision": 0,
+                  "revisionAfter": 1,
+                  "active": false,
+                  "editable": false,
+                  "savedShopReroll": false
+                }
+              },
+              "settings_edit_survives_subsequent_operation": {
+                "status": "FIXED",
+                "facts": {
+                  "revisionAfter": 2,
+                  "active": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "network",
+      "platform": "windows",
+      "branch": "public-beta",
+      "passed": true,
+      "source_record": "artifacts/review-regression/windows-evidence/runs/windows-public-beta-network-20261011-145543-457425/run-record.json",
+      "peers": {
+        "host": {
+          "pid": 41408,
+          "pid_resume": 15180,
+          "exit_code": 0,
+          "product_sha256": "2d8b5eee0e9a7afe814d3e4bf953793a0710ca93aac426eec2e620afd94ba982",
+          "fixture_sha256": "708547d84c7f7472d3f18ac9998caa53146e4d1e2e111990b3f5e58c6f082d63",
+          "report": {
+            "version": "0.1.10",
+            "process": 15180,
+            "role": "host",
+            "testCase": "network",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "same_process_reconnect_new_epoch": {
+                "status": "FIXED",
+                "facts": {
+                  "previous": {
+                    "Run": "F5F9E601F237D09402831917A67A4E577BEEAFBB8B6A3C6D0838C0646AA694AB",
+                    "Epoch": "6c2dd2b7489946eea0be2a07cc413449",
+                    "Applied": 3
+                  },
+                  "run": "F5F9E601F237D09402831917A67A4E577BEEAFBB8B6A3C6D0838C0646AA694AB",
+                  "epoch": "1b4e2c558db041bb9f4a5ee4ade351b4",
+                  "appliedAtState": 0,
+                  "activeOperation": 1,
+                  "revisionBefore": 1,
+                  "revisionAfter": 2,
+                  "Status": "操作完成"
+                }
+              }
+            }
+          }
+        },
+        "client": {
+          "pid": 41564,
+          "exit_code": 0,
+          "product_sha256": "2d8b5eee0e9a7afe814d3e4bf953793a0710ca93aac426eec2e620afd94ba982",
+          "fixture_sha256": "708547d84c7f7472d3f18ac9998caa53146e4d1e2e111990b3f5e58c6f082d63",
+          "report": {
+            "version": "0.1.10",
+            "process": 41564,
+            "role": "client",
+            "testCase": "network",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "ancient_click_during_prepare_keeps_buttons": {
+                "status": "FIXED",
+                "facts": {
+                  "countAfterAbort": 3,
+                  "click": "{\"countBefore\":3,\"countAfter\":3,\"selected\":false}",
+                  "Status": "请先完成正在选择的先古奖励"
+                }
+              },
+              "ancient_rejected_choice_restores_buttons": {
+                "status": "FIXED",
+                "facts": {
+                  "countAfterRejected": 3,
+                  "Status": "先古奖励已刷新，请重新选择",
+                  "Busy": true
+                }
+              },
+              "same_process_reconnect_new_epoch": {
+                "status": "FIXED",
+                "facts": {
+                  "previous": {
+                    "Run": "F5F9E601F237D09402831917A67A4E577BEEAFBB8B6A3C6D0838C0646AA694AB",
+                    "Epoch": "6c2dd2b7489946eea0be2a07cc413449",
+                    "Applied": 3
+                  },
+                  "run": "F5F9E601F237D09402831917A67A4E577BEEAFBB8B6A3C6D0838C0646AA694AB",
+                  "epoch": "1b4e2c558db041bb9f4a5ee4ade351b4",
+                  "appliedAtState": 0,
+                  "activeOperation": 1,
+                  "revisionBefore": 1,
+                  "revisionAfter": 2,
+                  "Status": "操作完成"
+                }
+              },
+              "local_rules_after_network_cleanup": {
+                "status": "FIXED",
+                "facts": {
+                  "saved": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "beforeCleanup": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 5
+                  },
+                  "afterCleanup": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "writableAfterCleanup": true,
+                  "afterSoloLaunch": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "RulesWritable": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "first_host_report": {
+        "version": "0.1.10",
+        "process": 41408,
+        "role": "host",
+        "testCase": "network",
+        "expectFixed": true,
+        "passed": true,
+        "results": {}
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "storage",
+      "platform": "windows",
+      "branch": "public-beta",
+      "passed": true,
+      "source_record": "artifacts/review-regression/windows-evidence/runs/windows-public-beta-storage-20261011-144501-945750/run-record.json",
+      "peers": {
+        "solo": {
+          "pid": 38724,
+          "exit_code": 0,
+          "product_sha256": "2d8b5eee0e9a7afe814d3e4bf953793a0710ca93aac426eec2e620afd94ba982",
+          "fixture_sha256": "7fe25c2b275e94f92ffd796d501b6a265d808eb04a5494443300da4b1f14fd43",
+          "report": {
+            "version": "0.1.10",
+            "process": 38724,
+            "role": "solo",
+            "testCase": "storage",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "storage_incompatible_game_preserves_history": {
+                "status": "FIXED",
+                "facts": {
+                  "mismatch": "game",
+                  "bytesPreserved": true,
+                  "historyRecovered": true,
+                  "errorPreserved": true,
+                  "reloadsBefore": 0,
+                  "reloadsAfter": 1,
+                  "reloadsPersisted": 1,
+                  "originalHistory": 2,
+                  "historyAfterSetup": 2,
+                  "recoveredHistory": 2,
+                  "sameDigest": true
+                }
+              },
+              "storage_incompatible_mods_preserves_history": {
+                "status": "FIXED",
+                "facts": {
+                  "mismatch": "mods",
+                  "bytesPreserved": true,
+                  "historyRecovered": true,
+                  "errorPreserved": true,
+                  "reloadsBefore": 1,
+                  "reloadsAfter": 2,
+                  "reloadsPersisted": 2,
+                  "originalHistory": 2,
+                  "historyAfterSetup": 2,
+                  "recoveredHistory": 2,
+                  "sameDigest": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "config-ui",
+      "platform": "windows",
+      "branch": "public",
+      "passed": true,
+      "source_record": "artifacts/review-regression/windows-evidence/runs/windows-public-config-ui-20261011-144846-117529/run-record.json",
+      "peers": {
+        "solo": {
+          "pid": 40012,
+          "exit_code": 0,
+          "product_sha256": "56e1a3ead3fd7f132551e3a6e89191feabd6524a248dee8ba3028e7de0e0b56f",
+          "fixture_sha256": "2fe64ab8d60463e87888961091b0c9ebb82a0698a0c28d45723b5245ee79eaeb",
+          "report": {
+            "version": "0.1.10",
+            "process": 40012,
+            "role": "solo",
+            "testCase": "config-ui",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "overlay_closes_on_native_room_travel": {
+                "status": "FIXED",
+                "facts": {
+                  "beforeRoom": "EventRoom",
+                  "afterRoom": "CombatRoom",
+                  "Visible": false,
+                  "sameNRun": true
+                }
+              },
+              "settings_edit_survives_operation_commit": {
+                "status": "FIXED",
+                "facts": {
+                  "edited": true,
+                  "editStatus": "等待当前动作完成",
+                  "editRevision": 0,
+                  "revisionAfter": 1,
+                  "active": false,
+                  "editable": false,
+                  "savedShopReroll": false
+                }
+              },
+              "settings_edit_survives_subsequent_operation": {
+                "status": "FIXED",
+                "facts": {
+                  "revisionAfter": 2,
+                  "active": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "network",
+      "platform": "windows",
+      "branch": "public",
+      "passed": true,
+      "source_record": "artifacts/review-regression/windows-evidence/runs/windows-public-network-20261011-144624-696690/run-record.json",
+      "peers": {
+        "host": {
+          "pid": 24712,
+          "pid_resume": 40036,
+          "exit_code": 0,
+          "product_sha256": "56e1a3ead3fd7f132551e3a6e89191feabd6524a248dee8ba3028e7de0e0b56f",
+          "fixture_sha256": "2fe64ab8d60463e87888961091b0c9ebb82a0698a0c28d45723b5245ee79eaeb",
+          "report": {
+            "version": "0.1.10",
+            "process": 40036,
+            "role": "host",
+            "testCase": "network",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "same_process_reconnect_new_epoch": {
+                "status": "FIXED",
+                "facts": {
+                  "previous": {
+                    "Run": "0AE0CBADACD877DEBCA109D474033682BEE517994A39D8B0C94DD0F735D18505",
+                    "Epoch": "4b018bff35ba491c8a723b53f6e27ff6",
+                    "Applied": 4
+                  },
+                  "run": "0AE0CBADACD877DEBCA109D474033682BEE517994A39D8B0C94DD0F735D18505",
+                  "epoch": "b9b305f51e224a95a791d2f60066526a",
+                  "appliedAtState": 0,
+                  "activeOperation": 1,
+                  "revisionBefore": 2,
+                  "revisionAfter": 3,
+                  "Status": "操作完成"
+                }
+              }
+            }
+          }
+        },
+        "client": {
+          "pid": 20592,
+          "exit_code": 0,
+          "product_sha256": "56e1a3ead3fd7f132551e3a6e89191feabd6524a248dee8ba3028e7de0e0b56f",
+          "fixture_sha256": "2fe64ab8d60463e87888961091b0c9ebb82a0698a0c28d45723b5245ee79eaeb",
+          "report": {
+            "version": "0.1.10",
+            "process": 20592,
+            "role": "client",
+            "testCase": "network",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "ancient_click_during_prepare_keeps_buttons": {
+                "status": "FIXED",
+                "facts": {
+                  "countAfterAbort": 3,
+                  "click": "{\"countBefore\":3,\"countAfter\":3,\"selected\":false}",
+                  "Status": "请先完成正在选择的先古奖励"
+                }
+              },
+              "ancient_rejected_choice_restores_buttons": {
+                "status": "FIXED",
+                "facts": {
+                  "countAfterRejected": 3,
+                  "Status": "先古奖励已刷新，请重新选择",
+                  "Busy": true
+                }
+              },
+              "same_process_reconnect_new_epoch": {
+                "status": "FIXED",
+                "facts": {
+                  "previous": {
+                    "Run": "0AE0CBADACD877DEBCA109D474033682BEE517994A39D8B0C94DD0F735D18505",
+                    "Epoch": "4b018bff35ba491c8a723b53f6e27ff6",
+                    "Applied": 4
+                  },
+                  "run": "0AE0CBADACD877DEBCA109D474033682BEE517994A39D8B0C94DD0F735D18505",
+                  "epoch": "b9b305f51e224a95a791d2f60066526a",
+                  "appliedAtState": 0,
+                  "activeOperation": 1,
+                  "revisionBefore": 2,
+                  "revisionAfter": 3,
+                  "Status": "操作完成"
+                }
+              },
+              "local_rules_after_network_cleanup": {
+                "status": "FIXED",
+                "facts": {
+                  "saved": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "beforeCleanup": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 5
+                  },
+                  "afterCleanup": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "writableAfterCleanup": true,
+                  "afterSoloLaunch": {
+                    "EnableMapRollback": true,
+                    "EnableAncientReroll": true,
+                    "EnableAncientOptionsReroll": true,
+                    "EnableCombatRestart": true,
+                    "EnableCombatReroll": true,
+                    "EnableShopReroll": true,
+                    "EnableBossHealthIncrease": true,
+                    "AncientCostMode": 0,
+                    "AncientHpCost": 5,
+                    "OptionsCostMode": 0,
+                    "OptionsHpCost": 19
+                  },
+                  "RulesWritable": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "first_host_report": {
+        "version": "0.1.10",
+        "process": 24712,
+        "role": "host",
+        "testCase": "network",
+        "expectFixed": true,
+        "passed": true,
+        "results": {}
+      }
+    },
+    {
+      "phase": "fixed",
+      "case": "storage",
+      "platform": "windows",
+      "branch": "public",
+      "passed": true,
+      "source_record": "artifacts/review-regression/windows-evidence/runs/windows-public-storage-20261011-144810-213186/run-record.json",
+      "peers": {
+        "solo": {
+          "pid": 34504,
+          "exit_code": 0,
+          "product_sha256": "56e1a3ead3fd7f132551e3a6e89191feabd6524a248dee8ba3028e7de0e0b56f",
+          "fixture_sha256": "2fe64ab8d60463e87888961091b0c9ebb82a0698a0c28d45723b5245ee79eaeb",
+          "report": {
+            "version": "0.1.10",
+            "process": 34504,
+            "role": "solo",
+            "testCase": "storage",
+            "expectFixed": true,
+            "passed": true,
+            "results": {
+              "storage_incompatible_game_preserves_history": {
+                "status": "FIXED",
+                "facts": {
+                  "mismatch": "game",
+                  "bytesPreserved": true,
+                  "historyRecovered": true,
+                  "errorPreserved": true,
+                  "reloadsBefore": 0,
+                  "reloadsAfter": 1,
+                  "reloadsPersisted": 1,
+                  "originalHistory": 2,
+                  "historyAfterSetup": 2,
+                  "recoveredHistory": 2,
+                  "sameDigest": true
+                }
+              },
+              "storage_incompatible_mods_preserves_history": {
+                "status": "FIXED",
+                "facts": {
+                  "mismatch": "mods",
+                  "bytesPreserved": true,
+                  "historyRecovered": true,
+                  "errorPreserved": true,
+                  "reloadsBefore": 1,
+                  "reloadsAfter": 2,
+                  "reloadsPersisted": 2,
+                  "originalHistory": 2,
+                  "historyAfterSetup": 2,
+                  "recoveredHistory": 2,
+                  "sameDigest": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

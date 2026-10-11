@@ -5,7 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Localization;
+using MegaCrit.Sts2.Core.Runs;
 
 namespace NoSuffering.Config;
 
@@ -97,6 +99,17 @@ public static class ConfigStore
         _isMultiplayer = false;
         _rulesWritable = true;
         UpdateRules(_ => _pendingSinglePlayerRules ?? _singlePlayerRules);
+    }
+
+    [HarmonyPatch(typeof(RunManager), nameof(RunManager.CleanUp))]
+    private static class RestoreRulesAfterSession
+    {
+        private static void Postfix()
+        {
+            // Native teardown is also used while NoSuffering reconstructs a run.
+            // That path preserves the session and its authoritative rules.
+            if (_isMultiplayer && !GameBridge.GameBridge.IsRestoring) RestoreLocalRules();
+        }
     }
 
     private static void DetectModConfig()

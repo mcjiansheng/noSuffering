@@ -20,6 +20,7 @@ public static class CompanionStore
 {
     private static string? _lastNative;
     private static TimelineData? _lastNativeTimeline;
+    private static bool _writesBlocked;
     public static long LoadedRevision {get;private set;}
     public static string? Error {get;private set;}
     private static string Root=>ProjectSettings.GlobalizePath("user://NoSuffering/runs");
@@ -33,6 +34,7 @@ public static class CompanionStore
         return Bridge.Hash(Bridge.Freeze(copy));
     }
     public static void PairWithLastNativeSave() {
+        if(_writesBlocked)return;
         if(_lastNative is not null && RunManager.Instance.IsInProgress && Bridge.Key(Bridge.Thaw(_lastNative))==Bridge.RunKey) {
             var timeline=CheckpointService.Save();
             // History may advance after a victory save, but that old native save
@@ -43,12 +45,16 @@ public static class CompanionStore
             Write(Bridge.Thaw(_lastNative),timeline);
         }
     }
-    public static void Reset() {_lastNative=null;_lastNativeTimeline=null;Error=null;LoadedRevision=0;CheckpointService.Reset();}
+    public static void Reset() {_lastNative=null;_lastNativeTimeline=null;_writesBlocked=false;Error=null;LoadedRevision=0;CheckpointService.Reset();}
     [HarmonyPatch(typeof(RunManager),nameof(RunManager.SetUpNewSingleplayer))]
     private static class NewSolo {static void Prefix()=>Reset();}
     [HarmonyPatch(typeof(RunManager),nameof(RunManager.SetUpNewMultiplayer))]
     private static class NewMulti {static void Prefix()=>Reset();}
     private static void Write(SerializableRun save,TimelineData timeline) {
+        // Saved-run setup writes the native reload count even after Read rejects
+        // its companion. Keep that native write, but preserve the rejected file
+        // until a compatible read or a new run establishes writable Mod state.
+        if(_writesBlocked)return;
         var digest=NativeDigest(save);var run=Bridge.Key(save);
         // Native reload-count writes precede InitializeShared/Launch. Preserve
         // the loaded revision until the live coordinator has been initialized.
@@ -63,6 +69,7 @@ public static class CompanionStore
     }
     private static async Task Saved(Task nativeWrite,SerializableRun save,TimelineData timeline) {
         await nativeWrite;
+        if(_writesBlocked)return;
         _lastNative=Bridge.Freeze(save);
         _lastNativeTimeline=timeline;
         Write(save,timeline);
@@ -71,16 +78,17 @@ public static class CompanionStore
         if(Bridge.IsRestoring)return;
         var run=Bridge.Key(save);var digest=NativeDigest(save);
         var file=Path.Combine(Root,run,digest+".json");
-        Error=null;LoadedRevision=0;CheckpointService.Reset();_lastNative=Bridge.Freeze(save);_lastNativeTimeline=null;
+        Error=null;LoadedRevision=0;CheckpointService.Reset();_lastNative=Bridge.Freeze(save);_lastNativeTimeline=null;_writesBlocked=true;
         if(!File.Exists(file)) {
             if(Directory.Exists(Path.Combine(Root,run)))Error="存档与模组记录未配对，请保留原存档并重新进入";
+            else _writesBlocked=false;
             return;
         }
         var data=JsonSerializer.Deserialize<CompanionCommit>(File.ReadAllText(file)) ?? throw new InvalidOperationException("伴随存档为空");
         // Format 2 adds node entry/settled-combat semantics. Read known format 1
         // predecessors without inventing entry snapshots absent from their data.
         bool legacy=data.Format==1 && data.ModVersion is "0.1.1" or "0.1.2";
-        bool versionCompatible=data.Format==2 && (data.ModVersion==ModEntry.Version || data.ModVersion is "0.1.3" or "0.1.4" or "0.1.5" or "0.1.6" or "0.1.7" or "0.1.8") || legacy;
+        bool versionCompatible=data.Format==2 && (data.ModVersion==ModEntry.Version || data.ModVersion is "0.1.3" or "0.1.4" or "0.1.5" or "0.1.6" or "0.1.7" or "0.1.8" or "0.1.9") || legacy;
         bool modsCompatible=versionCompatible && data.Mods==FingerprintFor(data.ModVersion);
         if(!versionCompatible || data.GameAssembly!=GameAssembly || !modsCompatible || data.RunId!=run || data.NativeDigest!=digest) {
             Log.Warn($"[NoSuffering] Companion mismatch: format={data.Format}, version={versionCompatible}, game={data.GameAssembly==GameAssembly}, mods={modsCompatible}, run={data.RunId==run}, native={data.NativeDigest==digest}");
@@ -88,6 +96,7 @@ public static class CompanionStore
         }
         CheckpointService.Restore(data.Timeline);_lastNativeTimeline=data.Timeline;LoadedRevision=data.Revision;
         if(legacy){CheckpointService.ImportLegacyHistory();Log.Info($"[NoSuffering] Loaded compatible {data.ModVersion} companion; preserved known snapshots without inventing node-entry state.");}
+        _writesBlocked=false;
     }
     public static async Task SaveNativeCurrent() {
         var manager=RunManager.Instance;

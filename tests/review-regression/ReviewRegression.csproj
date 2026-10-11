@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems><EnableDefaultNoneItems>false</EnableDefaultNoneItems><TargetFramework>net9.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><AssemblyName>ReviewRegression</AssemblyName>
+    <DefineConstants Condition="'$(Sts2Branch)' == 'public'">$(DefineConstants);STS2_STABLE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup><Compile Include="*.cs" />
+    <Reference Include="sts2"><HintPath>$(Sts2AssemblyDir)/sts2.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="GodotSharp"><HintPath>$(Sts2AssemblyDir)/GodotSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(Sts2AssemblyDir)/0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="NoSuffering"><HintPath>$(NoSufferingDll)</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

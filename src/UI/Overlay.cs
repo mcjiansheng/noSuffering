@@ -302,4 +302,9 @@ public static class Overlay
     }
     [HarmonyPatch(typeof(NGame), nameof(NGame._Input))]
     private static class PanelInput { static void Prefix(InputEvent inputEvent) { if (_backdrop?.Visible == true) Input(inputEvent); } }
+    // The overlay belongs to the root viewport and survives native room nodes.
+    // Close it at the native entry boundary so teammate travel cannot leave the
+    // previous room's controls covering the replacement room.
+    [HarmonyPatch(typeof(RunManager), nameof(RunManager.EnterRoom))]
+    private static class RoomEntry { static void Prefix() => Close(); }
 }

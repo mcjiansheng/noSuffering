@@ -26,11 +26,11 @@ public static class FrameworkProbe
         Require(registrations.Contains("NoSuffering"), "NoSuffering was not registered with actual ModConfig.");
         var registration = registrations["NoSuffering"]!;
         var entries = (Array)registration.GetType().GetProperty("Entries")!.GetValue(registration)!;
-        string[] keys = ["TogglePanelKey", "Language", "EnableMapRollback", "EnableAncientReroll",
+        string[] keys = ["TogglePanelKey", "EnableMapRollback", "EnableAncientReroll",
             "EnableAncientOptionsReroll", "EnableCombatRestart", "EnableCombatReroll", "EnableShopReroll",
             "EnableBossHealthIncrease", "BossHealthPercent", "AncientCostMode", "AncientHpCost", "OptionsCostMode", "OptionsHpCost"];
         var actualKeys = entries.Cast<object>().Select(e => (string)e.GetType().GetProperty("Key")!.GetValue(e)!).ToArray();
-        Require(actualKeys.Order().SequenceEqual(keys.Order()), "Actual framework registration does not contain the declared 14 keys.");
+        Require(actualKeys.Order().SequenceEqual(keys.Order()), "Actual framework registration does not contain the declared 13 keys.");
         T Get<T>(string key) => (T)api.GetMethod("GetValue")!.MakeGenericMethod(typeof(T)).Invoke(null, ["NoSuffering", key])!;
         void Set(string key, object value) => api.GetMethod("SetValue")!.Invoke(null, ["NoSuffering", key, value]);
         var local = ConfigStore.EditableLocal;
@@ -45,18 +45,17 @@ public static class FrameworkProbe
             ConfigStore.SetRulesWritable(true);
             ConfigStore.ChangeRules(r => r with { EnableShopReroll = false });
             var outboundKey = new HotkeyBinding(Key.F8, ctrl: true);
-            ConfigStore.UpdateLocal(c => c with { BossHealthPercent = 63, Language = "English", TogglePanelKey = outboundKey });
+            ConfigStore.UpdateLocal(c => c with { BossHealthPercent = 63, TogglePanelKey = outboundKey });
             Require(!Get<bool>("EnableShopReroll") && Get<int>("BossHealthPercent") == 63 &&
-                Get<string>("Language") == "English" && Get<long>("TogglePanelKey") == outboundKey.ToEncodedKey(),
+                Get<long>("TogglePanelKey") == outboundKey.ToEncodedKey(),
                 "NoSuffering-to-framework values diverged.");
 
             var inboundKey = new HotkeyBinding(Key.F9, shift: true);
             Set("EnableShopReroll", true);
             Set("BossHealthPercent", 71f);
-            Set("Language", "简体中文");
             Set("TogglePanelKey", inboundKey.ToEncodedKey());
             Require(ConfigStore.Rules.EnableShopReroll && ConfigStore.Local.BossHealthPercent == 71 &&
-                ConfigStore.EditableLocal.Language == "简体中文" && ConfigStore.Local.TogglePanelKey == inboundKey,
+                ConfigStore.Local.TogglePanelKey == inboundKey,
                 "Framework callbacks failed to update NoSuffering.");
             await Bridge.Frame();
             await Bridge.Frame();
@@ -64,13 +63,12 @@ public static class FrameworkProbe
             {
                 var savedLocal = saved.RootElement.GetProperty("Local");
                 Require(savedLocal.GetProperty("BossHealthPercent").GetInt32() == 71 &&
-                    savedLocal.GetProperty("Language").GetString() == "简体中文" &&
+                    !savedLocal.TryGetProperty("Language", out _) &&
                     savedLocal.GetProperty("TogglePanelKey").GetProperty("Shift").GetBoolean(),
                     "NoSuffering config persistence differs from callbacks.");
             }
             using (var saved = JsonDocument.Parse(File.ReadAllText(frameworkFile)))
                 Require(saved.RootElement.GetProperty("BossHealthPercent").GetInt32() == 71 &&
-                    saved.RootElement.GetProperty("Language").GetString() == "简体中文" &&
                     saved.RootElement.GetProperty("TogglePanelKey").GetInt64() == inboundKey.ToEncodedKey(),
                     "Actual framework persistence differs from callbacks.");
 
@@ -89,13 +87,13 @@ public static class FrameworkProbe
             await Bridge.Frame();
             var controls = Descendants(entriesNode).ToArray();
             Require(controls.OfType<CheckButton>().Count() == 7 && controls.OfType<HSlider>().Count() == 3 &&
-                controls.OfType<OptionButton>().Count() == 3 && controls.OfType<Button>().Any(b => b is not CheckButton && b is not OptionButton),
+                controls.OfType<OptionButton>().Count() == 2 && controls.OfType<Button>().Any(b => b is not CheckButton && b is not OptionButton),
                 "Actual Mods UI did not construct all registered controls.");
             Require(entriesNode is Control box && box.IsVisibleInTree(), "Actual Mods UI entries are not visible after native tab selection.");
             return new { framework_assembly = assembly.GetName().FullName,
                 framework_sha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(assembly.Location))),
                 entry_count = entries.Length, keys = actualKeys, toggle_controls = 7, slider_controls = 3,
-                dropdown_controls = 3, bidirectional_values = "PASS", both_config_files = "PASS",
+                dropdown_controls = 2, bidirectional_values = "PASS", both_config_files = "PASS",
                 ui_scope = "actual native Settings Mods tab, engine-created controls and synthetic native release; no human pointer or visual-quality acceptance" };
         }
         finally

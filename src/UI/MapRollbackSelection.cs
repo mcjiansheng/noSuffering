@@ -23,7 +23,7 @@ public static class MapRollbackSelection
     private static readonly System.Reflection.FieldInfo Points=AccessTools.Field(typeof(NMapScreen),"_mapPointDictionary");
     public static bool Active {get;private set;}
     public static IReadOnlyList<MapCheckpoint> Targets=>CheckpointService.History.Where(c=>c.IsNodeTarget).ToList();
-    private static string T(string zh,string en)=>ConfigStore.Local.Language=="English"?en:zh;
+    private static string T(string zh,string en)=>ConfigStore.UseEnglish?en:zh;
 
     public static void Begin() {
         if(!HostCoordinator.IsHost || HostCoordinator.Busy || !ConfigStore.Rules.EnableMapRollback)return;

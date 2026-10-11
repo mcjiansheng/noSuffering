@@ -23,7 +23,7 @@ public static class Overlay
     private static bool _settings;
     private static Button? _keyCapture;
     private static string _lastStatus = "";
-    private static bool English => ConfigStore.Local.Language == "English";
+    private static bool English => ConfigStore.UseEnglish;
     private static string T(string zh, string en) => English ? en : zh;
 
     public static void Attach()
@@ -58,6 +58,7 @@ public static class Overlay
             _lastStatus = status;
         };
         ConfigStore.Changed += () => { if (_backdrop.Visible && !_settings) Refresh(); };
+        ConfigStore.LanguageChanged += () => { _keyCapture = null; if (_backdrop.Visible) Refresh(); };
         tree.ProcessFrame += () => { if (_toast is not null && Time.GetTicksMsec() > _toastUntil) _toast.Text = ""; };
     }
 
@@ -168,11 +169,6 @@ public static class Overlay
         var r = ConfigStore.EditableRules;
         var key = AddButton(Row(T("快捷键", "Shortcut")), KeyLabel(local.TogglePanelKey), () => { });
         key.Pressed += () => { _keyCapture = key; key.Text = T("按下快捷键…", "Press a shortcut…"); };
-        var language = new OptionButton();
-        foreach (var label in new[] { T("跟随游戏", "Game language"), "English", "简体中文" }) language.AddItem(label);
-        language.Selected = local.Language switch { "English" => 1, "简体中文" => 2, _ => 0 };
-        language.ItemSelected += index => { ConfigStore.UpdateLocal(c => c with { Language = index == 1 ? "English" : index == 2 ? "简体中文" : "Auto" }); Refresh(); };
-        Row(T("语言", "Language")).AddChild(language);
         _content!.AddChild(new HSeparator());
         Toggle(T("路线回滚", "Rollback route"), r.EnableMapRollback, (rules, value) => rules with { EnableMapRollback = value });
         Toggle(T("重新开始战斗", "Restart combat"), r.EnableCombatRestart, (rules, value) => rules with { EnableCombatRestart = value });

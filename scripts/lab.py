@@ -208,6 +208,8 @@ def run(args):
         command.append('--ns-baselib-probe')
     if args.expansion_probe:
         command.append('--ns-expansion-probe')
+    if args.localization_probe:
+        command.append('--ns-localization-probe')
     result = dict(record, command=command, load='running', singleplayer='not_executed',
                   multiplayer='not_executed', mod_sha256=sha256(mods / 'NoSuffering' / 'NoSuffering.dll'),
                   **settings_update)
@@ -220,20 +222,24 @@ def run(args):
         verified = bool(paths) and all(p.strip().replace('\\', '/').rstrip('/').endswith('/' + suffix) for p in paths)
         initialized = bool(re.search(r'\[NoSuffering\] \S+ initialized; game=', logs))
         offline = 'Steam initialization skipped' in logs
-        if args.gameplay_probe or args.continue_probe or args.neow_probe or args.rollback_probe or args.expansion_probe:
-            marker = 'EXPANSION_PROBE_RESULTS' if args.expansion_probe else 'ROLLBACK_PROBE_RESULTS' if args.rollback_probe else 'NEOW_PROBE_RESULTS' if args.neow_probe else 'GAMEPLAY_PROBE_RESULTS' if args.gameplay_probe else 'CONTINUE_PROBE_RESULTS'
+        if args.gameplay_probe or args.continue_probe or args.neow_probe or args.rollback_probe or args.expansion_probe or args.localization_probe:
+            marker = 'LOCALIZATION_PROBE_RESULTS' if args.localization_probe else 'EXPANSION_PROBE_RESULTS' if args.expansion_probe else 'ROLLBACK_PROBE_RESULTS' if args.rollback_probe else 'NEOW_PROBE_RESULTS' if args.neow_probe else 'GAMEPLAY_PROBE_RESULTS' if args.gameplay_probe else 'CONTINUE_PROBE_RESULTS'
             reports = re.findall(r'\[NoSuffering\] ' + marker + r' (\{[^\r\n]+\})', logs)
             if reports:
                 report = json.loads(reports[-1])
                 checks = report['results']
                 passed = bool(checks) and all(value.startswith('PASS') for value in checks.values())
-                result.update(singleplayer='smoke_passed' if passed else 'smoke_failed',
-                              singleplayer_scope=report['scope'], singleplayer_checks=checks, acceptance='not_executed')
+                if args.localization_probe:
+                    result.update(settings='passed' if passed else 'failed', settings_scope=report['scope'],
+                                  settings_checks=checks, settings_state=report['state'], acceptance='not_executed')
+                else:
+                    result.update(singleplayer='smoke_passed' if passed else 'smoke_failed',
+                                  singleplayer_scope=report['scope'], singleplayer_checks=checks, acceptance='not_executed')
                 if args.neow_probe or args.rollback_probe or args.expansion_probe:
                     result['singleplayer_state'] = report['state']
             else:
-                result.update(singleplayer='smoke_incomplete', acceptance='not_executed')
-        normal_exit = completed.returncode == 0 or ((args.gameplay_probe or args.continue_probe or args.neow_probe or args.rollback_probe or args.expansion_probe) and bool(reports))
+                result.update(**({'settings': 'incomplete'} if args.localization_probe else {'singleplayer': 'smoke_incomplete'}), acceptance='not_executed')
+        normal_exit = completed.returncode == 0 or ((args.gameplay_probe or args.continue_probe or args.neow_probe or args.rollback_probe or args.expansion_probe or args.localization_probe) and bool(reports))
         result.update(exit_code=completed.returncode, observed_user_data=paths,
                       isolated_user_data='passed' if verified else 'failed',
                       offline='passed' if offline else 'unverified',
@@ -244,8 +250,8 @@ def run(args):
     finally:
         write_json(output / 'run-record.json', result)
     print(json.dumps({'record': str(output / 'run-record.json'), 'load': result['load']}, indent=2))
-    if result.get('singleplayer') in ('smoke_failed', 'smoke_incomplete'):
-        raise ValueError('Native singleplayer smoke failed or did not complete; inspect recorded results.')
+    if result.get('singleplayer') in ('smoke_failed', 'smoke_incomplete') or result.get('settings') in ('failed', 'incomplete'):
+        raise ValueError('Native settings or singleplayer check failed or did not complete; inspect recorded results.')
     if result['load'] != 'passed':
         raise ValueError('Lab load probe failed; inspect recorded engine/stdout logs. Gameplay remains unexecuted.')
 
@@ -265,17 +271,18 @@ def main():
     parser.add_argument('--neow-probe', action='store_true', help='Verify act-one Neow reward reroll, claim and native Proceed button.')
     parser.add_argument('--expansion-probe', action='store_true', help='Verify personal rerolls, native shop relic behavior and act-three boss HP.')
     parser.add_argument('--rollback-probe', action='store_true', help='Verify native map rollback input and independent settings.')
-    parser.add_argument('--baselib-probe', action='store_true', help='Also verify the installed optional BaseLib native settings page during rollback checks.')
+    parser.add_argument('--localization-probe', action='store_true', help='Verify game-driven language and native settings without starting a run.')
+    parser.add_argument('--baselib-probe', action='store_true', help='Also verify the installed optional BaseLib native settings page during rollback or language checks.')
     parser.add_argument('--quit-after', type=int, default=300, help='Native frame limit; 0 runs until closed.')
     args = parser.parse_args()
     if args.action == 'prepare' and not args.game_dir:
         parser.error('prepare requires --game-dir or STS2_INSTALL_DIR.')
-    if sum((args.gameplay_probe, args.continue_probe, args.neow_probe, args.rollback_probe, args.expansion_probe)) > 1:
-        parser.error('Choose one gameplay, continue, Neow or rollback probe per process.')
+    if sum((args.gameplay_probe, args.continue_probe, args.neow_probe, args.rollback_probe, args.expansion_probe, args.localization_probe)) > 1:
+        parser.error('Choose one native probe per process.')
     if args.quit_after < 0:
         parser.error('--quit-after must be nonnegative.')
-    if args.baselib_probe and not args.rollback_probe:
-        parser.error('--baselib-probe requires --rollback-probe and an installed BaseLib in the isolated lab.')
+    if args.baselib_probe and not (args.rollback_probe or args.localization_probe):
+        parser.error('--baselib-probe requires --rollback-probe or --localization-probe and an installed BaseLib in the isolated lab.')
     try:
         (prepare if args.action == 'prepare' else run)(args)
     except (OSError, ValueError, KeyError, StopIteration) as error:

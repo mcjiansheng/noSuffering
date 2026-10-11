@@ -5,6 +5,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Localization;
 
 namespace NoSuffering.Config;
 
@@ -17,8 +18,7 @@ public static class BaseLibSettings
     private static object? _config;
     private static Control? _captureButton;
     public static bool Registered => _config is not null;
-    public enum LanguageChoice { Auto, English, 简体中文 }
-    private static string T(string zh,string en)=>ConfigStore.Local.Language=="English"?en:zh;
+    private static string T(string zh,string en)=>ConfigStore.UseEnglish?en:zh;
 
     public static void Initialize()
     {
@@ -53,7 +53,6 @@ public static class BaseLibSettings
     private sealed record Setting(string Key,string Zh,string En,bool Local=false,int Max=0);
     private static readonly Setting[] Settings=[
         new("TogglePanelKey","面板快捷键","Panel shortcut",true),
-        new("Language","语言","Language",true),
         new("EnableMapRollback","路线回滚","Rollback route"),
         new("EnableAncientReroll","刷新先古之民","Reroll ancient"),
         new("EnableAncientOptionsReroll","刷新先古之民奖励","Reroll ancient rewards"),
@@ -102,7 +101,7 @@ public static class BaseLibSettings
             baseType.GetMethod("ConfigReloaded")!.Invoke(config,null);
             foreach(var row in rows) {
                 SetLabel(row.Label,T(row.Setting.Zh,row.Setting.En));
-                if(row.Setting.Key=="TogglePanelKey" && !ReferenceEquals(_captureButton,row.Control))row.Control.GetNode<Godot.Label>("Label").Text=KeyText();
+                if(row.Setting.Key=="TogglePanelKey")row.Control.GetNode<Godot.Label>("Label").Text=ReferenceEquals(_captureButton,row.Control)?T("按下快捷键…","Press a shortcut…"):KeyText();
                 bool enabled=row.Setting.Local || ConfigStore.RulesWritable;
                 row.Control.ProcessMode=enabled?Node.ProcessModeEnum.Inherit:Node.ProcessModeEnum.Disabled;
                 row.Control.Modulate=new Color(1,1,1,enabled?1:0.45f);
@@ -122,7 +121,8 @@ public static class BaseLibSettings
         EventHandler nativeChanged=(_,_)=>Refresh();
         baseType.GetEvent("ConfigChanged")!.AddEventHandler(config,nativeChanged);
         ConfigStore.Changed+=Refresh;
-        container.TreeExiting+=()=>{ConfigStore.Changed-=Refresh;baseType.GetEvent("ConfigChanged")!.RemoveEventHandler(config,nativeChanged);};
+        ConfigStore.LanguageChanged+=Refresh;
+        container.TreeExiting+=()=>{ConfigStore.Changed-=Refresh;ConfigStore.LanguageChanged-=Refresh;baseType.GetEvent("ConfigChanged")!.RemoveEventHandler(config,nativeChanged);};
         Refresh();
     }
     private static IEnumerable<Control> Controls(Node node) {
@@ -148,6 +148,7 @@ public static class BaseLibSettings
         if(_config is null || _baseType is null)throw new InvalidOperationException("BaseLib settings are not registered.");
         if(ConfigStore.OperationInProgress || !ConfigStore.RulesWritable)throw new InvalidOperationException("Settings probe requires idle host settings.");
         var local=ConfigStore.EditableLocal;var rules=ConfigStore.EditableRules;bool writable=ConfigStore.RulesWritable;
+        var language=LocManager.Instance.Language;
         var container=new VBoxContainer {Name="NoSufferingBaseLibProbe",Size=new Vector2(1200,1000)};
         var facts=new Dictionary<string,object>();
         void Require(bool condition,string message) {if(!condition)throw new InvalidOperationException(message);}
@@ -161,6 +162,15 @@ public static class BaseLibSettings
             await GameBridge.GameBridge.Frame();
             Require(container.GetChildCount()==Settings.Length,"Not all settings have framework rows.");
             facts["native_rows"]=Settings.Length;
+            Require(container.GetNodeOrNull("Language") is null,"Manual language row remains in BaseLib.");
+            foreach(var locale in new[]{"eng","zhs","eng"}) {
+                LocManager.Instance.SetLanguage(locale);
+                await GameBridge.GameBridge.Frame();
+                var row=container.GetNode("TogglePanelKey");
+                string expected=locale=="eng"?"Panel shortcut":"面板快捷键";
+                Require(Controls(row).Any(c=>c is RichTextLabel rich && rich.Text.Contains(expected) || c is Godot.Label plain && plain.Text.Contains(expected)),"Open BaseLib labels did not follow game language.");
+            }
+            facts["language"]="native eng/zhs/eng updates; no manual language row";
             var toggle=Setting("EnableMapRollback");
             toggle.Call(rules.EnableMapRollback?"OnUntick":"OnTick");
             Require(ConfigStore.Rules.EnableMapRollback!=rules.EnableMapRollback,"Native toggle did not update ConfigStore.");
@@ -179,7 +189,7 @@ public static class BaseLibSettings
             Require(ConfigStore.Local.TogglePanelKey is {Key:Key.F7,Ctrl:true},"Shortcut capture did not update ConfigStore.");
             using(var saved=JsonDocument.Parse(File.ReadAllText(ProjectSettings.GlobalizePath("user://NoSuffering/config.json"))))
                 Require(saved.RootElement.GetProperty("Local").GetProperty("BossHealthPercent").GetInt32()==42,"Framework changes were not persisted in the existing file.");
-            ConfigStore.UpdateLocal(c=>c with {BossHealthPercent=67,Language="English"});
+            ConfigStore.UpdateLocal(c=>c with {BossHealthPercent=67});
             var inner=(Godot.Range)slider.GetNode("Slider");
             Require(Math.Abs(inner.Value-66)<0.01,"Standalone store update did not synchronize native slider.");
             Require(button.GetNode<Godot.Label>("Label").Text==KeyText(),"Standalone store update did not synchronize shortcut label.");
@@ -194,6 +204,7 @@ public static class BaseLibSettings
             facts["sync"]="existing config persisted; standalone update reflected; client rule mutation rejected and display restored";
             return JsonSerializer.Serialize(facts);
         } finally {
+            LocManager.Instance.SetLanguage(language);
             _captureButton=null;ConfigStore.SetRulesWritable(true);
             ConfigStore.UpdateLocal(_=>local);ConfigStore.ChangeRules(_=>rules);ConfigStore.SetRulesWritable(writable);
             container.GetParent()?.RemoveChild(container);container.QueueFree();
@@ -218,7 +229,6 @@ public static class BaseLibSettings
     // registration shell so BaseLib never persists a second copy of settings.
     public static class Values
     {
-        public static LanguageChoice Language {get=>Enum.Parse<LanguageChoice>(ConfigStore.EditableLocal.Language);set=>ConfigStore.UpdateLocal(c=>c with {Language=value.ToString()});}
         public static int BossHealthPercent {get=>ConfigStore.EditableLocal.BossHealthPercent;set=>ConfigStore.UpdateLocal(c=>c with {BossHealthPercent=value});}
         public static bool EnableMapRollback {get=>ConfigStore.EditableRules.EnableMapRollback;set=>ConfigStore.ChangeRules(r=>r with {EnableMapRollback=value});}
         public static bool EnableAncientReroll {get=>ConfigStore.EditableRules.EnableAncientReroll;set=>ConfigStore.ChangeRules(r=>r with {EnableAncientReroll=value});}

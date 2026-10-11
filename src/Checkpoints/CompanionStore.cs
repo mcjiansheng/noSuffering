@@ -80,7 +80,7 @@ public static class CompanionStore
         // Format 2 adds node entry/settled-combat semantics. Read known format 1
         // predecessors without inventing entry snapshots absent from their data.
         bool legacy=data.Format==1 && data.ModVersion is "0.1.1" or "0.1.2";
-        bool versionCompatible=data.Format==2 && (data.ModVersion==ModEntry.Version || data.ModVersion is "0.1.3" or "0.1.4") || legacy;
+        bool versionCompatible=data.Format==2 && (data.ModVersion==ModEntry.Version || data.ModVersion is "0.1.3" or "0.1.4" or "0.1.5") || legacy;
         bool modsCompatible=versionCompatible && data.Mods==FingerprintFor(data.ModVersion);
         if(!versionCompatible || data.GameAssembly!=GameAssembly || !modsCompatible || data.RunId!=run || data.NativeDigest!=digest) {
             Log.Warn($"[NoSuffering] Companion mismatch: format={data.Format}, version={versionCompatible}, game={data.GameAssembly==GameAssembly}, mods={modsCompatible}, run={data.RunId==run}, native={data.NativeDigest==digest}");

@@ -5,7 +5,6 @@ namespace NoSuffering.Config;
 public sealed record LocalConfig
 {
     public HotkeyBinding TogglePanelKey { get; init; } = new(Key.F6);
-    public string Language { get; init; } = "Auto";
     public int BossHealthPercent { get; init; } = 25;
 }
 

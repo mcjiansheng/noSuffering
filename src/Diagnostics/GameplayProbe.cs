@@ -42,19 +42,20 @@ public static class GameplayProbe
         bool neowProbe = args.Contains("--ns-neow-probe");
         bool rollbackProbe = args.Contains("--ns-rollback-probe");
         bool expansionProbe = args.Contains("--ns-expansion-probe");
-        if (_attached || (!gameplayProbe && !continueProbe && !neowProbe && !rollbackProbe && !expansionProbe)) return;
+        bool localizationProbe = args.Contains("--ns-localization-probe");
+        if (_attached || (!gameplayProbe && !continueProbe && !neowProbe && !rollbackProbe && !expansionProbe && !localizationProbe)) return;
         _attached = true;
         var platform = OS.GetName() == "Windows" ? "windows" : OS.GetName() == "macOS" ? "macos" : "";
         var userDir = OS.GetUserDataDir().Replace('\\', '/').TrimEnd('/');
         var labRoot = OS.GetDataDir().Replace('\\', '/').TrimEnd('/') + "/NoSufferingLab/";
-        if (new[] { gameplayProbe, continueProbe, neowProbe, rollbackProbe, expansionProbe }.Count(flag => flag) != 1 || !args.Contains("--ns-lab-probe") || platform.Length == 0 ||
+        if (new[] { gameplayProbe, continueProbe, neowProbe, rollbackProbe, expansionProbe, localizationProbe }.Count(flag => flag) != 1 || !args.Contains("--ns-lab-probe") || platform.Length == 0 ||
             !string.Equals(CommandLineHelper.GetValue("force-steam"), "off", StringComparison.OrdinalIgnoreCase) ||
             (userDir != labRoot + platform + "-public-beta" && userDir != labRoot + platform + "-public"))
         {
             Log.Error("[NoSuffering] GAMEPLAY_PROBE refused: requires --force-steam=off and an actual NoSufferingLab user directory.");
             return;
         }
-        void Start() { tree.ProcessFrame -= Start; _ = expansionProbe ? ExpansionProbe.Run(tree) : rollbackProbe ? RollbackProbe.Run(tree) : neowProbe ? RunNeow(tree) : continueProbe ? RunContinue(tree) : Run(tree); }
+        void Start() { tree.ProcessFrame -= Start; _ = localizationProbe ? LocalizationProbe.Run(tree) : expansionProbe ? ExpansionProbe.Run(tree) : rollbackProbe ? RollbackProbe.Run(tree) : neowProbe ? RunNeow(tree) : continueProbe ? RunContinue(tree) : Run(tree); }
         tree.ProcessFrame += Start;
     }
 

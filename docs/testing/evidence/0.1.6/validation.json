@@ -1,0 +1,277 @@
+{
+  "version": "0.1.6",
+  "design": "1.10",
+  "date": "2026-10-11",
+  "scope": "Native language and settings checks, not a playthrough or multiplayer validation",
+  "targets": {
+    "macos-public-beta": {
+      "platform": "macos",
+      "branch": "public-beta",
+      "release": {
+        "commit": "41cef1ea",
+        "version": "v0.111.0",
+        "date": "2026-08-13T17:39:18-07:00",
+        "branch": "v0.111.0",
+        "main_assembly_hash": 1172974615
+      },
+      "runtime": {
+        "runtimeOptions": {
+          "tfm": "net9.0",
+          "includedFrameworks": [
+            {
+              "name": "Microsoft.NETCore.App",
+              "version": "9.0.7"
+            }
+          ],
+          "configProperties": {
+            "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+            "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+          }
+        }
+      },
+      "build": "passed",
+      "version": "0.1.6",
+      "mod_sha256": "c4338e35ea53347e3e2256258317d8da9a785fa4b3a4a1319c71a5bbddd4182d",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "load": "passed",
+      "settings": "passed",
+      "settings_scope": "Focused native settings checks; not a playthrough or multiplayer test",
+      "settings_checks": {
+        "game_language_and_settings": "PASS: eng/zhs/eng through native LocManager; open standalone settings update; no manual row; legacy override ignored; other preferences unchanged",
+        "optional_baselib_settings": "PASS: native 13 rows, locale updates, callbacks and persistence"
+      },
+      "settings_state": {
+        "legacy_language_override": "简体中文",
+        "baselib": {
+          "native_rows": 13,
+          "language": "native eng/zhs/eng updates; no manual language row",
+          "callbacks": "native toggle, slider, dropdown, shortcut button and captured key",
+          "sync": "existing config persisted; standalone update reflected; client rule mutation rejected and display restored"
+        }
+      },
+      "exit_code": 0,
+      "singleplayer": "not_executed",
+      "multiplayer": "not_executed",
+      "lab_profile_restored": true,
+      "obsolete_field_removed_and_boss_preference_379_preserved": true
+    },
+    "macos-public": {
+      "platform": "macos",
+      "branch": "public",
+      "release": {
+        "commit": "59260271",
+        "version": "v0.107.1",
+        "date": "2026-06-18T15:43:56-07:00",
+        "branch": "v0.107.1",
+        "main_assembly_hash": -1718063421
+      },
+      "runtime": {
+        "runtimeOptions": {
+          "tfm": "net9.0",
+          "includedFrameworks": [
+            {
+              "name": "Microsoft.NETCore.App",
+              "version": "9.0.7"
+            }
+          ],
+          "configProperties": {
+            "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+            "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+          }
+        }
+      },
+      "build": "passed",
+      "version": "0.1.6",
+      "mod_sha256": "f589adeda3e0e69fe84c06ac9a59491b606b806f15e83ccc0d29ed8da4e7a7c2",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "e7ceb80669bfaf5c8fccabaa126ae2bb283aba514be5b5b55612579cfd285f18"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "load": "passed",
+      "settings": "passed",
+      "settings_scope": "Focused native settings checks; not a playthrough or multiplayer test",
+      "settings_checks": {
+        "game_language_and_settings": "PASS: eng/zhs/eng through native LocManager; open standalone settings update; no manual row; legacy override ignored; other preferences unchanged",
+        "optional_modconfig_settings": "PASS: actual registration and native UI contain 13 keys without Language; bidirectional values persisted"
+      },
+      "settings_state": {
+        "legacy_language_override": "English",
+        "modconfig": {
+          "framework_assembly": "ModConfig, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+          "framework_sha256": "8D2DAD09F28633520C8A61ABAE6A4D2FCE04AF31E5B18C4D71FD8A8425FF48A0",
+          "entry_count": 13,
+          "keys": [
+            "TogglePanelKey",
+            "EnableMapRollback",
+            "EnableAncientReroll",
+            "EnableAncientOptionsReroll",
+            "EnableCombatRestart",
+            "EnableCombatReroll",
+            "EnableShopReroll",
+            "EnableBossHealthIncrease",
+            "BossHealthPercent",
+            "AncientCostMode",
+            "AncientHpCost",
+            "OptionsCostMode",
+            "OptionsHpCost"
+          ],
+          "toggle_controls": 7,
+          "slider_controls": 3,
+          "dropdown_controls": 2,
+          "bidirectional_values": "PASS",
+          "both_config_files": "PASS",
+          "ui_scope": "actual native Settings Mods tab, engine-created controls and synthetic native release; no human pointer or visual-quality acceptance"
+        }
+      },
+      "exit_code": 0,
+      "singleplayer": "not_executed",
+      "multiplayer": "not_executed",
+      "lab_profile_restored": true,
+      "obsolete_field_removed_and_boss_preference_379_preserved": true
+    },
+    "windows-public-beta": {
+      "platform": "windows",
+      "branch": "public-beta",
+      "release": {
+        "commit": "41cef1ea",
+        "version": "v0.111.0",
+        "date": "2026-08-13T17:39:18-07:00",
+        "branch": "v0.111.0",
+        "main_assembly_hash": 222455745
+      },
+      "runtime": {
+        "runtimeOptions": {
+          "tfm": "net9.0",
+          "includedFrameworks": [
+            {
+              "name": "Microsoft.NETCore.App",
+              "version": "9.0.7"
+            }
+          ],
+          "configProperties": {
+            "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+            "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+          }
+        }
+      },
+      "build": "passed",
+      "version": "0.1.6",
+      "mod_sha256": "53fce4f4ec32c0091d8738673351767b3f72e396a58fbd1af53093a38d822a73",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "load": "passed",
+      "settings": "passed",
+      "settings_scope": "Focused native settings checks; not a playthrough or multiplayer test",
+      "settings_checks": {
+        "game_language_and_settings": "PASS: eng/zhs/eng through native LocManager; open standalone settings update; no manual row; legacy override ignored; other preferences unchanged",
+        "optional_baselib_settings": "PASS: native 13 rows, locale updates, callbacks and persistence"
+      },
+      "settings_state": {
+        "legacy_language_override": "简体中文",
+        "baselib": {
+          "native_rows": 13,
+          "language": "native eng/zhs/eng updates; no manual language row",
+          "callbacks": "native toggle, slider, dropdown, shortcut button and captured key",
+          "sync": "existing config persisted; standalone update reflected; client rule mutation rejected and display restored"
+        }
+      },
+      "exit_code": 0,
+      "singleplayer": "not_executed",
+      "multiplayer": "not_executed",
+      "lab_profile_restored": true,
+      "obsolete_field_removed_and_boss_preference_379_preserved": true
+    },
+    "windows-public": {
+      "platform": "windows",
+      "branch": "public",
+      "release": {
+        "commit": "59260271",
+        "version": "v0.107.1",
+        "date": "2026-06-18T15:43:56-07:00",
+        "branch": "v0.107.1",
+        "main_assembly_hash": -1555940892
+      },
+      "runtime": {
+        "runtimeOptions": {
+          "tfm": "net9.0",
+          "includedFrameworks": [
+            {
+              "name": "Microsoft.NETCore.App",
+              "version": "9.0.7"
+            }
+          ],
+          "configProperties": {
+            "System.Reflection.Metadata.MetadataUpdater.IsSupported": false,
+            "System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization": false
+          }
+        }
+      },
+      "build": "passed",
+      "version": "0.1.6",
+      "mod_sha256": "79cd03159d6c78ccacc6c8b3bb6b896bb19d617c7d53dd5949eed7896fefceb0",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "a1f9e653f1e28e4076558fee1e60d218619cb7e057b887c6417f62c62c6d7a52"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "load": "passed",
+      "settings": "passed",
+      "settings_scope": "Focused native settings checks; not a playthrough or multiplayer test",
+      "settings_checks": {
+        "game_language_and_settings": "PASS: eng/zhs/eng through native LocManager; open standalone settings update; no manual row; legacy override ignored; other preferences unchanged"
+      },
+      "settings_state": {
+        "legacy_language_override": "简体中文"
+      },
+      "exit_code": 0,
+      "singleplayer": "not_executed",
+      "multiplayer": "not_executed",
+      "lab_profile_restored": true,
+      "obsolete_field_removed_and_boss_preference_379_preserved": true
+    }
+  }
+}

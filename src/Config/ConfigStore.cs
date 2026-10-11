@@ -30,14 +30,21 @@ public static class ConfigStore
     private static Type? _entryType;
     private static Type? _configType;
 
-    public static LocalConfig Local => _local.Language == "Auto"
-        ? _local with { Language = ResolveGameLanguage() }
-        : _local;
+    public static LocalConfig Local => _local;
+    public static bool UseEnglish
+    {
+        get
+        {
+            var language = LocManager.Instance?.Language ?? TranslationServer.GetLocale();
+            return !language.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
+        }
+    }
     public static HostRules Rules => _rules;
     public static LocalConfig EditableLocal => _pendingLocal ?? _local;
     public static HostRules EditableRules => _pendingRules ?? _rules;
     public static bool RulesWritable => _rulesWritable;
     public static event Action? Changed;
+    public static event Action? LanguageChanged;
 
     public static bool OperationInProgress
     {
@@ -92,18 +99,11 @@ public static class ConfigStore
         UpdateRules(_ => _pendingSinglePlayerRules ?? _singlePlayerRules);
     }
 
-    private static string ResolveGameLanguage()
-    {
-        var language = LocManager.Instance?.Language;
-        if (string.IsNullOrWhiteSpace(language)) language = TranslationServer.GetLocale();
-        return language.StartsWith("zh", StringComparison.OrdinalIgnoreCase) || language.Equals("zhs", StringComparison.OrdinalIgnoreCase)
-            ? "简体中文"
-            : "English";
-    }
-
     private static void DetectModConfig()
     {
         if (Engine.GetMainLoop() is SceneTree tree) tree.ProcessFrame -= DetectModConfig;
+        // Mod initialization precedes LocManager; the first scene frame follows it.
+        LocManager.Instance.SubscribeToLocaleChange(() => LanguageChanged?.Invoke());
         try
         {
             var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(GetLoadableTypes).ToArray();
@@ -128,8 +128,6 @@ public static class ConfigStore
         var entries = new List<object>();
         AddEntry(entries, "TogglePanelKey", "Panel shortcut", "KeyBind", _local.TogglePanelKey.ToEncodedKey(),
             v => UpdateLocal(c => c with { TogglePanelKey = HotkeyBinding.FromEncodedKey(ToLong(v)) }));
-        AddEntry(entries, "Language", "Language", "Dropdown", _local.Language,
-            v => UpdateLocal(c => c with { Language = NormalizeLanguage(Convert.ToString(v)) }), options: new[] { "Auto", "English", "简体中文" });
 
         AddEntry(entries, "EnableMapRollback", "Map rollback", "Toggle", _rules.EnableMapRollback, v => ChangeRules(r => r with { EnableMapRollback = Convert.ToBoolean(v) }));
         AddEntry(entries, "EnableAncientReroll", "Ancient reroll", "Toggle", _rules.EnableAncientReroll, v => ChangeRules(r => r with { EnableAncientReroll = Convert.ToBoolean(v) }));
@@ -165,7 +163,6 @@ public static class ConfigStore
         var chineseLabel = key switch
         {
             "TogglePanelKey" => "面板快捷键",
-            "Language" => "语言",
             "EnableMapRollback" => "路线回滚",
             "EnableAncientReroll" => "刷新先古之民",
             "EnableAncientOptionsReroll" => "刷新先古之民奖励",
@@ -269,8 +266,7 @@ public static class ConfigStore
                 {
                     _local = saved.Local with
                     {
-                        TogglePanelKey = saved.Local.TogglePanelKey ?? new HotkeyBinding(Key.F6),
-                        Language = NormalizeLanguage(saved.Local.Language)
+                        TogglePanelKey = saved.Local.TogglePanelKey ?? new HotkeyBinding(Key.F6)
                     };
                     _singlePlayerRules = (saved.SinglePlayerRules ?? new HostRules()).Normalize();
                     _rules = _singlePlayerRules;
@@ -282,8 +278,7 @@ public static class ConfigStore
             if (legacy == null) return;
             _local = legacy with
             {
-                TogglePanelKey = legacy.TogglePanelKey ?? new HotkeyBinding(Key.F6),
-                Language = NormalizeLanguage(legacy.Language)
+                TogglePanelKey = legacy.TogglePanelKey ?? new HotkeyBinding(Key.F6)
             };
         }
         catch (Exception e) { GD.PrintErr($"[NoSuffering] Could not load local config: {e.Message}"); }
@@ -310,7 +305,6 @@ public static class ConfigStore
         var value = key switch
         {
             "TogglePanelKey" => (object)_local.TogglePanelKey.ToEncodedKey(),
-            "Language" => _local.Language,
             "EnableMapRollback" => _rules.EnableMapRollback,
             "EnableAncientReroll" => _rules.EnableAncientReroll,
             "EnableAncientOptionsReroll" => _rules.EnableAncientOptionsReroll,
@@ -338,16 +332,15 @@ public static class ConfigStore
 
     private static void SyncModConfig()
     {
-        foreach (var key in new[] { "TogglePanelKey", "Language", "EnableMapRollback", "EnableAncientReroll", "EnableAncientOptionsReroll", "EnableCombatRestart", "EnableCombatReroll", "EnableShopReroll", "EnableBossHealthIncrease", "BossHealthPercent", "AncientCostMode", "AncientHpCost", "OptionsCostMode", "OptionsHpCost" })
+        foreach (var key in new[] { "TogglePanelKey", "EnableMapRollback", "EnableAncientReroll", "EnableAncientOptionsReroll", "EnableCombatRestart", "EnableCombatReroll", "EnableShopReroll", "EnableBossHealthIncrease", "BossHealthPercent", "AncientCostMode", "AncientHpCost", "OptionsCostMode", "OptionsHpCost" })
             RestoreModConfigValue(key);
     }
 
-    private static bool IsLocalKey(string key) => key is "TogglePanelKey" or "Language" or "BossHealthPercent";
+    private static bool IsLocalKey(string key) => key is "TogglePanelKey" or "BossHealthPercent";
     private static void Set(object target, string property, object value) =>
         (_entryType!.GetProperty(property) ?? throw new MissingMemberException(_entryType.FullName, property)).SetValue(target, value);
     private static long ToLong(object? value) => Convert.ToInt64(value);
     private static int ToInt(object? value) => Convert.ToInt32(Math.Round(Convert.ToDouble(value)));
-    private static string NormalizeLanguage(string? value) => value is "English" or "简体中文" ? value : "Auto";
     private static T ParseEnum<T>(object? value, T fallback) where T : struct, Enum =>
         Enum.TryParse(Convert.ToString(value), out T parsed) && Enum.IsDefined(parsed) ? parsed : fallback;
 

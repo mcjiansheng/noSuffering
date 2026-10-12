@@ -1,0 +1,187 @@
+{
+  "version": "0.1.11",
+  "date": "2026-10-12",
+  "targets": [
+    {
+      "platform": "macos",
+      "branch": "public-beta",
+      "game_version": "v0.111.0",
+      "mod_sha256": "fb7c2a41178417269414f6fba81b79c729fa4930601b8a963a0c0d2420fa9d8c",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "build": "passed",
+      "load": "passed_native_headless",
+      "singleplayer": "not_executed",
+      "multiplayer": "passed_native_localhost_enet",
+      "steam_internet_multiplayer": "not_executed",
+      "mod_count": 1,
+      "evidence": "artifacts/macos/public-beta/mp-20261012-205655/run-record.json",
+      "checks": {
+        "host": {
+          "first": {
+            "fresh_process_seed_first": "PASS: native host Hefty Tablet claim and State broadcast; stale-session button recovery and waiting-session Silken Tress retry; natural merchant Injury deletion; reroll and client Courier purchase committed separate native saves"
+          },
+          "resume": {
+            "fresh_process_seed_resume": "PASS: fresh native peers retained owner stock and advanced seed; injected digest mismatch released both to native menu within 15 seconds and preserved all last paired native/companion file hashes"
+          }
+        },
+        "client": {
+          "first": {
+            "fresh_process_seed_first": "PASS: native host Hefty Tablet claim and State broadcast; stale-session button recovery and waiting-session Silken Tress retry; natural merchant Injury deletion; reroll and client Courier purchase committed separate native saves"
+          },
+          "resume": {
+            "fresh_process_seed_resume": "PASS: fresh native peers retained owner stock and advanced seed; injected digest mismatch released both to native menu within 15 seconds and preserved all last paired native/companion file hashes"
+          }
+        }
+      }
+    },
+    {
+      "platform": "macos",
+      "branch": "public",
+      "game_version": "v0.107.1",
+      "mod_sha256": "739343925d42f957be783bc73be9bcc50993959795f3466c22dee1456af72a6a",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "e7ceb80669bfaf5c8fccabaa126ae2bb283aba514be5b5b55612579cfd285f18"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "build": "passed",
+      "load": "passed_native_headless",
+      "singleplayer": "not_executed",
+      "multiplayer": "passed_native_localhost_enet",
+      "steam_internet_multiplayer": "not_executed",
+      "mod_count": 1,
+      "evidence": "artifacts/macos/public/mp-20261012-205836/run-record.json",
+      "checks": {
+        "host": {
+          "first": {
+            "fresh_process_seed_first": "PASS: native host Hefty Tablet claim and State broadcast; stale-session button recovery and waiting-session Silken Tress retry; natural merchant Injury deletion; reroll and client Courier purchase committed separate native saves"
+          },
+          "resume": {
+            "fresh_process_seed_resume": "PASS: fresh native peers retained owner stock and advanced seed; injected digest mismatch released both to native menu within 15 seconds and preserved all last paired native/companion file hashes"
+          }
+        },
+        "client": {
+          "first": {
+            "fresh_process_seed_first": "PASS: native host Hefty Tablet claim and State broadcast; stale-session button recovery and waiting-session Silken Tress retry; natural merchant Injury deletion; reroll and client Courier purchase committed separate native saves"
+          },
+          "resume": {
+            "fresh_process_seed_resume": "PASS: fresh native peers retained owner stock and advanced seed; injected digest mismatch released both to native menu within 15 seconds and preserved all last paired native/companion file hashes"
+          }
+        }
+      }
+    },
+    {
+      "platform": "windows",
+      "branch": "public-beta",
+      "game_version": "v0.111.0",
+      "mod_sha256": "561e7fd5244c5b9bbf29eb7624450013724bee707af48b5015dab20d117d3834",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "build": "passed",
+      "load": "passed_native_headless",
+      "singleplayer": "not_executed",
+      "multiplayer": "passed_native_localhost_enet",
+      "steam_internet_multiplayer": "not_executed",
+      "mod_count": 25,
+      "evidence": "artifacts/windows/public-beta/mp-20261012-205644/run-record.json",
+      "checks": {
+        "host": {
+          "first": {
+            "fresh_process_seed_first": "PASS: native host Hefty Tablet claim and State broadcast; stale-session button recovery and waiting-session Silken Tress retry; natural merchant Injury deletion; reroll and client Courier purchase committed separate native saves"
+          },
+          "resume": {
+            "fresh_process_seed_resume": "PASS: fresh native peers retained owner stock and advanced seed; injected digest mismatch released both to native menu within 15 seconds and preserved all last paired native/companion file hashes"
+          }
+        },
+        "client": {
+          "first": {
+            "fresh_process_seed_first": "PASS: native host Hefty Tablet claim and State broadcast; stale-session button recovery and waiting-session Silken Tress retry; natural merchant Injury deletion; reroll and client Courier purchase committed separate native saves"
+          },
+          "resume": {
+            "fresh_process_seed_resume": "PASS: fresh native peers retained owner stock and advanced seed; injected digest mismatch released both to native menu within 15 seconds and preserved all last paired native/companion file hashes"
+          }
+        }
+      }
+    },
+    {
+      "platform": "windows",
+      "branch": "public",
+      "game_version": "v0.107.1",
+      "mod_sha256": "a2c8d4f9c93f09aed04874937a486598f9cac90ae0138471593eb22ab709777c",
+      "assemblies": [
+        {
+          "name": "sts2.dll",
+          "sha256": "a1f9e653f1e28e4076558fee1e60d218619cb7e057b887c6417f62c62c6d7a52"
+        },
+        {
+          "name": "GodotSharp.dll",
+          "sha256": "0e4897ecdfb31456a97c7d8028dfb8d7dbdc632e2f73fc9b438d7b266a139289"
+        },
+        {
+          "name": "0Harmony.dll",
+          "sha256": "ef1898322c9f5c86dc1b0758b272a9c440823b4a41ca9a0b82a3aa6b3d206387"
+        }
+      ],
+      "build": "passed",
+      "load": "passed_native_headless",
+      "singleplayer": "not_executed",
+      "multiplayer": "passed_native_localhost_enet",
+      "steam_internet_multiplayer": "not_executed",
+      "mod_count": 1,
+      "evidence": "artifacts/windows/public/mp-20261012-205923/run-record.json",
+      "checks": {
+        "host": {
+          "first": {
+            "fresh_process_seed_first": "PASS: native host Hefty Tablet claim and State broadcast; stale-session button recovery and waiting-session Silken Tress retry; natural merchant Injury deletion; reroll and client Courier purchase committed separate native saves"
+          },
+          "resume": {
+            "fresh_process_seed_resume": "PASS: fresh native peers retained owner stock and advanced seed; injected digest mismatch released both to native menu within 15 seconds and preserved all last paired native/companion file hashes"
+          }
+        },
+        "client": {
+          "first": {
+            "fresh_process_seed_first": "PASS: native host Hefty Tablet claim and State broadcast; stale-session button recovery and waiting-session Silken Tress retry; natural merchant Injury deletion; reroll and client Courier purchase committed separate native saves"
+          },
+          "resume": {
+            "fresh_process_seed_resume": "PASS: fresh native peers retained owner stock and advanced seed; injected digest mismatch released both to native menu within 15 seconds and preserved all last paired native/companion file hashes"
+          }
+        }
+      }
+    }
+  ],
+  "mac_beta_full_regression": "artifacts/macos/public-beta/mp-20261012-205733/run-record.json"
+}

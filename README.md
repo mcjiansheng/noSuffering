@@ -1,6 +1,6 @@
 # 不吃苦 · NoSuffering
 
-《杀戮尖塔 2》原生 C# Mod，当前版本 **0.1.10**，修复伴随存档保护、联机重连、先古选项丢失、设置恢复与面板换房问题。界面自动跟随游戏语言，无需额外配置；保留胜利后、领取奖励前的路线回滚与可选 BaseLib 设置页。需求见 [设计文档](docs/DESIGN.md)，实机复现与回归结果见 [代码审查修复记录](docs/testing/2026-10-11-review-regressions.md)。
+《杀戮尖塔 2》原生 C# Mod，当前版本 **0.1.11**，修复联机商店同步失败后的黑屏与先古奖励首次选择的会话时序。界面自动跟随游戏语言，无需额外配置；保留胜利后、领取奖励前的路线回滚与可选 BaseLib 设置页。需求见 [设计文档](docs/DESIGN.md)，实机复现与回归结果见 [联机修复记录](docs/testing/2026-10-12-multiplayer-shop-choice.md)。
 
 F6 打开面板，提供七项操作：
 
@@ -34,7 +34,7 @@ F6 打开面板，提供七项操作：
 ./scripts/deploy.ps1 -GameDir 'D:/steam/steamapps/common/Slay the Spire 2'
 ```
 
-构建输出 `artifacts/<platform>/<branch>/NoSuffering-0.1.10.zip`，同目录记录实际程序集和构建指纹。平台／分支目标分别构建；发行页文件名标明目标。正式版构建／部署必须传入 `--branch public`，PowerShell 使用 `-Branch public`。部署先备份原 NoSuffering，仅更新本 Mod，游戏运行时拒绝覆盖。
+构建输出 `artifacts/<platform>/<branch>/NoSuffering-0.1.11.zip`，同目录记录实际程序集和构建指纹。平台／分支目标分别构建；发行页文件名标明目标。正式版构建／部署必须传入 `--branch public`，PowerShell 使用 `-Branch public`。部署先备份原 NoSuffering，仅更新本 Mod，游戏运行时拒绝覆盖。
 
 Mac 可直接构建／部署：
 
@@ -52,8 +52,8 @@ Mac 远端工作流程：复制 `local.env.example` 为 `local.env`，填写已�
 
 ## 当前兼容范围
 
-优先基线：public-beta **v0.111.0 / build 24724944**；正式版基线：**v0.107.1 / build 23811903**。0.1.10 的真实游戏进程复现及单人／联机回归见 [本版测试记录](docs/testing/2026-10-11-review-regressions.md)；0.1.5 的回滚与联机结果见 [历史记录](docs/testing/2026-10-11-victory-rewards.md)。以下完整对局及广泛兼容检查来自 0.1.4，作为历史证据：Windows 与 Mac ARM64 的两分支分别构建并执行原生检查，Windows beta 与 Mac beta 专项使用实际 25-Mod 组合；ModConfig 另以官方 v0.2.2 源码构建的完整 DLL/PCK 在 Mac 正式版运行验证。[0.1.4 测试记录](docs/testing/2026-10-09-expansion.md)列出对应 DLL、场景、失败与限制；不能将引擎夹具测试当作完整游玩，也不能从一个组合推断所有 Mod 兼容。
+优先基线：public-beta **v0.111.0 / build 24724944**；正式版基线：**v0.107.1 / build 23811903**。0.1.11 的真实游戏进程复现及联机回归见 [本版测试记录](docs/testing/2026-10-12-multiplayer-shop-choice.md)；0.1.5 的回滚与联机结果见 [历史记录](docs/testing/2026-10-11-victory-rewards.md)。以下完整对局及广泛兼容检查来自 0.1.4，作为历史证据：Windows 与 Mac ARM64 的两分支分别构建并执行原生检查，Windows beta 与 Mac beta 专项使用实际 25-Mod 组合；ModConfig 另以官方 v0.2.2 源码构建的完整 DLL/PCK 在 Mac 正式版运行验证。[0.1.4 测试记录](docs/testing/2026-10-09-expansion.md)列出对应 DLL、场景、失败与限制；不能将引擎夹具测试当作完整游玩，也不能从一个组合推断所有 Mod 兼容。
 
 0.1.4 的 Mac beta 曾用 Computer Use 完成 Silent 标准对局至原生结局（49 层、3 Boss），按用户授权使用控制台卡牌辅助。该对局跨候选版本继续，最终 DLL 覆盖第一幕 Boss 至结局；各功能操作及存档验证详见对局记录。
 
-0.1.10 接受已知 0.1.3/0.1.4/0.1.5/0.1.6/0.1.7/0.1.8/0.1.9 格式 2 和 0.1.1/0.1.2 格式 1 的配对记录，仍要求游戏及其他玩法 Mod 指纹一致。旧检查点仍按已记录的结算后状态恢复；缺少的领取前状态无法补造，升级后新产生的胜利节点使用领取前边界。若只领取部分奖励后退出，继续时该页整体恢复到领取前，资源同步撤回；全部领取或跳过后保存结算结果。Intel Mac、Linux、其他游戏版本、Steam／互联网多人和未列出的 Mod 组合尚无本版验证结论。技术参考和署名见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+0.1.11 接受已知 0.1.3/0.1.4/0.1.5/0.1.6/0.1.7/0.1.8/0.1.9/0.1.10 格式 2 和 0.1.1/0.1.2 格式 1 的配对记录，仍要求游戏及其他玩法 Mod 指纹一致。旧检查点仍按已记录的结算后状态恢复；缺少的领取前状态无法补造，升级后新产生的胜利节点使用领取前边界。若只领取部分奖励后退出，继续时该页整体恢复到领取前，资源同步撤回；全部领取或跳过后保存结算结果。Intel Mac、Linux、其他游戏版本、Steam／互联网多人和未列出的 Mod 组合尚无本版验证结论。技术参考和署名见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

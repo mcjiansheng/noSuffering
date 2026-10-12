@@ -35,6 +35,7 @@ public struct ControlMessage : INetMessage
     public bool ShouldBuffer=>false;
     public NetTransferMode Mode=>NetTransferMode.Reliable;
     public LogLevel LogLevel=>LogLevel.Debug;
+    public override string ToString()=>$"NoSuffering.ControlMessage phase={Phase} run={Run} epoch={Epoch} operation={Operation} revision={Revision}";
     public void Serialize(PacketWriter w){w.WriteInt((int)Phase);w.WriteString(Run??"");w.WriteString(Epoch??"");w.WriteLong(Operation);w.WriteLong(Revision);w.WriteString(Payload??"");}
     public void Deserialize(PacketReader r){Phase=(Phase)r.ReadInt();Run=r.ReadString();Epoch=r.ReadString();Operation=r.ReadLong();Revision=r.ReadLong();Payload=r.ReadString();}
 }
@@ -43,11 +44,13 @@ public sealed record PersonalRequest(CoreOperation Kind,long Checkpoint,int Perc
 public sealed record AncientChoiceData(ulong Actor,int Index,string Context);
 public sealed record PrepareData(CoreOperation Kind,ulong Actor,int Percent);
 public sealed record ReadyData(string Error,ShopRecord? Shop);
-public sealed record SessionData(HostRules Rules,TimelineData Timeline);
+public sealed record SessionData(HostRules Rules,TimelineData Timeline,long StartTime,string Seed,ulong[] Players);
 
 public static class HostCoordinator
 {
     private static INetGameService? _net;
+    private static readonly System.Reflection.FieldInfo StartTimeField=AccessTools.Field(typeof(RunManager),"_startTime");
+    private static bool _freshRunIdentityPending;
     private static string _run="",_epoch="";
     private static long _sequence,_activeOperation,_appliedOperation,_completionSerial;
     private static readonly HashSet<ulong> Ready=[];
@@ -58,6 +61,7 @@ public static class HostCoordinator
     public static long WorldRevision {get;private set;}
     public static bool Busy {get;private set;}
     private static bool _choicePending;
+    private static long _choiceRequest;
     public static bool IsHost=>RunManager.Instance.IsInProgress && RunManager.Instance.NetService is {Type:NetGameType.Singleplayer or NetGameType.Host};
     public static string Status {get;private set;}="";
     public static event Action? Changed;
@@ -65,51 +69,98 @@ public static class HostCoordinator
     public static void Attach(INetGameService net) {
         if(ReferenceEquals(net,_net))return;
         if(_net is not null){_net.UnregisterMessageHandler<ControlMessage>(OnMessage);_net.Disconnected-=OnDisconnected;}
-        _net=net;
+        _net=net;_freshRunIdentityPending=false;
         // Failures belong to the replaced transport; a retained transport keeps
         // its failure so active preparation still stops on real disconnects.
         _failure=null;
         // A new client transport must receive its own authenticated State before
         // saved-room factories consume companion data. Snapshot loads reuse net.
-        if(net.Type==NetGameType.Client)_epoch="";
+        if(net.Type==NetGameType.Client){_epoch="";_choicePending=false;++_choiceRequest;}
         net.RegisterMessageHandler<ControlMessage>(OnMessage);net.Disconnected+=OnDisconnected;
     }
-    private static void OnDisconnected(NetErrorInfo info){Fail("连接已断开");Release();}
+    private static void OnDisconnected(NetErrorInfo info){_freshRunIdentityPending=false;Fail("连接已断开");Release();}
     public static void OnRunReady() {
         var manager=RunManager.Instance;Attach(manager.NetService);
         var run=Bridge.RunKey;
-        if(_run!=run) {_choicePending=false;_run=run;_sequence=0;_appliedOperation=0;WorldRevision=CompanionStore.LoadedRevision;_epoch=IsHost?Guid.NewGuid().ToString("N"):"";}
+        if(_run!=run) {_choicePending=false;++_choiceRequest;_run=run;_sequence=0;_appliedOperation=0;WorldRevision=CompanionStore.LoadedRevision;_epoch=IsHost?Guid.NewGuid().ToString("N"):"";}
         ConfigStore.SetMultiplayer(manager.NetService.Type!=NetGameType.Singleplayer);
         ConfigStore.SetRulesWritable(IsHost);
-        if(!IsHost && !Busy)_net!.SendMessage(Message(Phase.Hello));
+        if(!IsHost && !Busy && _epoch.Length==0)_net!.SendMessage(Message(Phase.Hello));
     }
     public static void RulesChanged() {
         if(IsHost && !Busy && _net?.Type==NetGameType.Host)
-            _net.SendMessage(Message(Phase.State,JsonSerializer.Serialize(new SessionData(ConfigStore.Rules,CheckpointService.Save(false)))));
+            _net.SendMessage(Message(Phase.State,JsonSerializer.Serialize(Session())));
     }
     public static void SyncTo(ulong peer) {
         if(!IsHost || Busy || _net?.Type!=NetGameType.Host)return;
-        _net.SendMessage(Message(Phase.State,JsonSerializer.Serialize(new SessionData(ConfigStore.Rules,CheckpointService.Save(false)))),peer);
+        _net.SendMessage(Message(Phase.State,JsonSerializer.Serialize(Session())),peer);
+    }
+    private static SessionData Session() {
+        // Launch releases native buffered messages before its postfix. A Hello
+        // handled during that release still needs this run's initialized key.
+        OnRunReady();
+        return new(ConfigStore.Rules,CheckpointService.Save(false),RunManager.Instance.ToSave(null).StartTime,
+            Bridge.State.Rng.Seed.ToString(),Bridge.State.Players.Select(p=>p.NetId).Order().ToArray());
     }
     private static ControlMessage Message(Phase phase,string payload="")=>new(){Phase=phase,Run=_run,Epoch=_epoch,Operation=_activeOperation,Revision=WorldRevision,Payload=payload};
     private static bool FromHost(ulong sender)=>_net is NetClientGameService client && sender==client.HostNetId;
     private static void OnMessage(ControlMessage m,ulong sender) {
         if(m.Phase==Phase.Hello){if(IsHost)SyncTo(sender);return;}
         if(m.Phase==Phase.State) {
-            if(!FromHost(sender) || (Busy && m.Epoch!=_epoch) ||
-                RunManager.Instance.IsInProgress && m.Run!=Bridge.RunKey)return;
+            if(!FromHost(sender) || (Busy && m.Epoch!=_epoch))return;
             var data=JsonSerializer.Deserialize<SessionData>(m.Payload) ?? throw new InvalidOperationException("同步状态缺失");
+            bool initialIdentityAdopted=false;
+            if(RunManager.Instance.IsInProgress && m.Run!=Bridge.RunKey) {
+                // New multiplayer setup timestamps each peer with its local
+                // clock. Adopt the authenticated host's timestamp once, while
+                // preserving the durable native-save/checkpoint key algorithm.
+                // Saved runs already carry their canonical timestamp unchanged.
+                var save=RunManager.Instance.ToSave(null);
+                var players=save.Players.Select(p=>p.NetId).Order().ToArray();
+                if(!_freshRunIdentityPending || Busy || _epoch.Length>0 || data.Seed!=Bridge.State.Rng.Seed.ToString() ||
+                    data.Players is null || !players.SequenceEqual(data.Players.Order())) {
+                    Log.Warn($"[NoSuffering] State identity rejected hostRun={m.Run} localRun={Bridge.RunKey} fresh={_freshRunIdentityPending} busy={Busy} epoch={_epoch} hostSeed={data.Seed} localSeed={Bridge.State.Rng.Seed} hostPlayers={string.Join(",",data.Players??[])} localPlayers={string.Join(",",players)}");
+                    return;
+                }
+                long localStart=save.StartTime;save.StartTime=data.StartTime;
+                if(Bridge.Key(save)!=m.Run){Log.Warn("[NoSuffering] State identity rejected: host timestamp does not match run key");return;}
+                StartTimeField.SetValue(RunManager.Instance,data.StartTime);initialIdentityAdopted=true;
+                Log.Info($"[NoSuffering] New multiplayer identity synchronized localStart={localStart} hostStart={data.StartTime} run={m.Run}");
+            }
+            _freshRunIdentityPending=false;
             // Operation sequence numbers belong to one host lifetime. A native
             // reconnect can retain this run while its restarted host starts at 1.
-            if(m.Run!=_run || m.Epoch!=_epoch){_appliedOperation=0;_activeOperation=0;_choicePending=false;}
+            if(m.Run!=_run || m.Epoch!=_epoch){_appliedOperation=0;_activeOperation=0;}
+            // Initial State may arrive while a cleared native choice UI awaits
+            // its first authenticated epoch. Keep that pending selection owned.
+            bool replacedSession=m.Run!=_run && !initialIdentityAdopted || _epoch.Length>0 && m.Epoch!=_epoch;
+            bool restoreChoice=_choicePending && replacedSession;
+            if(replacedSession){_choicePending=false;++_choiceRequest;}
             _run=m.Run;_epoch=m.Epoch;WorldRevision=m.Revision;
             ConfigStore.ApplyHostRules(data.Rules);
             bool liveShop=RunManager.Instance.IsInProgress && Bridge.State.CurrentRoom is MerchantRoom &&
                 data.Timeline.Shop?.Context==$"{Bridge.State.Rng.Seed}:{Bridge.State.MapLocation}";
             CheckpointService.Restore(data.Timeline,true,live:liveShop);AncientService.MarkLiveStateSynchronized();
+            if(restoreChoice)AncientService.RestoreRejectedLocalChoice();
             return;
         }
-        if(m.Run!=_run || m.Epoch!=_epoch)return;
+        // An authenticated host must be able to reject an obsolete session's
+        // request even when the client's local epoch is stale. Re-establish the
+        // timeline through State; never replay that old selected option.
+        if(m.Phase==Phase.RequestRejected && FromHost(sender) && RunManager.Instance.IsInProgress && m.Run==Bridge.RunKey) {
+            bool rejectedChoice=_choicePending;_choicePending=false;++_choiceRequest;
+            if(m.Epoch!=_epoch)_epoch="";
+            if(rejectedChoice)AncientService.RestoreRejectedLocalChoice();
+            Status=m.Payload;++_completionSerial;Changed?.Invoke();
+            if(_epoch.Length==0 && !Busy)_net!.SendMessage(Message(Phase.Hello));
+            return;
+        }
+        if(m.Run!=_run || m.Epoch!=_epoch) {
+            Log.Warn($"[NoSuffering] Ignored session mismatch from {sender}: {m}; expected run={_run} epoch={_epoch}");
+            if(IsHost && (m.Phase is Phase.AncientChoiceRequest or Phase.Request) && Bridge.State.Players.Any(p=>p.NetId==sender))
+                _net!.SendMessage(Message(Phase.RequestRejected,"会话已更新，请重新操作"),sender);
+            return;
+        }
         if(IsHost) {
             if(!Bridge.State.Players.Any(p=>p.NetId==sender))return;
             if(m.Phase==Phase.Request) {
@@ -138,10 +189,6 @@ public static class HostCoordinator
         }
         if(!FromHost(sender))return;
         switch(m.Phase) {
-            case Phase.RequestRejected:
-                bool rejectedChoice=_choicePending;_choicePending=false;
-                if(rejectedChoice)AncientService.RestoreRejectedLocalChoice();
-                Status=m.Payload;++_completionSerial;Changed?.Invoke();break;
             case Phase.AncientChoiceCommit:
                 if(m.Revision!=WorldRevision || Busy)throw new InvalidOperationException("先古选择顺序与房主不同，请重新加入");
                 var choice=JsonSerializer.Deserialize<AncientChoiceData>(m.Payload) ?? throw new InvalidOperationException("选择内容缺失");
@@ -232,12 +279,36 @@ public static class HostCoordinator
         Status="等待当前动作完成";Changed?.Invoke();TaskHelper.RunSafely(Execute(kind,checkpoint,percent,actor));
     }
     public static void SubmitAncientChoice(int index) {
-        if(Busy || _choicePending || !AncientService.IsAncientRoom)return;
+        if(Busy || _choicePending || !AncientService.IsAncientRoom) {
+            Log.Warn($"[NoSuffering] Ancient choice blocked index={index} busy={Busy} pending={_choicePending} ancient={AncientService.IsAncientRoom}");
+            AncientService.RestoreRejectedLocalChoice();return;
+        }
         OnRunReady();
-        var choice=new AncientChoiceData(_net!.NetId,index,AncientService.ChoiceContext(_net.NetId));
+        var model=RunManager.Instance.EventSynchronizer.GetLocalEvent();
+        if(index<0 || index>=model.CurrentOptions.Count){AncientService.RestoreRejectedLocalChoice();return;}
+        var option=model.CurrentOptions[index];
         _choicePending=true;
-        if(IsHost)AcceptChoice(choice,_net.NetId);
-        else _net.SendMessage(Message(Phase.AncientChoiceRequest,JsonSerializer.Serialize(choice)));
+        TaskHelper.RunSafely(SendAncientChoice(index,model,option,_net!,++_choiceRequest));
+    }
+    private static async Task SendAncientChoice(int index,EventModel model,MegaCrit.Sts2.Core.Events.EventOption option,INetGameService net,long request) {
+        try {
+            // A first click can precede the launch Hello/State roundtrip. Sending
+            // with an empty epoch would be dropped before request validation.
+            if(!IsHost && _epoch.Length==0)await Wait(()=>_epoch.Length>0 || request!=_choiceRequest,"房主会话尚未同步，请重新选择");
+            if(request!=_choiceRequest)return;
+            if(!ReferenceEquals(net,_net) || !AncientService.IsAncientRoom || Busy ||
+                !ReferenceEquals(model,RunManager.Instance.EventSynchronizer.GetLocalEvent()) ||
+                index>=model.CurrentOptions.Count || !ReferenceEquals(option,model.CurrentOptions[index]))
+                throw new InvalidOperationException("先古奖励已刷新，请重新选择");
+            var choice=new AncientChoiceData(net.NetId,index,AncientService.ChoiceContext(net.NetId));
+            Log.Info($"[NoSuffering] Ancient choice submit actor={choice.Actor} index={index} context={choice.Context} epoch={_epoch} revision={WorldRevision}");
+            if(IsHost)AcceptChoice(choice,net.NetId);
+            else net.SendMessage(Message(Phase.AncientChoiceRequest,JsonSerializer.Serialize(choice)));
+        } catch(Exception e) {
+            if(request!=_choiceRequest)return;
+            _choicePending=false;AncientService.RestoreRejectedLocalChoice();Status=e.Message;Changed?.Invoke();
+            Log.Warn("[NoSuffering] Ancient choice send failed: "+e);
+        }
     }
     private static void AcceptChoice(AncientChoiceData choice,ulong sender) {
         try {
@@ -253,6 +324,7 @@ public static class HostCoordinator
             AncientService.Choose(sender,choice.Index,choice.Context);
             if(sender==_net.NetId)_choicePending=false;
         } catch(Exception e) {
+            Log.Warn($"[NoSuffering] Ancient choice rejected actor={choice.Actor} sender={sender} index={choice.Index} requested={choice.Context} current={(AncientService.IsAncientRoom?AncientService.ChoiceContext(sender):"outside ancient room")} busy={Busy}: {e.Message}");
             if(sender==_net!.NetId){_choicePending=false;AncientService.RestoreRejectedLocalChoice();Status=e.Message;Changed?.Invoke();}
             else _net.SendMessage(Message(Phase.RequestRejected,e.Message),sender);
         }
@@ -294,7 +366,10 @@ public static class HostCoordinator
             await Apply(data);
             var digest=Digest();Done[_net.NetId]=digest;
             await Wait(()=>Done.Count==Bridge.State.Players.Count,"有玩家未完成加载");
-            if(Done.Values.Any(d=>d!=digest))throw new InvalidOperationException("全队状态不一致，请保存后重新加入");
+            if(Done.Values.Any(d=>d!=digest)) {
+                foreach(var peer in Done.Where(p=>p.Value!=digest))Log.Error($"[NoSuffering] Digest mismatch operation={_activeOperation} kind={kind} peer={peer.Key} local={digest} remote={peer.Value}");
+                throw new InvalidOperationException("全队状态不一致，请保存后重新加入");
+            }
             if(kind==CoreOperation.MapRollback)CheckpointService.CommittedRollback(checkpoint);
             // A native multi-page reward can be committed without being finished.
             // Native saves cannot restore that continuation. Retain the paid live
@@ -314,10 +389,11 @@ public static class HostCoordinator
                 if(_net?.Type==NetGameType.Host)_net.SendMessage(Message(Phase.Abort,e.Message));
             }
             else {
-                // Never let only some peers continue the abandoned world.
-                // The preserved native save is the recovery point for native rejoin.
+                // Native multiplayer loading waits for all peers. A host-only
+                // recovery reload cannot finish; disconnect through native menu
+                // recovery and retain the last paired save for rejoin instead.
                 CheckpointService.Restore(oldTimeline!);
-                if(recovery is not null) {
+                if(_net?.Type==NetGameType.Singleplayer && recovery is not null) {
                     try{await Bridge.LoadAsync(Bridge.Thaw(recovery));}catch(Exception load){Log.Error("[NoSuffering] Recovery failed: "+load);}
                 }
                 if(_net?.Type==NetGameType.Host)_net.Disconnect(NetError.StateDivergence);
@@ -390,7 +466,13 @@ public static class HostCoordinator
         }
         string native=Bridge.Freeze(s),ancient=JsonSerializer.Serialize(AncientService.CaptureState()),shop=JsonSerializer.Serialize(ShopService.CaptureState()),boss=JsonSerializer.Serialize(BossHealthService.CaptureState());
         Diagnostics.MultiplayerProbe.RecordDigest(native,ancient,shop,boss);
-        return Bridge.Hash(CanonicalJson(native)+CanonicalJson(JsonSerializer.Serialize(CombatService.CurrentOrderDigests))+CanonicalJson(ancient)+CanonicalJson(shop)+CanonicalJson(boss));
+        // Component hashes identify the affected state without logging saves or
+        // weakening any compared fields. Peers compare the complete manifest.
+        return JsonSerializer.Serialize(new {
+            Native=Bridge.Hash(CanonicalJson(native)),
+            Combat=Bridge.Hash(CanonicalJson(JsonSerializer.Serialize(CombatService.CurrentOrderDigests))),
+            Ancient=Bridge.Hash(CanonicalJson(ancient)),Shop=Bridge.Hash(CanonicalJson(shop)),Boss=Bridge.Hash(CanonicalJson(boss))
+        });
     }
     private static string CanonicalJson(string json)
     {
@@ -432,9 +514,15 @@ public static class HostCoordinator
     [HarmonyPatch(typeof(NetClientGameService),MethodType.Constructor,[typeof(MegaCrit.Sts2.Core.Multiplayer.PeerVersionInfo)])]
 #endif
     private static class AttachClient{static void Postfix(NetClientGameService __instance)=>Attach(__instance);}
+    [HarmonyPatch(typeof(RunManager),nameof(RunManager.SetUpNewMultiplayer))]
+    private static class NewSessionIdentity
+    {
+        static void Postfix()=>_freshRunIdentityPending=RunManager.Instance.NetService.Type==NetGameType.Client;
+    }
     [HarmonyPatch(typeof(RunManager),nameof(RunManager.SetUpSavedMultiplayer))]
     private static class SavedSessionReady
     {
+        static void Prefix()=>_freshRunIdentityPending=false;
         static void Postfix(ref Task __result)=>__result=BeforeRoomFactory(__result);
         static async Task BeforeRoomFactory(Task setup)
         {

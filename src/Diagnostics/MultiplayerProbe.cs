@@ -12,8 +12,10 @@ using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Characters;
+using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Nodes;
+using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Events;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
@@ -21,6 +23,7 @@ using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens;
+using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Runs;
@@ -43,6 +46,8 @@ public static class MultiplayerProbe
 {
     private static string Role = "", Root = "", SeedStage = "";
     private static bool Enabled, Requested;
+    private static bool InjectDigestMismatch;
+    private static long InitialNativeStartTime;
     private static readonly Dictionary<string,string> Results = new();
     private static ulong Me => RunManager.Instance.NetService.NetId;
     private static bool Host => Role == "host";
@@ -96,6 +101,36 @@ public static class MultiplayerProbe
             if (Enabled) { address = "127.0.0.1"; Log.Info("[NoSuffering] MP_PROBE_BIND 127.0.0.1"); }
         }
     }
+    [HarmonyPatch(typeof(AncientEventModel), "GenerateInitialOptionsWrapper")]
+    private static class SeedInitialRewardFixture
+    {
+        static void Prefix(AncientEventModel __instance)
+        {
+            if (Enabled && SeedStage == "first")
+                __instance.DebugOption = __instance.Owner?.NetId == 2 ? "SILKEN_TRESS" : "HEFTY_TABLET";
+        }
+    }
+    [HarmonyPatch(typeof(RunManager), nameof(RunManager.SetUpNewMultiplayer))]
+    private static class DifferentNativeStartTimeFixture
+    {
+        static void Postfix(RunManager __instance)
+        {
+            if (!Enabled) return;
+            // Native setup uses each machine's local UTC second. Give the two
+            // real peers deterministic distinct seconds before Launch/State.
+            InitialNativeStartTime=1800000000L+(Host?0:2);
+            AccessTools.Field(typeof(RunManager),"_startTime").SetValue(__instance,InitialNativeStartTime);
+            Log.Info($"[NoSuffering] MP_PROBE initial native start time role={Role} value={InitialNativeStartTime} run={Bridge.RunKey}");
+        }
+    }
+    [HarmonyPatch(typeof(HostCoordinator), "Digest")]
+    private static class DigestMismatchFixture
+    {
+        static void Postfix(ref string __result)
+        {
+            if (Enabled && InjectDigestMismatch && !Host) __result="LAB_INJECTED_MISMATCH";
+        }
+    }
     private static async Task Run(SceneTree tree)
     {
         string[] checks = ["native_two_peer_start", "authenticated_ancient_choice", "client_F03_after_host_claim",
@@ -127,6 +162,16 @@ public static class MultiplayerProbe
             if (Host) ConfigStore.ChangeRules(r => r with { EnableAncientOptionsReroll=true, OptionsCostMode=RefreshCostMode.Hp,
                 OptionsHpCost=3,EnableShopReroll=true,EnableBossHealthIncrease=true,EnableCombatRestart=true,EnableCombatReroll=true,EnableMapRollback=true });
             await Barrier("run");
+            await Wait(()=>((string)AccessTools.Field(typeof(HostCoordinator),"_epoch").GetValue(null)!).Length>0,"initial authenticated session despite distinct native start times");
+            Require(RunManager.Instance.ToSave(null).StartTime==1800000000L,"Native client did not adopt host run start time.");
+            Require(InitialNativeStartTime==(Host?1800000000L:1800000002L),"Native distinct-start-time fixture did not run.");
+            File.WriteAllText(Path.Combine(Root,"initial-session-"+Role+".json"),JsonSerializer.Serialize(new {initialStartTime=InitialNativeStartTime,canonicalStartTime=RunManager.Instance.ToSave(null).StartTime,run=Bridge.RunKey,epoch=(string)AccessTools.Field(typeof(HostCoordinator),"_epoch").GetValue(null)!}));
+            await Barrier("initial_session_converged");
+            Require(File.ReadAllText(Path.Combine(Root,"initial-session-host.json")).Contains(Bridge.RunKey)&&
+                File.ReadAllText(Path.Combine(Root,"initial-session-client.json")).Contains(Bridge.RunKey),"Native peers did not converge on one run key.");
+            using(var hostSession=JsonDocument.Parse(File.ReadAllText(Path.Combine(Root,"initial-session-host.json"))))
+            using(var clientSession=JsonDocument.Parse(File.ReadAllText(Path.Combine(Root,"initial-session-client.json"))))
+                Require(hostSession.RootElement.GetProperty("epoch").GetString()==clientSession.RootElement.GetProperty("epoch").GetString(),"Native peers did not converge on one host epoch.");
             if (!AncientService.IsAncientRoom) await Timed(RunManager.Instance.EnterMapCoord(Bridge.State.Map.StartingMapPoint.coord), "initial ancient");
             await Wait(() => AncientService.IsAncientRoom && RunManager.Instance.EventSynchronizer.Events.Count==Bridge.State.Players.Count && RunManager.Instance.EventSynchronizer.Events.All(e => e.CurrentOptions.Count > 0), "native ancient models");
             await Barrier("ancient");
@@ -331,10 +376,60 @@ public static class MultiplayerProbe
     {
         if(Host)ConfigStore.ChangeRules(r=>r with {EnableShopReroll=true});
         await Barrier("seed_first_run");
+        if(Host)
+        {
+            await Wait(()=>NEventRoom.Instance?.Layout?.OptionButtons.Any(b=>b.Option.Relic?.Id.Entry=="HEFTY_TABLET")==true,"initial Hefty Tablet button");
+            NEventRoom.Instance!.Layout!.OptionButtons.First(b=>b.Option.Relic?.Id.Entry=="HEFTY_TABLET").Call(NEventOptionButton.MethodName.OnRelease);
+            await Wait(()=>Find<NChooseACardSelectionScreen>(NGame.Instance!)!=null,"native Hefty Tablet reward choice");
+            await Frames(30);
+            var choice=Find<NChooseACardSelectionScreen>(NGame.Instance!)!;
+            AccessTools.Method(typeof(NChooseACardSelectionScreen),"SelectHolder").Invoke(choice,[Descendants<NCardHolder>(choice).First(h=>h.CardModel!=null)]);
+        }
+        await Wait(()=>Event(1).IsFinished,"host initial reward");
+        Require(Player(1).Deck.Cards.Any(c=>c is Injury),"Native Hefty Tablet did not grant Injury.");
+        if(Host)HostCoordinator.RulesChanged();
+        await Barrier("seed_host_claim_state_broadcast");
+        await Frames(30);
+        // Exercise the real initial native button while the client is waiting
+        // for its authenticated operation session, before any mod operation.
+        if(!Host)
+        {
+            await Wait(()=>NEventRoom.Instance?.Layout?.OptionButtons.Any(b=>b.Option.Relic?.Id.Entry=="SILKEN_TRESS")==true,"initial Silken Tress button");
+            AccessTools.Field(typeof(HostCoordinator),"_epoch").SetValue(null,"LAB_STALE_EPOCH");
+            NEventRoom.Instance!.Layout!.OptionButtons.First(b=>b.Option.Relic?.Id.Entry=="SILKEN_TRESS").Call(NEventOptionButton.MethodName.OnRelease);
+            await Wait(()=>!(bool)AccessTools.Field(typeof(HostCoordinator),"_choicePending").GetValue(null)!&&
+                NEventRoom.Instance?.Layout?.OptionButtons.Any(b=>b.Option.Relic?.Id.Entry=="SILKEN_TRESS")==true,"stale-session choice restored native buttons");
+            Require(!Event(2).IsFinished && Player(2).Relics.All(r=>r is not SilkenTress),"Stale-session choice committed a native reward.");
+            AccessTools.Field(typeof(HostCoordinator),"_epoch").SetValue(null,"");
+            NEventRoom.Instance!.Layout!.OptionButtons.First(b=>b.Option.Relic?.Id.Entry=="SILKEN_TRESS").Call(NEventOptionButton.MethodName.OnRelease);
+        }
+        await Wait(()=>Event(2).IsFinished && Player(2).Relics.Any(r=>r is SilkenTress),"initial waiting-session Silken Tress native choice");
+        Require(Event(1).IsFinished && Player(2).Gold==0,"Personal initial choice lost host claim or failed native gold effect.");
+        await Wait(()=>!(bool)AccessTools.Field(typeof(HostCoordinator),"_choicePending").GetValue(null)!,"initial choice released");
+        await Barrier("seed_initial_choice");
+        await Timed(PlayerCmd.SetGold(10000,Player(1)),"host removal gold fixture");
         var shop=Bridge.State.Map.GetAllMapPoints().First(p=>p.PointType==MapPointType.Shop);
         await Timed(RunManager.Instance.EnterMapCoord(shop.coord),"seed initial shop fixture");
+        await Barrier("seed_natural_shop");
+        long beforeRemoval=HostCoordinator.WorldRevision;
+        if(Host)
+        {
+            var inventory=((MerchantRoom)Bridge.State.CurrentRoom!).GetLocalInventory();
+            var removal=inventory.CardRemovalEntry!.OnTryPurchaseWrapper(inventory);
+            await Wait(()=>Find<NDeckCardSelectScreen>(NGame.Instance!)!=null,"native merchant removal grid");
+            var selection=Find<NDeckCardSelectScreen>(NGame.Instance!)!;
+            AccessTools.Method(typeof(NDeckCardSelectScreen),"OnCardClicked").Invoke(selection,[Player(1).Deck.Cards.Single(c=>c is Injury)]);
+            selection.Call(NDeckCardSelectScreen.MethodName.CheckIfSelectionComplete);
+            Require(await removal,"Native host Injury removal failed.");
+        }
+        await Wait(()=>HostCoordinator.WorldRevision==beforeRemoval+1&&!HostCoordinator.Busy,"natural host removal native save");
+        Require(HostCoordinator.Status=="操作完成" && Player(1).Deck.Cards.All(c=>c is not Injury),"Natural host removal did not synchronize.");
+        await Barrier("seed_natural_removal_saved");
+        var secondShop=Bridge.State.Map.GetAllMapPoints().First(p=>p.PointType==MapPointType.Shop&&p.coord!=shop.coord);
+        await Timed(RunManager.Instance.EnterMapCoord(secondShop.coord),"seed second shop fixture");
+        await Barrier("seed_second_shop");
         await Operation(CoreOperation.ShopReroll,1,"seed_first_refresh");
-        Require(HostCoordinator.WorldRevision==1,"Fresh fixture did not use first committed operation.");
+        Require(HostCoordinator.WorldRevision==2,"Natural removal and first reroll did not commit independently.");
         await Timed(RelicCmd.Obtain<TheCourier>(Player(2)),"fresh-process Courier fixture");
         await Timed(PlayerCmd.SetGold(10000,Player(2)),"fresh-process purchase gold fixture");
         await Barrier("seed_purchase_fixture");
@@ -344,14 +439,14 @@ public static class MultiplayerProbe
             Require(await inv.CharacterCardEntries.First(e=>e.IsStocked&&e.Cost>0).OnTryPurchaseWrapper(inv),"Fresh-process native client purchase failed.");
         }
         await Barrier("seed_purchase_persisted");
-        Require(HostCoordinator.WorldRevision==2 && !HostCoordinator.Busy,"Purchase did not commit its own native save boundary.");
+        Require(HostCoordinator.WorldRevision==3 && !HostCoordinator.Busy,"Purchase did not commit its own native save boundary.");
         var proof=new SeedProof(ShopService.CaptureState()!.Players[1].Seed,HostCoordinator.WorldRevision,Player(2).Gold,Player(2).Deck.Cards.Count);
         File.WriteAllText(Path.Combine(Root,"seed-proof-"+Role+".json"),JsonSerializer.Serialize(proof));
         File.WriteAllText(Path.Combine(Root,"seed-stock-"+Role+".json"),JsonSerializer.Serialize(ShopService.CaptureState()));
         // Deliberately no extra save or user operation after purchase: quit must
         // preserve the purchase through its own authenticated persistence boundary.
         await Barrier("seed_first_saved");
-        Pass("fresh_process_seed_first","first reroll then native client Courier purchase committed its own disk save before process exit");
+        Pass("fresh_process_seed_first","native host Hefty Tablet claim and State broadcast; stale-session button recovery and waiting-session Silken Tress retry; natural merchant Injury deletion; reroll and client Courier purchase committed separate native saves");
     }
     private static async Task ResumeSeed(SceneTree tree)
     {
@@ -376,7 +471,23 @@ public static class MultiplayerProbe
         Require(ShopService.CaptureState()!.Players[1].Seed!=proof.Seed,"First reroll in new process reused prior seed.");
         Require(HostCoordinator.WorldRevision==proof.Revision+1,"Fresh process did not advance persisted revision.");
         await Barrier("seed_resume_complete");
-        Pass("fresh_process_seed_resume","actual exited/restarted native peers loaded saved run and first reroll used a distinct persisted-revision seed");
+        string SavedPairFingerprint()
+        {
+            string user=OS.GetUserDataDir();
+            var native=Directory.GetFiles(user,"current_run_mp.save",SearchOption.AllDirectories).Single();
+            var companion=Directory.GetFiles(Path.Combine(user,"NoSuffering","runs"),"*.json",SearchOption.AllDirectories);
+            Require(companion.Length>0,"No paired companion file before injected failure.");
+            return string.Join("|",companion.Append(native).OrderBy(p=>p,StringComparer.Ordinal)
+                .Select(p=>Path.GetRelativePath(user,p)+":"+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(p)))));
+        }
+        string? savedPair=Host?SavedPairFingerprint():null;
+        InjectDigestMismatch=true;
+        await Barrier("seed_mismatch_ready");
+        if(Host)HostCoordinator.Submit(CoreOperation.ShopReroll);
+        await Wait(()=>NGame.Instance?.MainMenu!=null&&!HostCoordinator.Busy,"digest mismatch native disconnect to menu",15);
+        if(Host)Require(SavedPairFingerprint()==savedPair,"Committed mismatch changed the last paired native/companion save files.");
+        await Barrier("seed_mismatch_disconnected");
+        Pass("fresh_process_seed_resume","fresh native peers retained owner stock and advanced seed; injected digest mismatch released both to native menu within 15 seconds and preserved all last paired native/companion file hashes");
     }
     public static void RecordDigest(string native, string ancient, string shop, string boss)
     {

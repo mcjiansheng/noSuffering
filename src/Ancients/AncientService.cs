@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Saves;
 using NoSuffering.Multiplayer;
 using HarmonyLib;
@@ -108,6 +109,7 @@ public static class AncientService
         var model = RunManager.Instance.EventSynchronizer.GetEventForPlayer(player);
         if (model.IsFinished || index < 0 || index >= model.CurrentOptions.Count || model.CurrentOptions[index].WasChosen)
             throw new InvalidOperationException("先古奖励选项已失效");
+        Log.Info($"[NoSuffering] Ancient choice execute actor={playerId} index={index} option={model.CurrentOptions[index]} context={context}");
         AccessTools.Method(typeof(EventSynchronizer), "ChooseOptionForEvent").Invoke(RunManager.Instance.EventSynchronizer, [player, index]);
     }
 
@@ -267,6 +269,7 @@ public static class AncientService
             if (_state?.Context != Context) _state = new(Context, __instance.Id.Entry, 0, 0, 0, false, []);
             var player = __instance.Owner!;
             _state.GenerationHp[player.NetId] = player.Creature.CurrentHp;
+            Log.Info($"[NoSuffering] Ancient generation captured actor={player.NetId} ancient={__instance.Id.Entry} context={Context}");
             _state.Players[player.NetId] = new(0, player.Creature.CurrentHp, 0, false, false,
                 WriteRng(__instance.Rng),
                 WriteRng(player.PlayerRng.Rewards));
@@ -350,6 +353,43 @@ public static class AncientService
         }
     }
 
+#if STS2_STABLE
+    [HarmonyPatch(typeof(EventSynchronizer), nameof(EventSynchronizer.AwaitPendingOptionTasks))]
+#else
+    [HarmonyPatch(typeof(EventSynchronizer), nameof(EventSynchronizer.BeforeExitingRoom))]
+#endif
+    private static class PersistSettledChoicesPatch
+    {
+#if STS2_STABLE
+        // Stable's EventRoom.Exit drains the same tasks, then cleans up models
+        // directly; it has no BeforeExitingRoom callback.
+        private static void Postfix(EventSynchronizer __instance, ref Task __result) => __result = AfterDrain(__result, __instance);
+        private static async Task AfterDrain(Task pending, EventSynchronizer synchronizer)
+        {
+            await pending;
+            Persist(synchronizer);
+        }
+#else
+        private static void Prefix(EventSynchronizer __instance) => Persist(__instance);
+#endif
+        private static void Persist(EventSynchronizer __instance)
+        {
+            // Native EventRoom.Exit has drained option tasks at this point, but
+            // RunManager has already popped the room and advanced MapLocation.
+            // Persist the models' settled facts on every peer before cleanup;
+            // later CaptureState must not depend on a prior State broadcast.
+            // A snapshot restore owns its supplied record, not the outgoing UI.
+            if (_busy || _restorePending || _state is null ||
+                CanonicalField.GetValue(__instance) is not AncientEventModel ancient || ancient.Id.Entry != _state.AncientId) return;
+            foreach (var model in __instance.Events)
+            {
+                if (model.Owner is { } owner && _state.Players.TryGetValue(owner.NetId, out var saved))
+                    _state.Players[owner.NetId] = saved with { Finished = model.IsFinished };
+            }
+            Log.Info($"[NoSuffering] Ancient completion settled context={_state.Context} players={string.Join(",",_state.Players.Select(p=>$"{p.Key}:{p.Value.Finished}"))}");
+        }
+    }
+
     [HarmonyPatch(typeof(EventSynchronizer), "ChooseOptionForEvent")]
     private static class RewardCommitPatch
     {
@@ -380,7 +420,9 @@ public static class AncientService
             // action intact, including custom event layouts supplied by other mods.
             if (option.IsProceed) return !_busy && !HostCoordinator.Busy;
             var options = RunManager.Instance.EventSynchronizer.GetLocalEvent().CurrentOptions;
-            return !_busy && !HostCoordinator.Busy && index >= 0 && index < options.Count && ReferenceEquals(option, options[index]);
+            bool accepted = !_busy && !HostCoordinator.Busy && index >= 0 && index < options.Count && ReferenceEquals(option, options[index]);
+            if (!accepted) Log.Warn($"[NoSuffering] Ancient button rejected index={index} option={option} generationBusy={_busy} operationBusy={HostCoordinator.Busy} count={options.Count} sameOption={index>=0 && index<options.Count && ReferenceEquals(option,options[index])} context={ChoiceContext(RunManager.Instance.NetService.NetId)}");
+            return accepted;
         }
     }
 
@@ -390,7 +432,7 @@ public static class AncientService
         private static bool Prefix(int index)
         {
             if (!IsAncientRoom) return true;
-            if (!HostCoordinator.Busy) HostCoordinator.SubmitAncientChoice(index);
+            HostCoordinator.SubmitAncientChoice(index);
             return false;
         }
     }

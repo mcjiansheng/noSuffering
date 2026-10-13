@@ -455,11 +455,25 @@ public static class HostCoordinator
             player.DiscoveredCards=[];player.DiscoveredEnemies=[];player.DiscoveredEpochs=[];
             player.DiscoveredPotions=[];player.DiscoveredRelics=[];
         }
-        foreach(var stats in s.MapPointHistory.SelectMany(act=>act).SelectMany(point=>point.PlayerStats))
+        foreach(var point in s.MapPointHistory.SelectMany(act=>act))
+        foreach(var stats in point.PlayerStats)
         {
             // Native purchase packets convey gold lost, but not the local shop's
             // spending reason. Compare total loss without the owner-only label.
             stats.GoldLost+=stats.GoldSpent;stats.GoldSpent=0;
+            // Native merchant wrappers record purchase provenance only on the
+            // buyer; remote reward packets do not transmit these history lists.
+            // Normalize this deep-cloned comparison only, retaining saved history
+            // and the full live deck, relics, gold, RNG and stock comparison.
+            stats.BoughtRelics=[];stats.BoughtColorless=[];
+            // Merchant exit derives skipped offers from each peer's local stock;
+            // remote stock does not clear/restock with native purchase packets.
+            // These history annotations are not a shared gameplay state.
+            if(point.HasRoomOfType(RoomType.Shop)) {
+                stats.CardChoices.RemoveAll(choice=>!choice.wasPicked);
+                stats.RelicChoices.RemoveAll(choice=>!choice.wasPicked);
+                stats.PotionChoices.RemoveAll(choice=>!choice.wasPicked);
+            }
             // Native remote reward history omits this local history annotation;
             // the live deck, card identity and upgrades remain fully compared.
             foreach(var card in stats.CardsGained)card.FloorAddedToDeck=null;

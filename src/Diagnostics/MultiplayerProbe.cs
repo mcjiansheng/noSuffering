@@ -425,11 +425,22 @@ public static class MultiplayerProbe
         await Wait(()=>HostCoordinator.WorldRevision==beforeRemoval+1&&!HostCoordinator.Busy,"natural host removal native save");
         Require(HostCoordinator.Status=="操作完成" && Player(1).Deck.Cards.All(c=>c is not Injury),"Natural host removal did not synchronize.");
         await Barrier("seed_natural_removal_saved");
+        if(Host)
+        {
+            var inventory=((MerchantRoom)Bridge.State.CurrentRoom!).GetLocalInventory();
+            var entry=inventory.ColorlessCardEntries.First(e=>e.IsStocked&&e.Cost>0);
+            var bought=entry.CreationResult!.Card.Id;
+            Require(await entry.OnTryPurchaseWrapper(inventory),"Native host colorless purchase failed.");
+            Require(RunManager.Instance.ToSave(null).MapPointHistory.SelectMany(a=>a).SelectMany(p=>p.PlayerStats)
+                .Any(p=>p.BoughtColorless.Contains(bought)),"Digest erased native colorless purchase history.");
+        }
+        await Barrier("seed_host_colorless_saved");
+        await Wait(()=>HostCoordinator.WorldRevision==2&&!HostCoordinator.Busy,"host colorless purchase release");
         var secondShop=Bridge.State.Map.GetAllMapPoints().First(p=>p.PointType==MapPointType.Shop&&p.coord!=shop.coord);
         await Timed(RunManager.Instance.EnterMapCoord(secondShop.coord),"seed second shop fixture");
         await Barrier("seed_second_shop");
         await Operation(CoreOperation.ShopReroll,1,"seed_first_refresh");
-        Require(HostCoordinator.WorldRevision==2,"Natural removal and first reroll did not commit independently.");
+        Require(HostCoordinator.WorldRevision==3,"Natural removal, colorless purchase and first reroll did not commit independently.");
         await Timed(RelicCmd.Obtain<TheCourier>(Player(2)),"fresh-process Courier fixture");
         await Timed(PlayerCmd.SetGold(10000,Player(2)),"fresh-process purchase gold fixture");
         await Barrier("seed_purchase_fixture");
@@ -439,14 +450,25 @@ public static class MultiplayerProbe
             Require(await inv.CharacterCardEntries.First(e=>e.IsStocked&&e.Cost>0).OnTryPurchaseWrapper(inv),"Fresh-process native client purchase failed.");
         }
         await Barrier("seed_purchase_persisted");
-        Require(HostCoordinator.WorldRevision==3 && !HostCoordinator.Busy,"Purchase did not commit its own native save boundary.");
+        Require(HostCoordinator.WorldRevision==4 && !HostCoordinator.Busy,"Purchase did not commit its own native save boundary.");
+        if(!Host)
+        {
+            var inventory=((MerchantRoom)Bridge.State.CurrentRoom!).GetLocalInventory();
+            var entry=inventory.RelicEntries.First(e=>e.IsStocked&&e.Cost>0);
+            var bought=entry.Model!.Id;
+            Require(await entry.OnTryPurchaseWrapper(inventory),"Native client relic purchase failed.");
+            Require(RunManager.Instance.ToSave(null).MapPointHistory.SelectMany(a=>a).SelectMany(p=>p.PlayerStats)
+                .Any(p=>p.BoughtRelics.Contains(bought)),"Digest erased native relic purchase history.");
+        }
+        await Barrier("seed_client_relic_saved");
+        await Wait(()=>HostCoordinator.WorldRevision==5&&!HostCoordinator.Busy,"client relic purchase release");
         var proof=new SeedProof(ShopService.CaptureState()!.Players[1].Seed,HostCoordinator.WorldRevision,Player(2).Gold,Player(2).Deck.Cards.Count);
         File.WriteAllText(Path.Combine(Root,"seed-proof-"+Role+".json"),JsonSerializer.Serialize(proof));
         File.WriteAllText(Path.Combine(Root,"seed-stock-"+Role+".json"),JsonSerializer.Serialize(ShopService.CaptureState()));
         // Deliberately no extra save or user operation after purchase: quit must
         // preserve the purchase through its own authenticated persistence boundary.
         await Barrier("seed_first_saved");
-        Pass("fresh_process_seed_first","native host Hefty Tablet claim and State broadcast; stale-session button recovery and waiting-session Silken Tress retry; natural merchant Injury deletion; reroll and client Courier purchase committed separate native saves");
+        Pass("fresh_process_seed_first","native host Hefty Tablet claim and State broadcast; stale-session button recovery and waiting-session Silken Tress retry; natural merchant Injury deletion; host colorless purchase; reroll and client Courier card/relic purchases committed separate native saves, preserving native purchase history");
     }
     private static async Task ResumeSeed(SceneTree tree)
     {

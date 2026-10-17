@@ -127,4 +127,20 @@ Mac／Windows beta 独立测试环境已安装 0.1.13，正在进行原存档的
 
 加载屏障修复已通过 Mac beta／正式版实际程序集构建和生产消息处理器定向回归，独立审查未发现阻止部署的问题。四目标构建完成。首轮原生 localhost 探针复制了 LAN 模组，原生 SaveRun 被正确写入 LAN 专用 current_lan_run_mp.save，而 fastmp 探针直接读取 current_run_mp.save，因此磁盘配对步骤失败，加载屏障尚未执行。增加 `mp-lab.py --core-only`，仅在新建探针副本中保留 NoSuffering；原测试环境保持 LAN，继续通过菜单进行双机验证。
 
-加载修复的 Mac beta 原生双进程回归通过（`mp-20261017-163002/run-record.json`）：双方七项操作相关探针完成，包含个人先古奖励、原生领取与继续、个人商店刷新、送货员购买锁定、商店磁盘继续、胜利奖励回滚、Boss 加血、普通／新牌序重开和地图回滚。该探针通过原生 ENet localhost 和直接房间入口执行；跨机器菜单与真人式整局继续单独记录。
+上一商店修复构建的 Mac beta 原生双进程回归通过（`mp-20261017-163002/run-record.json`，后续发现 stage 仍为 `29b1f09`，未包含新加载屏障）：双方七项操作相关探针完成，包含个人先古奖励、原生领取与继续、个人商店刷新、送货员购买锁定、商店磁盘继续、胜利奖励回滚、Boss 加血、普通／新牌序重开和地图回滚。该探针通过原生 ENet localhost 和直接房间入口执行；跨机器菜单与真人式整局继续单独记录。
+
+构建交接纠正：子任务 dotnet 编译产物未自动更新 scripts/build.py 的 artifact stage；Mac 此次安装仍为 `29b1f09...`，Windows 为 `831c8fe...`，operation 1 收到的 phase=12 在旧 Mac 枚举中显示为数值。该混合构建双机回滚未完成，撤销其加载屏障验收归属。重新通过正式构建脚本生成 stage，并逐项核对安装指纹后重测；代码定向 fixture 的结果保留。
+
+正式 stage 更新为 Mac beta `f17617524cd6ce0120c9b6b21a6e05364dba1aa4453846b09d5202fff6dc7df9`、Mac public `36463e741c1ee32151b6e35320e5f849cf19280868127db769f26de54c4a8cbe`；Windows beta `831c8fe71ee6b98942bb906a2a9600d1b70acec06a621468365094986094b53a`、Windows public `c4c9ff9bb38ec11477d60ae8740f075c047b30e62eb52a189121b52b7ac04d5f`。Mac 与 Windows beta 安装文件分别与其 stage 一致。
+
+新屏障首轮 core-only 探针在商店磁盘继续时失败，原因是探针先故意请求刷新已购商店，保留了“购买后不能刷新商店”的上一操作失败状态；探针随后绕过正常 Execute，直接调用加载。调整探针顺序，先检查磁盘继续，再执行拒绝刷新断言，保留生产失败处理。证据 `mp-20261017-163818`。
+
+Mac／Windows beta 修复版实际 Computer Use 商店回归通过：operation 1 revision 10、operation 2 revision 11 连续两次回滚本商店，均完成 LoadInstalled／原生同步／Done／原生保存。双方库存恢复入场内容且可打开。客机删打击 75 金币后 131→56、12→11 张；房主删打击后 132→57、13→12 张，均锁定本人刷新并完成提交。第三次回滚 operation 5 revision 13 后，房主恢复 132 金币／13 张／删牌75；继续检查客机报告。证据 `mac-013-load-barrier-verified-engine.log`、对应 Windows 日志和命令26–28。房主通过原生保存退出，切换空存档2创建全新标准联机局，以保留存档1定向回归现场。
+
+新标准联机局使用 Mac 空存档2与 Windows 原客机，种子 `Z0PREH9A8597`，双方铁甲战士 A0、80/80、99 金币、10 张牌。原生首局流程直接打开地图，没有涅奥；本局开局涅奥检查记为不可用，先前实际涅奥回归另列。第一场大颚虫 101/101、12攻击：房主初始防御／防御／打击／痛击／打击，客机防御／打击／痛击／打击／防御。普通重开 operation1 保持；刷新重开 operation2 后房主打击／防御／防御／打击／打击，客机打击／打击／防御／打击／痛击；普通重开 operation3 保留新尝试。双方资源和敌人保持，均完成原生同步与保存。随后尝试保存退出，但未取得菜单完成画面且日志未记录完成；最终通过原生 Cmd+Q 关闭游戏，使用此前 operation3 已写入的存档进行跨进程核对。不能将本步骤记为已完成的保存退出检查。
+
+Windows beta／public 最新探针构建和原生 localhost ENet 已通过：`mp-20261017-164030`（v0.111.0）、`mp-20261017-164152`（v0.107.1）；双方各13项通过、进程退出0、隔离目录确认，使用 `--core-only`。
+
+最终诊断探针构建的四目标原生 ENet 回归全部通过：Mac beta `mp-20261017-170501`／public `mp-20261017-170556`，Windows beta `mp-20261017-164030`／public `mp-20261017-164152`。每侧13项通过、退出0、隔离目录确认。Mac beta DLL `4f0e78cf5e8e2d687bd5ede4e6e9aa33eee084f5cc8e66e24260fa0aac2a56a0`；Mac public `ac207995550901767dc27edc1de130f43a1cd75eb21e440fab9cfa41f36a9e4d`；Windows beta `78f73ac2...140a51d`、public `a1b15dbd...88bd56`（完整值见构建记录）。
+
+计划关闭 Mac 应用时，房主日志记录 `NGame.Quit`、`Stopping host. Reason: Quit. Now: True`，客机显示 UnknownNetworkError。此时未发生游戏中摘要差异；保留客机通知并核对 LAN／原生退出原因映射。

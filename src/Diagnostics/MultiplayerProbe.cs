@@ -263,11 +263,6 @@ public static class MultiplayerProbe
             File.WriteAllText(Path.Combine(Root,$"stock-{Role}.json"),ownerStock);
             await Barrier("owner_stock");
             Require(File.ReadAllText(Path.Combine(Root,"stock-host.json"))==File.ReadAllText(Path.Combine(Root,"stock-client.json")),"Courier owner stock differs between peers.");
-            long beforeReject=HostCoordinator.WorldRevision;
-            if (!Host) HostCoordinator.Submit(CoreOperation.ShopReroll);
-            await Frames(60);await Wait(()=>!HostCoordinator.Busy,"rejected shop request");
-            Require(HostCoordinator.WorldRevision==beforeReject,"Purchased client shop request committed.");
-            await Barrier("purchase_lock");Pass(stage,"native client Courier purchase, owner stock merge, other player refresh and purchase lock");
 
             stage=checks[11];
             if(Host)
@@ -292,6 +287,15 @@ public static class MultiplayerProbe
             Require(JsonSerializer.Serialize(ShopService.CaptureState()!.Players[2])==ownerStock,"Native disk continue lost Courier owner stock or purchase lock.");
             Require(ShopService.GetUnavailableReason(2,ConfigStore.Rules)!=null,"Native disk continue unlocked purchased client shop.");
             Pass(stage,"actual host native disk read and two-peer native load retained Courier stock/purchase lock");
+
+            // Test the rejected request after direct disk loading: its retained
+            // operation failure must not become the next load's initial state.
+            stage=checks[5];
+            long beforeReject=HostCoordinator.WorldRevision;
+            if (!Host) HostCoordinator.Submit(CoreOperation.ShopReroll);
+            await Frames(60);await Wait(()=>!HostCoordinator.Busy,"rejected shop request");
+            Require(HostCoordinator.WorldRevision==beforeReject,"Purchased client shop request committed.");
+            await Barrier("purchase_lock");Pass(stage,"native client Courier purchase, owner stock merge, other player refresh and purchase lock");
 
             stage=checks[12];
             var ordinaryMonster=Bridge.State.Map.GetAllMapPoints().Where(p=>p.PointType==MapPointType.Monster)

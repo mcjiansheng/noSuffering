@@ -139,7 +139,7 @@ public static class GameBridge
         if(RunManager.Instance.IsInProgress) {RunManager.Instance.ActionExecutor.Unpause();CombatManager.Instance.Unpause();}
     }
 
-    public static async Task LoadAsync(SerializableRun snapshot)
+    public static async Task LoadAsync(SerializableRun snapshot,Func<Task>? afterMultiplayerSetup=null)
     {
         var manager=RunManager.Instance;
         var net=manager.NetService;
@@ -168,9 +168,11 @@ public static class GameBridge
             NOverlayStack.Instance?.Clear();
             await game.Transition.RoomFadeOut();
             // Keep transport alive only for this synchronous native teardown.
-            // Native cleanup owns cancellation, UI and synchronizer lifetimes.
+            // Native cleanup omits the combat/event/one-off message handlers.
+            // Retire them before installing replacements on this transport.
             _preserveTransport=net.Type is NetGameType.Host or NetGameType.Client;
             try {
+                manager.CombatStateSynchronizer.Dispose();
                 manager.EventSynchronizer.Dispose();
                 manager.OneOffSynchronizer.Dispose();
                 manager.CleanUp();
@@ -192,11 +194,13 @@ public static class GameBridge
 #else
                     lobby.Players.Add(new LoadRunLobbyPlayer {id=player.NetId,isReady=true,isModded=true});
 #endif
-                game.RemoteCursorContainer.Initialize(lobby.InputSynchronizer,snapshot.Players.Select(p=>p.NetId));
-                game.ReactionContainer.InitializeNetworking(net);
-                await manager.SetUpSavedMultiplayer(state,lobby);
-                await game.LoadRun(state,snapshot.PreFinishedRoom);
-                lobby.CleanUp(false);
+                try {
+                    game.RemoteCursorContainer.Initialize(lobby.InputSynchronizer,snapshot.Players.Select(p=>p.NetId));
+                    game.ReactionContainer.InitializeNetworking(net);
+                    await manager.SetUpSavedMultiplayer(state,lobby);
+                    if(afterMultiplayerSetup is not null)await afterMultiplayerSetup();
+                    await game.LoadRun(state,snapshot.PreFinishedRoom);
+                } finally {lobby.CleanUp(false);}
             }
             if(_loadingCompletedCombat && State.CurrentRoom?.RoomType!=RoomType.Boss)NRun.Instance!.GlobalUi.MapScreen.Open(true);
             // RoomFadeOut uses a separate overlay from the full-screen FadeOut.

@@ -118,3 +118,13 @@ Mac／Windows beta 独立测试环境已安装 0.1.13，正在进行原存档的
 | macos public | `95327ef8d84b746fac60ea82e261f8cab435c4189ab7f5e80aba1fe6f9de526f` |
 | windows public-beta | `0ebe9edec7a79a95ed8dd56d09af9da2f552aada23cbacab792b5ba2c21448be` |
 | windows public | `e9033e3a2fc6a25716f28fabc85a51736d53671c774ef7cdd7fe63f619c3aec0` |
+
+客机购买无色牌托举 85 金币的 ShopPurchaseCommit（operation 3、revision 9）完成双方校验及保存。随后房主购买火焰药水 48 金币（operation 4、revision 10）再次触发 Native-only 摘要差异；实际副本唯一差异为房主本地 `bought_potions=[POTION.FIRE_POTION]`，客机无此来源标签，其他全部字段及 Shop 摘要一致。药水购买同步本轮记为失败；补齐该来源历史的比较规范化后重测。
+
+药水修复后的双机回归：房主再次购买火焰药水 48 金币，双方完成 revision 10 的 Done／Release 与原生保存，房主剩余 8 金币、14 张牌、两瓶火焰药水。随后从商店回滚到本节点入场状态，房主显示 79/80 生命、132 金币、13 张牌、一瓶药水；客机未完成原生加载，20 秒后双方断开。此次日志没有摘要差异，不能记为回滚通过。证据为 `mac-013-shop-potion-regression-engine.log`、对应 Windows 日志和 `*-shop-rollback-diagnostics`。
+
+回滚加载原因：原生 RunManager 清理未注销旧 CombatStateSynchronizer 的同步消息处理器；较快一端在较慢一端建立新运行状态前发送 SyncPlayer／SyncRng，消息由旧同步器接收，新同步器随后一直等待。正在修复旧处理器生命周期，并在两端完成 SetUpSavedMultiplayer 后共同进入原生 LoadRun。
+
+加载屏障修复已通过 Mac beta／正式版实际程序集构建和生产消息处理器定向回归，独立审查未发现阻止部署的问题。四目标构建完成。首轮原生 localhost 探针复制了 LAN 模组，原生 SaveRun 被正确写入 LAN 专用 current_lan_run_mp.save，而 fastmp 探针直接读取 current_run_mp.save，因此磁盘配对步骤失败，加载屏障尚未执行。增加 `mp-lab.py --core-only`，仅在新建探针副本中保留 NoSuffering；原测试环境保持 LAN，继续通过菜单进行双机验证。
+
+加载修复的 Mac beta 原生双进程回归通过（`mp-20261017-163002/run-record.json`）：双方七项操作相关探针完成，包含个人先古奖励、原生领取与继续、个人商店刷新、送货员购买锁定、商店磁盘继续、胜利奖励回滚、Boss 加血、普通／新牌序重开和地图回滚。该探针通过原生 ENet localhost 和直接房间入口执行；跨机器菜单与真人式整局继续单独记录。

@@ -283,7 +283,9 @@ public static class MultiplayerProbe
             await Barrier("shop_disk_saved");
             var diskShop=JsonSerializer.Deserialize<TimelineData>(File.ReadAllText(Path.Combine(Root,"shop-disk-companion.json")))!;
             CheckpointService.Restore(diskShop);
-            await Timed(Bridge.LoadAsync(Bridge.Thaw(File.ReadAllText(Path.Combine(Root,"shop-disk-native.json")))),"actual native two-peer shop disk continue");
+            var installed=HostCoordinator.PrepareSnapshotLoad("probe-shop-disk-continue");
+            await Barrier("shop_disk_load_prepared");
+            await Timed(Bridge.LoadAsync(Bridge.Thaw(File.ReadAllText(Path.Combine(Root,"shop-disk-native.json"))),installed),"actual native two-peer shop disk continue");
             Bridge.Unlock();
             await Barrier("shop_disk_loaded");
             Require(Bridge.State.CurrentRoom is MerchantRoom,"Native disk continue did not re-enter shop.");

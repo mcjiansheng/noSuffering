@@ -46,6 +46,9 @@ if (args.Length == 3 && args[0] == "--native")
     root["players"]![0]!["deck"]![0]!["id"] = "CARD.INFLAME";
     Require(Prepare(root.ToJsonString()) != Prepare(host), "Real deck divergence was discarded.");
     root = System.Text.Json.Nodes.JsonNode.Parse(host)!;
+    root["players"]![0]!["potions"] = System.Text.Json.Nodes.JsonNode.Parse("[{\"id\":\"POTION.WEAK_POTION\",\"slot_index\":0}]");
+    Require(Prepare(root.ToJsonString()) != Prepare(host), "Real potion inventory divergence was discarded.");
+    root = System.Text.Json.Nodes.JsonNode.Parse(host)!;
     root["map_point_history"]![0]![3]!["player_stats"]![0]!["cards_gained"] =
         System.Text.Json.Nodes.JsonNode.Parse("[{\"id\":\"CARD.BLUDGEON\"}]");
     Require(Prepare(root.ToJsonString()) != Prepare(host), "Shop CardsGained divergence was discarded.");
@@ -54,7 +57,7 @@ if (args.Length == 3 && args[0] == "--native")
     nonShop["card_choices"] = System.Text.Json.Nodes.JsonNode.Parse("[{\"card\":{\"id\":\"CARD.INFLAME\"},\"was_picked\":true}]");
     Require(Prepare(root.ToJsonString()) != Prepare(host), "Non-shop picked history was discarded.");
     Require(File.ReadAllText(args[1]) == host && File.ReadAllText(args[2]) == client, "Source diagnostic files changed.");
-    Console.WriteLine("PASS: actual native purchase copies converge; gold, deck, CardsGained and non-shop picked choices remain compared; files unchanged.");
+    Console.WriteLine("PASS: actual native purchase copies converge; gold, deck, potions, CardsGained and non-shop picked choices remain compared; files unchanged.");
 }
 else if (args.Length == 2)
 {

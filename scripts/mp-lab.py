@@ -40,6 +40,7 @@ def main():
     parser.add_argument('--platform', choices=('macos', 'windows'), required=True)
     parser.add_argument('--branch', choices=('public-beta', 'public'), default='public-beta')
     parser.add_argument('--headless', action='store_true')
+    parser.add_argument('--core-only', action='store_true', help='Use only NoSuffering in copied native ENet fixture slots; leave source mods untouched.')
     parser.add_argument('--seed-reload', action='store_true', help='Exit both peers, continue the saved run in fresh processes, and verify the first reroll seed advances.')
     parser.add_argument('--timeout', type=int, default=600)
     args = parser.parse_args()
@@ -72,7 +73,7 @@ def main():
     processes = []
     streams = []
     record = {'scope': 'two actual native localhost ENet processes; direct fixture entries; no Steam multiplayer claim',
-              'platform': args.platform, 'branch': args.branch, 'multiplayer': 'running', 'peers': {}}
+              'platform': args.platform, 'branch': args.branch, 'core_only': args.core_only, 'multiplayer': 'running', 'peers': {}}
     try:
         for role in ('host', 'client'):
             game = slots / role / 'game'
@@ -112,6 +113,11 @@ def main():
                 value['mod_settings'] = dict(value.get('mod_settings') or {}, mods_enabled=True)
                 value['seen_ea_disclaimer'] = True
                 settings.write_text(json.dumps(value, ensure_ascii=False), encoding='utf-8')
+            if args.core_only:
+                # Native fastmp fixture uses native save paths; LAN has its own
+                # menu-driven save namespace, tested by the cross-machine run.
+                shutil.rmtree(Path(layout['mods_dir']))
+                Path(layout['mods_dir']).mkdir(parents=True)
             mod = Path(layout['mods_dir']) / 'NoSuffering'
             if mod.exists():
                 shutil.rmtree(mod)

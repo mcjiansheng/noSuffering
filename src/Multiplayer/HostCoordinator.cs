@@ -26,7 +26,7 @@ using Bridge=NoSuffering.GameBridge.GameBridge;
 namespace NoSuffering.Multiplayer;
 
 public enum CoreOperation { MapRollback,AncientReroll,AncientOptionsReroll,CombatRestart,CombatReroll,ShopReroll,BossHealthIncrease,ShopPurchaseCommit }
-public enum Phase { Hello,State,Prepare,Ready,Commit,Done,Release,Abort,Request,AncientChoiceRequest,AncientChoiceCommit,RequestRejected }
+public enum Phase { Hello,State,Prepare,Ready,Commit,Done,Release,Abort,Request,AncientChoiceRequest,AncientChoiceCommit,RequestRejected,LoadInstalled,LoadEnter }
 public struct ControlMessage : INetMessage
 {
     public Phase Phase;
@@ -59,6 +59,57 @@ public static class HostCoordinator
     private static string? _failure;
     private static bool _applyStarted;
     private static CancellationTokenSource? _preparation;
+    // Captured before teardown: RunManager temporarily has no live state while
+    // peers install replacement native synchronizers on the retained transport.
+    private sealed class LoadBarrier(INetGameService net,string run,string epoch,long operation,long revision,ulong[] players,string context)
+    {
+        public readonly INetGameService Net=net;
+        public readonly string Run=run,Epoch=epoch,Context=context;
+        public readonly long Operation=operation,Revision=revision;
+        public readonly HashSet<ulong> Players=players.ToHashSet(),Installed=[];
+        public readonly ulong Host=net is NetClientGameService client?client.HostNetId:net.NetId;
+        public bool Entered;
+        public ControlMessage Message(Phase phase)=>new(){Phase=phase,Run=Run,Epoch=Epoch,Operation=Operation,Revision=Revision,Payload=Context};
+        public bool Matches(ControlMessage message)=>message.Run==Run && message.Epoch==Epoch && message.Operation==Operation && message.Revision==Revision;
+    }
+    private static LoadBarrier? _loadBarrier;
+    public static Func<Task> PrepareSnapshotLoad(string context="operation")
+    {
+        if(_net?.Type==NetGameType.Singleplayer)return ()=>Task.CompletedTask;
+        if(_loadBarrier is not null)throw new InvalidOperationException("上次快照加载尚未结束");
+        var barrier=new LoadBarrier(_net!,_run,_epoch,_activeOperation,WorldRevision,Bridge.State.Players.Select(p=>p.NetId).ToArray(),context);
+        _loadBarrier=barrier;
+        return ()=>AwaitLoadInstallation(barrier);
+    }
+    private static void TryEnterLoad(LoadBarrier barrier)
+    {
+        if(barrier.Net.Type!=NetGameType.Host || barrier.Entered || !barrier.Installed.SetEquals(barrier.Players))return;
+        barrier.Net.SendMessage(barrier.Message(Phase.LoadEnter));
+        barrier.Entered=true;
+    }
+    private static async Task AwaitLoadInstallation(LoadBarrier barrier)
+    {
+        try {
+            RequireLoadBarrier(barrier);
+            barrier.Installed.Add(barrier.Net.NetId);
+            if(barrier.Net.Type==NetGameType.Host)TryEnterLoad(barrier);
+            else barrier.Net.SendMessage(barrier.Message(Phase.LoadInstalled));
+            var deadline=Time.GetTicksMsec()+20000;
+            while(!barrier.Entered) {
+                RequireLoadBarrier(barrier);
+                if(Time.GetTicksMsec()>deadline)throw new InvalidOperationException("有玩家未完成原生加载准备");
+                await Bridge.Frame();
+            }
+            RequireLoadBarrier(barrier);
+        } finally {if(ReferenceEquals(_loadBarrier,barrier))_loadBarrier=null;}
+    }
+    private static void RequireLoadBarrier(LoadBarrier barrier)
+    {
+        if(_failure is not null)throw new InvalidOperationException(_failure);
+        if(!ReferenceEquals(_loadBarrier,barrier) || !ReferenceEquals(_net,barrier.Net) ||
+            _run!=barrier.Run || _epoch!=barrier.Epoch || _activeOperation!=barrier.Operation || WorldRevision!=barrier.Revision)
+            throw new InvalidOperationException("快照加载会话已结束");
+    }
     public static long WorldRevision {get;private set;}
     public static bool Busy {get;private set;}
     private static bool _choicePending;
@@ -70,6 +121,7 @@ public static class HostCoordinator
     public static void Attach(INetGameService net) {
         if(ReferenceEquals(net,_net))return;
         if(_net is not null){_net.UnregisterMessageHandler<ControlMessage>(OnMessage);_net.Disconnected-=OnDisconnected;}
+        _loadBarrier=null;
         _net=net;_freshRunIdentityPending=false;
         // Failures belong to the replaced transport; a retained transport keeps
         // its failure so active preparation still stops on real disconnects.
@@ -106,6 +158,23 @@ public static class HostCoordinator
     private static ControlMessage Message(Phase phase,string payload="")=>new(){Phase=phase,Run=_run,Epoch=_epoch,Operation=_activeOperation,Revision=WorldRevision,Payload=payload};
     private static bool FromHost(ulong sender)=>_net is NetClientGameService client && sender==client.HostNetId;
     private static void OnMessage(ControlMessage m,ulong sender) {
+        // These messages must not consult Bridge.State/IsHost during native cleanup.
+        if(m.Phase is Phase.LoadInstalled or Phase.LoadEnter) {
+            var barrier=_loadBarrier;
+            if(barrier is null || !ReferenceEquals(_net,barrier.Net) || !barrier.Matches(m) || m.Payload!=barrier.Context)return;
+            if(m.Phase==Phase.LoadInstalled && barrier.Net.Type==NetGameType.Host && sender!=barrier.Host && barrier.Players.Contains(sender)) {
+                barrier.Installed.Add(sender);TryEnterLoad(barrier);
+            } else if(m.Phase==Phase.LoadEnter && barrier.Net.Type==NetGameType.Client && sender==barrier.Host)barrier.Entered=true;
+            return;
+        }
+        if(m.Phase==Phase.Done && _loadBarrier is {} loading && loading.Matches(m) &&
+            loading.Net.Type==NetGameType.Host && sender!=loading.Host && loading.Players.Contains(sender) &&
+            m.Payload.StartsWith("ERROR:",StringComparison.Ordinal)) {
+            Fail(m.Payload);return;
+        }
+        if(m.Phase==Phase.Abort && _loadBarrier is {} active && active.Matches(m) && sender==active.Host) {
+            Fail(m.Payload);Release();return;
+        }
         if(m.Phase==Phase.Hello){if(IsHost)SyncTo(sender);return;}
         if(m.Phase==Phase.State) {
             if(!FromHost(sender) || (Busy && m.Epoch!=_epoch))return;
@@ -238,10 +307,15 @@ public static class HostCoordinator
     private static async Task ClientApply(ControlMessage message) {
         try {
             var data=JsonSerializer.Deserialize<OperationData>(message.Payload) ?? throw new InvalidOperationException("操作内容缺失");
-            await Apply(data);
+            var installed=data.Snapshot is not null && _net!.Type!=NetGameType.Singleplayer?PrepareSnapshotLoad():null;
+            await Apply(data,installed);
+            if(!Busy || _activeOperation!=message.Operation || _epoch!=message.Epoch || WorldRevision!=message.Revision)return;
             _appliedOperation=message.Operation;
             _net!.SendMessage(Message(Phase.Done,Digest()));
-        } catch(Exception e) {Fail(e.Message);_net!.SendMessage(Message(Phase.Done,"ERROR:"+e.Message));}
+        } catch(Exception e) {
+            Fail(e.Message);
+            if(Busy && _activeOperation==message.Operation && _epoch==message.Epoch)_net!.SendMessage(Message(Phase.Done,"ERROR:"+e.Message));
+        }
     }
     private static bool Personal(CoreOperation kind)=>kind is CoreOperation.AncientOptionsReroll or CoreOperation.ShopReroll or CoreOperation.ShopPurchaseCommit;
     private static string RequestContext(CoreOperation kind,ulong actor)=>kind==CoreOperation.AncientOptionsReroll ? AncientService.ChoiceContext(actor) : $"{Bridge.State.MapLocation}:{Bridge.State.RunLocation}";
@@ -363,8 +437,11 @@ public static class HostCoordinator
             var data=new OperationData(kind,checkpoint,Bridge.StableSeed(_run,kind.ToString(),checked(WorldRevision+1).ToString(),actor.ToString()),_net.NetId,ConfigStore.Rules,snapshot,timeline,actor,percent);
             ++WorldRevision;committed=true;_applyStarted=true;
             Status="正在同步全队";Changed?.Invoke();
+            var installed=data.Snapshot is not null && _net.Type!=NetGameType.Singleplayer?PrepareSnapshotLoad():null;
             if(_net.Type==NetGameType.Host)_net.SendMessage(Message(Phase.Commit,JsonSerializer.Serialize(data)));
-            await Apply(data);
+            long operation=_activeOperation;string epoch=_epoch;
+            await Apply(data,installed);
+            if(!Busy || _activeOperation!=operation || _epoch!=epoch)throw new InvalidOperationException("操作会话已结束");
             var digest=Digest();Done[_net.NetId]=digest;
             await Wait(()=>Done.Count==Bridge.State.Players.Count,"有玩家未完成加载");
             if(Done.Values.Any(d=>d!=digest)) {
@@ -401,12 +478,12 @@ public static class HostCoordinator
             }
         } finally {Release();}
     }
-    private static async Task Apply(OperationData data) {
+    private static async Task Apply(OperationData data,Func<Task>? installed=null) {
         // The host may edit pending rules while this operation uses its captured
         // rules. Only clients adopt the operation snapshot as host rules.
         if(!IsHost)ConfigStore.ApplyHostRules(data.Rules);
         if(data.Snapshot is null)ShopService.ApplySynchronizedState(data.Timeline.Shop);
-        if(data.Snapshot is not null){CheckpointService.Restore(data.Timeline,true);await Bridge.LoadAsync(Bridge.Thaw(data.Snapshot));}
+        if(data.Snapshot is not null){CheckpointService.Restore(data.Timeline,true);await Bridge.LoadAsync(Bridge.Thaw(data.Snapshot),installed);}
         else switch(data.Kind) {
             case CoreOperation.AncientReroll:
             case CoreOperation.AncientOptionsReroll:
@@ -479,7 +556,7 @@ public static class HostCoordinator
             // buyer; remote reward packets do not transmit these history lists.
             // Normalize this deep-cloned comparison only, retaining saved history
             // and the full live deck, relics, gold, RNG and stock comparison.
-            stats.BoughtRelics=[];stats.BoughtColorless=[];
+            stats.BoughtRelics=[];stats.BoughtColorless=[];stats.BoughtPotions=[];
             // Merchant exit derives skipped offers from each peer's local stock;
             // remote stock does not clear/restock with native purchase packets.
             // These history annotations are not a shared gameplay state.
@@ -534,7 +611,7 @@ public static class HostCoordinator
         var deadline=Time.GetTicksMsec()+20000;
         while(!condition()){if(_failure is not null)throw new InvalidOperationException(_failure);if(Time.GetTicksMsec()>deadline)throw new InvalidOperationException(timeout);await Bridge.Frame();}
     }
-    private static void Release(){++_completionSerial;_preparation?.Cancel();_preparation?.Dispose();_preparation=null;Busy=false;ConfigStore.OperationInProgress=false;Bridge.Unlock();Changed?.Invoke();}
+    private static void Release(){_loadBarrier=null;++_completionSerial;_preparation?.Cancel();_preparation?.Dispose();_preparation=null;Busy=false;ConfigStore.OperationInProgress=false;Bridge.Unlock();Changed?.Invoke();}
 #if STS2_STABLE
     [HarmonyPatch(typeof(NetHostGameService),MethodType.Constructor,new Type[0])]
 #else

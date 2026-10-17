@@ -1,0 +1,563 @@
+{
+  "version": "0.1.13",
+  "tests": [
+    {
+      "platform": "macos",
+      "branch": "public-beta",
+      "evidence": "artifacts/macos/public-beta/mp-20261017-170501/run-record.json",
+      "scope": "two actual native localhost ENet processes; direct fixture entries; no Steam multiplayer claim",
+      "multiplayer": "native_enet_smoke_passed",
+      "core_only": true,
+      "peers": {
+        "host": {
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "mod_sha256": "4f0e78cf5e8e2d687bd5ede4e6e9aa33eee084f5cc8e66e24260fa0aac2a56a0",
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "host",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+              "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+            }
+          }
+        },
+        "client": {
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "mod_sha256": "4f0e78cf5e8e2d687bd5ede4e6e9aa33eee084f5cc8e66e24260fa0aac2a56a0",
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "client",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+              "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+            }
+          }
+        }
+      }
+    },
+    {
+      "platform": "macos",
+      "branch": "public",
+      "evidence": "artifacts/macos/public/mp-20261017-170556/run-record.json",
+      "scope": "two actual native localhost ENet processes; direct fixture entries; no Steam multiplayer claim",
+      "multiplayer": "native_enet_smoke_passed",
+      "core_only": true,
+      "peers": {
+        "host": {
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "mod_sha256": "ac207995550901767dc27edc1de130f43a1cd75eb21e440fab9cfa41f36a9e4d",
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "host",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+              "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+            }
+          }
+        },
+        "client": {
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "mod_sha256": "ac207995550901767dc27edc1de130f43a1cd75eb21e440fab9cfa41f36a9e4d",
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "client",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+              "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+            }
+          }
+        }
+      }
+    },
+    {
+      "platform": "windows",
+      "branch": "public-beta",
+      "evidence": "artifacts/windows/public-beta/mp-20261017-164030/run-record.json",
+      "scope": "two actual native localhost ENet processes; direct fixture entries; no Steam multiplayer claim",
+      "multiplayer": "native_enet_smoke_passed",
+      "core_only": true,
+      "peers": {
+        "host": {
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "mod_sha256": "78f73ac2f7ccb9c65335372a7911457e3784e182072ce4653aea63e5e140a51d",
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "host",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+              "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+            }
+          }
+        },
+        "client": {
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "mod_sha256": "78f73ac2f7ccb9c65335372a7911457e3784e182072ce4653aea63e5e140a51d",
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "client",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+              "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+            }
+          }
+        }
+      }
+    },
+    {
+      "platform": "windows",
+      "branch": "public",
+      "evidence": "artifacts/windows/public/mp-20261017-164152/run-record.json",
+      "scope": "two actual native localhost ENet processes; direct fixture entries; no Steam multiplayer claim",
+      "multiplayer": "native_enet_smoke_passed",
+      "core_only": true,
+      "peers": {
+        "host": {
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "mod_sha256": "a1b15dbddc7b42985b7959de8d4a76060b85c7856c7e1456f69b787eac88bd56",
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "host",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+              "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+            }
+          }
+        },
+        "client": {
+          "exit_code": 0,
+          "isolated_user_data": true,
+          "mod_sha256": "a1b15dbddc7b42985b7959de8d4a76060b85c7856c7e1456f69b787eac88bd56",
+          "report": {
+            "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+            "role": "client",
+            "results": {
+              "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+              "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+              "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+              "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+              "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+              "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+              "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+              "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+              "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+              "map_rollback": "PASS: actual native two-peer rollback completed",
+              "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+              "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+              "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "cross_machine_cua_full_playthrough": "paused_by_user_2026-10-17_after_first_combat",
+  "windows_beta_25_mods": {
+    "scope": "two actual native localhost ENet processes; direct fixture entries; no Steam multiplayer claim",
+    "multiplayer": "native_enet_smoke_passed",
+    "additional_mods": [
+      {
+        "id": "ATA_IronClad",
+        "version": "0.1.12",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747952763",
+        "tree_sha256": "089e8eba0cf801be1fa565c63f103ab2f73c604de59b30a30f3451f6925c6214",
+        "file_count": 3,
+        "binary_sha256": {
+          "ATA_IronClad.dll": "4494e72bb3206dca8443e29ea855670fbcaba51e854c60e579356ae8d5f53f60",
+          "ATA_IronClad.pck": "4aee5b56aab60e1e5bb792ea19440be0b049293ba8c52800f27062267c2d2430"
+        }
+      },
+      {
+        "id": "AliceDefectSkin",
+        "version": "0.1.33",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3748583469\\AliceDefectSkin",
+        "tree_sha256": "a183a93133be7ab2faadd16edec483a949a34acbbf150fbf4892daf55af39aea",
+        "file_count": 3,
+        "binary_sha256": {
+          "AliceDefectSkin.dll": "1c7d5ace81157d2559ec2d76578534c56e83b562f486decd16ce2910fdbf1202",
+          "AliceDefectSkin.pck": "aefa6ed773afe0c8dc1d7a9125e51850269b9ab01b93a9e33aefd916fef9496b"
+        }
+      },
+      {
+        "id": "AliceDefectVoiceBridge",
+        "version": "1.3.1",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3748583469\\AliceDefectVoiceBridge",
+        "tree_sha256": "09d6fac43d1a94c3dff4b3e6a8fe871a5fb9fe6250eb95a146fe9d9271c00f54",
+        "file_count": 6,
+        "binary_sha256": {
+          "AliceDefectVoiceBridge.dll": "d10abadf2713ad1e677f19149b143551027db75112bc185995c53816a89c45dc"
+        }
+      },
+      {
+        "id": "AliceDefectVoicepack",
+        "version": "1.0.2",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3748583469\\AliceDefectVoicepack",
+        "tree_sha256": "c862fa2e92aaaf9cc2057ea11bdb3f597367f2de975b98c857a0a52828470705",
+        "file_count": 22,
+        "binary_sha256": {
+          "AliceDefectVoicepack.dll": "31b4f2c9decceb7713993a71c295ebc087434df1d591d6dbdcfcc6b34f991ead"
+        }
+      },
+      {
+        "id": "AncientSL",
+        "version": "1.0",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747566414",
+        "tree_sha256": "c0cf640289c2a325eae4edb64d97bd8ba6fa96964cbbad8bae3ca8a88ffffdbc",
+        "file_count": 2,
+        "binary_sha256": {
+          "AncientSL.dll": "b2ebfa5ba94586c153d05d129f5a320ef2890e129a6407dfddd89e8c8f757bd9"
+        }
+      },
+      {
+        "id": "AnimeWaifuSilent",
+        "version": "v1.4.3",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3748864970",
+        "tree_sha256": "88562180dc3bae529b645158a3a09de48e5e8a6e4ee451d462d9b7749e35289e",
+        "file_count": 3,
+        "binary_sha256": {
+          "AnimeWaifuSilent.dll": "de01b52fc4ce16b74d55fc1f9cbafbbb63d700721ff2c4e017695fd2dd5153bc",
+          "AnimeWaifuSilent.pck": "eb4e07fcef6dcd6f0cb5a60ad9dc80893b103716df00f476922502cd4d261b6c"
+        }
+      },
+      {
+        "id": "BaseLib",
+        "version": "v3.4.7",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3737335127\\BaseLib",
+        "tree_sha256": "d0425047e952ff5198e457a0fd962bae0d8ba8d4d0fe1d7edefdf23f3771e0c9",
+        "file_count": 3,
+        "binary_sha256": {
+          "BaseLib.dll": "55863ca6adc30a61a7544874e157a519ffe148ccf2b18025947609c4bff813ce",
+          "BaseLib.pck": "95e653b9aea9a3dcbc45971b8933c854e314b897488643db71df1e14a76b808d"
+        }
+      },
+      {
+        "id": "CrystalSphereAlpha",
+        "version": "v0.0.1",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3750864265",
+        "tree_sha256": "f111ab6cf47bf94ef83b647548335a0cb038ec730125b5728f73600eaac93a58",
+        "file_count": 4,
+        "binary_sha256": {
+          "CrystalSphereAlpha.dll": "0a5110c3f56d9d58ad3d3214e562450038d40547edaffc74346f029ae72d496d",
+          "CrystalSphereAlpha.pck": "98f18982ac4058b1cac7f8ade0192fb95a49f42e545f6bb2a703de961097afa7"
+        }
+      },
+      {
+        "id": "CustomCardBalance",
+        "version": "2.9.1",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3748762011",
+        "tree_sha256": "76bd1874a3acefb7217421ea2f7dd617e9d3fb9ed0d031037dee77c0020e5841",
+        "file_count": 3,
+        "binary_sha256": {
+          "CustomCardBalance.dll": "9bc85ca71917bd149cdc12966f970fdb9f15df9f066bc37ad856bbcad4c4d036",
+          "CustomCardBalance.pck": "4cdbd82b743506ab251fc3c0b9a6732662b9d54e0b97905467e538913b83abce"
+        }
+      },
+      {
+        "id": "Mechaneko_Defect",
+        "version": "1.1.2",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747942752",
+        "tree_sha256": "83359c82b2cada8a266b29c757238a14b56f49f1711a3157ef217449665ba658",
+        "file_count": 3,
+        "binary_sha256": {
+          "Mechaneko_Defect.dll": "d963c649bb3a7275e28286e42a89f75340f75a9074f57001e8b62712aa301261",
+          "Mechaneko_Defect.pck": "2b6936c2f4bc2d0d57bcad8cda6bc1dfc40cd69aeff7f592bc4f3f77a5aaaff6"
+        }
+      },
+      {
+        "id": "Merchant2CuteII",
+        "version": "v1.5.3",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3748331824",
+        "tree_sha256": "23eb06e3eae257c0abde4480bce979075a24151ab6769413448e2bcad70e70be",
+        "file_count": 3,
+        "binary_sha256": {
+          "Merchant2CuteII.dll": "bba645f4af41d93abfaf970dbab361ae636df348d24f31c0ea22bd1cd232fe63",
+          "Merchant2CuteII.pck": "dff7ef48dcf92c5127af4122a72bce77df2c38940c61891ca170a55e2dcf6428"
+        }
+      },
+      {
+        "id": "NecrobinderFemPortraits",
+        "version": "v0.1.3",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747767062",
+        "tree_sha256": "444f668a9876a78a5bcc13fff03fc9683de22de3606c9b6c042ea37791d03c5b",
+        "file_count": 4,
+        "binary_sha256": {
+          "NecrobinderFemPortraits.dll": "a16d989c1745a69ca643dd649ebda7908e776c291c52536938986e50911ab306",
+          "NecrobinderFemPortraits.pck": "3227ff5e1b58ebd5725a2fe0f001d8d69a648c3d503f68e3e7a1473ed4946e87"
+        }
+      },
+      {
+        "id": "RTRsMoeifyMod_ancients",
+        "version": "v0.2.0",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3748079655",
+        "tree_sha256": "db1a21ee5c37ff1ac15cfb2d7ffa998f3b98d3e08b21c6e73eb4dd21e5f0e805",
+        "file_count": 2,
+        "binary_sha256": {
+          "RTRsMoeifyMod_ancients.pck": "b3c5b4e186026a7ad15239fabb93e37f6e3abef57a845287e2a58aaaaee9d6f4"
+        }
+      },
+      {
+        "id": "RegentCardsAnimeRework",
+        "version": "v1.0",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747626664",
+        "tree_sha256": "0143f497cebacf075cf76d6f821a603a0f175ae66b4d266f380921393920db4a",
+        "file_count": 4,
+        "binary_sha256": {
+          "RegentCardsAnimeRework.dll": "9d5e3e6ced203237d0b4a4a8e1de3e7f4a4ba6dadcc394b30c07585f9ae54f6d",
+          "RegentCardsAnimeRework.pck": "6ed8e1f26502b9dcefa835e41e0925e8ef8a8fddfca9de038f434943239a4bc9"
+        }
+      },
+      {
+        "id": "RegentFemPortraits",
+        "version": "v1.0",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747751411",
+        "tree_sha256": "1c8d9dd6f68cb3777d852668f8f99f0a26b01872c89f5e96c7b0d3675bdfc76e",
+        "file_count": 4,
+        "binary_sha256": {
+          "RegentFemPortraits.dll": "df7f3e9d5e5bd87c3cdda0a8d9a138aa9af83a4d0decb597ff4f169521444d7e",
+          "RegentFemPortraits.pck": "e34202626de14e7ff3c76b36409d73f5933aeaf2871b08726ce0ff49eea3d7e8"
+        }
+      },
+      {
+        "id": "STS2-RitsuLib",
+        "version": "0.6.7",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747602295",
+        "tree_sha256": "6daa90c3f7b44713946e9e26439f0f293feacaabf49b6d56e6fa918a329aa82f",
+        "file_count": 45,
+        "binary_sha256": {
+          "compat/0.107.1/STS2-RitsuLib.dll": "52ab1b8cb9066aaaa3e7ad43077e9c6f5ae5218e46a743de47700d52ca64edb5",
+          "compat/0.107.1/STS2-RitsuLib.Runtime.dll": "14c47f66abf9563054f1e7bf4d9890fbb62d898273adb9fed89cb493dc99a503",
+          "compat/0.109.0/STS2-RitsuLib.dll": "445271e76d565c849e5d025399da0d1243a629c4db155a841c1eabbb33546c6e",
+          "compat/0.109.0/STS2-RitsuLib.Runtime.dll": "ab2ba28b19b589905ebcee75077a251192850965edb3ee7665594680600048bf",
+          "compat/0.110.0/STS2-RitsuLib.dll": "d1a03e0f169399ca76870c5a7d021c9aa227ce27fe11359da846953980843abd",
+          "compat/0.110.0/STS2-RitsuLib.Runtime.dll": "d6da51ae5c502fbd19fc290f9aa74160ac9b57ed59c72597d5bcfe6c76368706",
+          "compat/0.111.0/STS2-RitsuLib.dll": "db62d08e44df951f1ca5a10fc720edcf2102401583ea04b8c493ad4eeeca2427",
+          "compat/0.111.0/STS2-RitsuLib.Runtime.dll": "7a77583af80792213c8dcd7572040a342e7ea0dbed7bbbc8ed8e20776445dccf",
+          "shared/STS2-RitsuLib.Settings.dll": "3a48b5a62e0ffa01c8527686b40ab16ff4b0b87d969ac6a20a3141bc7c7867e4",
+          "shared/STS2-RitsuLib.Shared.dll": "6fef35e9bd8f39852cc81e6a800128af572df312356b565815910b7a0bef13d7",
+          "shared/STS2-RitsuLib.Ui.dll": "ac02253f9f4aceac0defaff27c8aa7b10201a8b164fb8febe6cda1c43294d19e",
+          "STS2-RitsuLib.dll": "bd33fe582f3c0446ed4a828a48501fb71ef23b5169705f83bf45668493b80e8d"
+        }
+      },
+      {
+        "id": "UndoAndRestart",
+        "version": "0.111.0.4",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747517414",
+        "tree_sha256": "522cadfae6bd64faecf8fcf522b4d975ab02abf266e028c29b49eedd5e6ed081",
+        "file_count": 7,
+        "binary_sha256": {
+          "UndoAndRestart.dll": "ab3391bde51dbdd2ab2bbc4f970ad78a158cc867ecb1ec766d53a609589d04f3"
+        }
+      },
+      {
+        "id": "intentgraph2",
+        "version": "1.6.0",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747528152",
+        "tree_sha256": "2cf2f70d4fa9ab17eb3ff9e38f24e53ca14b16a9fcb493793a342010e01ae3e1",
+        "file_count": 8,
+        "binary_sha256": {
+          "Antlr4.Runtime.Standard.dll": "0440e3d2c5906326e04df87d6a5272192b7d29099901ba4215ca9e0f5dca7591",
+          "intentgraph2.dll": "94a323dbba61e28819a6434ad2e91dffe4e94e2c1268a3bdcc2cde275ceacd17",
+          "intentgraph2.pck": "d5c23316e264135f8e305e6d31b6506dd3bcc2f4014d6ccb7645bd033c2b3fed",
+          "intentgraph2baselib.dll": "8ff01df172992177204589511b3dcb27d6db4cfc28201a99bddd815adbddde95",
+          "intentgraph2core-lt-0.110.0.dll": "c3bb5fbcef06172c3d51a2c490f2db821d275f015f32484c5284f1d424ac4880",
+          "intentgraph2core.dll": "97b208952edf06fd15576f4fa24368cbb11a1c96f585bb76f46fcd82d2a81f54",
+          "intentgraph2ritsulib.dll": "b26173183830cb16a2baffb7b3b4d0d6bcb191faf5da727526bee069cf8bee8d"
+        }
+      },
+      {
+        "id": "ironcladSkin",
+        "version": "0.0.1",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\local-ironcladSkin\\ironcladSkin",
+        "tree_sha256": "8a59c601390f7eb5e2763a6472cb3a9268eeef4f92261438d84bb44a17b975e4",
+        "file_count": 2,
+        "binary_sha256": {
+          "ironcladSkin.pck": "d100d75e392ceb857e16e14ec44e42470fd366c83cb1952d90c4bdf54a5c577c"
+        }
+      },
+      {
+        "id": "necrobinderSkin",
+        "version": "0.9.1",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747597614",
+        "tree_sha256": "b533c7de146722ff8d791ffef1832ab3f37f053c1150f273d1cb268c3ac0360e",
+        "file_count": 3,
+        "binary_sha256": {
+          "necrobinderSkin.pck": "41b6038d0cda124d8b8dac270add2c52bb1da5c73c0dbe21a4980f56dc51a9a4"
+        }
+      },
+      {
+        "id": "neowSkin",
+        "version": "0.0.1",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747611326",
+        "tree_sha256": "e7ee06c62f15ba3bf5560f4784459a91b7324c8bed2df11a3f0458af3df8bd64",
+        "file_count": 4,
+        "binary_sha256": {
+          "neowSkin.pck": "9ef466df665ad923097518e024848886f904b96b5d83ecd77cf0a2ea5317f005"
+        }
+      },
+      {
+        "id": "regentSkin",
+        "version": "0.8.0",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747589574",
+        "tree_sha256": "338b96f0cd3b33a14df249c8f874e392edc73e9c1002ac0e0bc611c62c552354",
+        "file_count": 3,
+        "binary_sha256": {
+          "regentSkin.pck": "a7b739e54f12369759ba5e643ec41c9c7280ecbae97bccc69cc731203a4d22bc"
+        }
+      },
+      {
+        "id": "silentSkin",
+        "version": "0.7.1",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3747591649",
+        "tree_sha256": "47e27865952e3a1e82329c74ba556f16eb098c6ae167acd14939a271a3e69752",
+        "file_count": 3,
+        "binary_sha256": {
+          "silentSkin.pck": "0619e95cc32eafd485369e93b3f873dd6cdd8ddfad3f93cdc8e35e8c8832b867"
+        }
+      },
+      {
+        "id": "sts_nndx",
+        "version": "0.1.1",
+        "source": "artifacts\\cross-machine-20261017\\windows-lab-extra-mods\\workshop-3754231537",
+        "tree_sha256": "bc8c1a617b93ce0dc054e37281869de9d578c1bdc8f194532b222a64b72c06ae",
+        "file_count": 4,
+        "binary_sha256": {
+          "sts_nndx.dll": "f6e7ba5b0c25425970c7748a2ad5b66b9382a4d9fb3b3ff6589df220ef3f1674",
+          "sts_nndx.pck": "7e1baff0dafd277ed592353726eee01804964db50041a659674de045bf9fd4b4"
+        }
+      }
+    ],
+    "peers": {
+      "host": {
+        "exit_code": 0,
+        "isolated_user_data": true,
+        "mod_sha256": "78f73ac2f7ccb9c65335372a7911457e3784e182072ce4653aea63e5e140a51d",
+        "report": {
+          "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+          "role": "host",
+          "results": {
+            "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+            "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+            "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+            "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+            "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+            "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+            "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+            "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+            "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+            "map_rollback": "PASS: actual native two-peer rollback completed",
+            "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+            "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+            "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+          }
+        }
+      },
+      "client": {
+        "exit_code": 0,
+        "isolated_user_data": true,
+        "mod_sha256": "78f73ac2f7ccb9c65335372a7911457e3784e182072ce4653aea63e5e140a51d",
+        "report": {
+          "scope": "two real native localhost ENet processes; direct fixture room/act entries; no Steam, internet or human-pointer multiplayer claim",
+          "role": "client",
+          "results": {
+            "native_two_peer_start": "PASS: native ENet host 1/client 2, native lobby/run/ancient",
+            "authenticated_ancient_choice": "PASS: actual client forged host actor choice rejected; no reward committed",
+            "client_F03_after_host_claim": "PASS: client request rerolled only own event and charged own 3 HP after host claimed",
+            "independent_claim_native_proceed": "PASS: both actual native reward handlers and local Proceed completed",
+            "client_shop_refresh": "PASS: actual client shop request replaced only client stock",
+            "courier_purchase_owner_stock": "PASS: native client Courier purchase, owner stock merge, other player refresh and purchase lock",
+            "host_only_boss_hp": "PASS: client host-only request ignored; host increased live boss current/max HP on both peers",
+            "normal_restart": "PASS: actual two-peer native combat reload retained boss increment",
+            "new_order_restart": "PASS: actual two-peer refreshed-order reload retained boss increment",
+            "map_rollback": "PASS: actual native two-peer rollback completed",
+            "pending_ancient_choice_boundary": "PASS: actual native reward task drained before refresh charge/save; selection UI continuation remained runnable",
+            "shop_disk_continue": "PASS: actual host native disk read and two-peer native load retained Courier stock/purchase lock",
+            "victory_pending_rewards_rollback": "PASS: both native peers claimed gold and settled; host rolled back to pre-reward combat, restoring local cards/RNG/odds/resources, then each reclaimed gold and proceeded once"
+          }
+        }
+      }
+    }
+  }
+}

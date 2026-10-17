@@ -144,3 +144,7 @@ Windows beta／public 最新探针构建和原生 localhost ENet 已通过：`mp
 最终诊断探针构建的四目标原生 ENet 回归全部通过：Mac beta `mp-20261017-170501`／public `mp-20261017-170556`，Windows beta `mp-20261017-164030`／public `mp-20261017-164152`。每侧13项通过、退出0、隔离目录确认。Mac beta DLL `4f0e78cf5e8e2d687bd5ede4e6e9aa33eee084f5cc8e66e24260fa0aac2a56a0`；Mac public `ac207995550901767dc27edc1de130f43a1cd75eb21e440fab9cfa41f36a9e4d`；Windows beta `78f73ac2...140a51d`、public `a1b15dbd...88bd56`（完整值见构建记录）。
 
 计划关闭 Mac 应用时，房主日志记录 `NGame.Quit`、`Stopping host. Reason: Quit. Now: True`，客机显示 UnknownNetworkError。此时未发生游戏中摘要差异；保留客机通知并核对 LAN／原生退出原因映射。
+
+## 用户要求暂停（2026-10-17）
+
+已停止继续测试，取消尚未执行的回滚，并通过 Mac 原生保存退出返回菜单、关闭应用。Windows操作任务被用户 Escape 停止，命令36未执行、客机奖励未领取。当前盘上保存为胜利后的奖励前冻结基线；已分别备份两端测试档案、配置和配对数据。恢复入口、实际界面／磁盘状态差别、已执行与待执行项见 [暂停断点](2026-10-17-PAUSED.md)。等待用户后续要求恢复。

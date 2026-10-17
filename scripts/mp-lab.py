@@ -2,6 +2,7 @@
 """Run two actual native offline ENet processes in separate copied lab slots."""
 import argparse
 import datetime
+import hashlib
 import json
 import os
 import plistlib
@@ -35,15 +36,81 @@ def copy_game(source, destination):
     shutil.copytree(source, destination, copy_function=copy_file, symlinks=False)
 
 
+def additional_mods(source):
+    if source is None:
+        return []
+    source = Path(source)
+    if not source.is_dir() or source.resolve() != source.absolute():
+        raise ValueError('Additional mod source must be an existing canonical directory.')
+    found = {}
+    for manifest in source.rglob('*.json'):
+        try:
+            value = json.loads(manifest.read_text(encoding='utf-8-sig'))
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            continue
+        if not isinstance(value, dict) or not all(k in value for k in ('id', 'version')):
+            continue
+        if not any(k in value for k in ('has_dll', 'has_pck')):
+            continue
+        mod_id = value['id']
+        if mod_id in ('NoSuffering', 'SlayTheSpire2.LAN.Multiplayer'):
+            continue
+        if not isinstance(mod_id, str) or not mod_id or Path(mod_id).name != mod_id:
+            raise ValueError(f'Invalid additional mod id in {manifest}.')
+        mod_root = manifest.parent
+        if mod_id in found:
+            raise ValueError(f'Duplicate additional mod id {mod_id}: {found[mod_id]["source"]} and {mod_root}.')
+        files = sorted(p for p in mod_root.rglob('*') if p.is_file())
+        tree_hash = hashlib.sha256()
+        binaries = {}
+        for path in files:
+            relative = path.relative_to(mod_root).as_posix()
+            digest = sha256(path)
+            tree_hash.update(relative.encode('utf-8') + b'\0' + digest.encode('ascii') + b'\n')
+            if path.suffix.lower() in ('.dll', '.pck'):
+                binaries[relative] = digest
+        found[mod_id] = {
+            'id': mod_id,
+            'version': str(value['version']),
+            'source': str(mod_root),
+            'tree_sha256': tree_hash.hexdigest(),
+            'file_count': len(files),
+            'binary_sha256': binaries,
+        }
+    return [found[k] for k in sorted(found)]
+
+
+def copy_mods(mods, destination):
+    for item in mods:
+        target = destination / item['id']
+        if target.exists():
+            raise ValueError(f'Additional mod destination already exists: {target}.')
+        def copy_file(src, dst):
+            # Mod settings can be rewritten at load. Only binary packages are
+            # immutable; keep config/other files independent of the source.
+            if Path(src).suffix.lower() in ('.dll', '.pck'):
+                try:
+                    os.link(src, dst)
+                    return dst
+                except OSError:
+                    pass
+            return shutil.copy2(src, dst)
+        shutil.copytree(item['source'], target, copy_function=copy_file, symlinks=False)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--platform', choices=('macos', 'windows'), required=True)
     parser.add_argument('--branch', choices=('public-beta', 'public'), default='public-beta')
     parser.add_argument('--headless', action='store_true')
     parser.add_argument('--core-only', action='store_true', help='Use only NoSuffering in copied native ENet fixture slots; leave source mods untouched.')
+    parser.add_argument('--mods-from', help='Copy manifest-bearing third-party mods from this directory into each isolated fixture slot; requires --core-only.')
     parser.add_argument('--seed-reload', action='store_true', help='Exit both peers, continue the saved run in fresh processes, and verify the first reroll seed advances.')
     parser.add_argument('--timeout', type=int, default=600)
     args = parser.parse_args()
+    if args.mods_from and not args.core_only:
+        parser.error('--mods-from requires --core-only.')
+    extras = additional_mods(args.mods_from) if args.mods_from else []
     host = 'windows' if os.name == 'nt' else 'macos' if sys.platform == 'darwin' else None
     if args.platform != host:
         raise ValueError('Actual native multiplayer probe must run on its matching host OS.')
@@ -73,7 +140,8 @@ def main():
     processes = []
     streams = []
     record = {'scope': 'two actual native localhost ENet processes; direct fixture entries; no Steam multiplayer claim',
-              'platform': args.platform, 'branch': args.branch, 'core_only': args.core_only, 'multiplayer': 'running', 'peers': {}}
+              'platform': args.platform, 'branch': args.branch, 'core_only': args.core_only,
+              'additional_mods': extras, 'multiplayer': 'running', 'peers': {}}
     try:
         for role in ('host', 'client'):
             game = slots / role / 'game'
@@ -118,6 +186,7 @@ def main():
                 # menu-driven save namespace, tested by the cross-machine run.
                 shutil.rmtree(Path(layout['mods_dir']))
                 Path(layout['mods_dir']).mkdir(parents=True)
+            copy_mods(extras, Path(layout['mods_dir']))
             mod = Path(layout['mods_dir']) / 'NoSuffering'
             if mod.exists():
                 shutil.rmtree(mod)
@@ -129,7 +198,9 @@ def main():
             command.extend(['--', '--ns-lab-probe', '--ns-mp-probe', f'--ns-mp-role={role}', f'--ns-mp-root={output}'])
             if args.seed_reload:
                 command.append('--ns-mp-seed-stage=first')
-            record['peers'][role] = {'command': command, 'user_data': str(user), 'game': str(game), 'mod_sha256': sha256(mod / 'NoSuffering.dll'), 'native_sha256': sha256(native)}
+            record['peers'][role] = {'command': command, 'user_data': str(user), 'game': str(game),
+                                     'loaded_mods': [{'id': 'NoSuffering', 'version': json.loads((mod / 'NoSuffering.json').read_text(encoding='utf-8-sig'))['version'], 'dll_sha256': sha256(mod / 'NoSuffering.dll')}] + extras,
+                                     'mod_sha256': sha256(mod / 'NoSuffering.dll'), 'native_sha256': sha256(native)}
             stream = (output / f'{role}-stdout.log').open('w', encoding='utf-8')
             streams.append(stream)
             process = subprocess.Popen(command, cwd=native.parent, stdout=stream, stderr=subprocess.STDOUT)

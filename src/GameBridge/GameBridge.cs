@@ -32,6 +32,8 @@ public static class GameBridge
     private static bool _loadingMap;
     private static bool _loadingCombat;
     private static bool _loadingCompletedCombat;
+    private static bool _continuingNative;
+    private static MerchantRoom? _loadingMerchant;
     public static RunState State => RunManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("没有活动运行状态");
     public static string RunKey => Key(RunManager.Instance.ToSave(null));
     public static string Key(SerializableRun save) => Hash(string.Join("/", save.StartTime, save.SerializableRng.Seed,
@@ -200,7 +202,7 @@ public static class GameBridge
             // RoomFadeOut uses a separate overlay from the full-screen FadeOut.
             // Pair it with RoomFadeIn so the transparent input blocker releases.
             await game.Transition.RoomFadeIn();
-        } finally {IsRestoring=false;_loadingMap=false;_loadingCombat=false;_loadingCompletedCombat=false;}
+        } finally {IsRestoring=false;_loadingMap=false;_loadingCombat=false;_loadingCompletedCombat=false;_loadingMerchant=null;}
     }
     private sealed class ReloadListener : ILoadRunLobbyListener {
 #if STS2_STABLE
@@ -219,6 +221,7 @@ public static class GameBridge
         static void Prefix(SerializableRoom? preFinishedRoom,out bool __state) {
             __state=!IsRestoring;
             if(!__state)return;
+            _continuingNative=true;
             _loadingMap=preFinishedRoom?.RoomType==RoomType.Map;
             _loadingCombat=preFinishedRoom is {IsPreFinished:false,EncounterId:not null} && NoSuffering.Combat.CombatService.Save() is not null;
             _loadingCompletedCombat=preFinishedRoom is {IsPreFinished:true,EncounterId:not null} && Checkpoints.CheckpointService.CompletedCombatAt(State.MapLocation);
@@ -227,7 +230,7 @@ public static class GameBridge
             if(__state)__result=Finish(__result);
         }
         static async Task Finish(Task load) {
-            try {await load;if(_loadingCompletedCombat && State.CurrentRoom?.RoomType!=RoomType.Boss)NRun.Instance!.GlobalUi.MapScreen.Open(true);} finally {_loadingMap=false;_loadingCombat=false;_loadingCompletedCombat=false;}
+            try {await load;if(_loadingCompletedCombat && State.CurrentRoom?.RoomType!=RoomType.Boss)NRun.Instance!.GlobalUi.MapScreen.Open(true);} finally {_loadingMap=false;_loadingCombat=false;_loadingCompletedCombat=false;_continuingNative=false;_loadingMerchant=null;}
         }
     }
     [HarmonyPatch(typeof(CombatRoom),nameof(CombatRoom.OfferRoomEndRewards))]
@@ -261,7 +264,13 @@ public static class GameBridge
     }
     [HarmonyPatch(typeof(RunManager),nameof(RunManager.LoadIntoLatestMapCoord))]
     private static class LoadDecision {
-        static bool Prefix(AbstractRoom? preFinishedRoom,ref Task __result) {
+        static bool Prefix(ref AbstractRoom? preFinishedRoom,ref Task __result) {
+            if(preFinishedRoom is null && (IsRestoring || _continuingNative) && NoSuffering.Shops.ShopService.HasPendingCurrentRoom) {
+                // The paired stock belongs to an already-entered shop. Keep the
+                // native map-load/transport path, but provide its room instead of
+                // rolling an unknown node and appending another history entry.
+                preFinishedRoom=_loadingMerchant=new MerchantRoom();
+            }
             if(_loadingCombat && preFinishedRoom is CombatRoom {ParentEventId:not null} combat) {
                 __result=NoSuffering.Combat.ParentEventState.RestoreCombatAsync(combat,NoSuffering.Combat.CombatService.Save()!);return false;
             }
@@ -274,9 +283,10 @@ public static class GameBridge
     [HarmonyPatch(typeof(MegaCrit.Sts2.Core.Hooks.Hook),nameof(MegaCrit.Sts2.Core.Hooks.Hook.BeforeRoomEntered))]
     private static class OpeningRoomEffects {
         static bool Prefix(AbstractRoom room,ref Task __result) {
-            if(!_loadingCombat || room is not CombatRoom)return true;
-            // B already includes this entry hook; repeating it mutates permanent
-            // cards such as Dowsing. Combat opening hooks still run normally.
+            if(!ReferenceEquals(room,_loadingMerchant) && (!_loadingCombat || room is not CombatRoom))return true;
+            // Paired shop saves and B already include this entry hook;
+            // repeating it mutates saved resources or permanent cards such as
+            // Dowsing. Combat opening hooks still run normally.
             __result=Task.CompletedTask;return false;
         }
     }

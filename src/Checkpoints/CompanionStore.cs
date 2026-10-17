@@ -46,6 +46,13 @@ public static class CompanionStore
         }
     }
     public static void Reset() {_lastNative=null;_lastNativeTimeline=null;_writesBlocked=false;Error=null;LoadedRevision=0;CheckpointService.Reset();}
+    public static void AcceptHostState(long revision) {
+        // A client receives this run's companion timeline from its authenticated
+        // host. A menu preview of an unrelated local save must not block it.
+        // Keep local companion writes closed until a native disk Read establishes
+        // a new local pair; the client does not own the host's native save.
+        Error=null;LoadedRevision=revision;_lastNative=null;_lastNativeTimeline=null;_writesBlocked=true;
+    }
     [HarmonyPatch(typeof(RunManager),nameof(RunManager.SetUpNewSingleplayer))]
     private static class NewSolo {static void Prefix()=>Reset();}
     [HarmonyPatch(typeof(RunManager),nameof(RunManager.SetUpNewMultiplayer))]
@@ -88,7 +95,7 @@ public static class CompanionStore
         // Format 2 adds node entry/settled-combat semantics. Read known format 1
         // predecessors without inventing entry snapshots absent from their data.
         bool legacy=data.Format==1 && data.ModVersion is "0.1.1" or "0.1.2";
-        bool versionCompatible=data.Format==2 && (data.ModVersion==ModEntry.Version || data.ModVersion is "0.1.3" or "0.1.4" or "0.1.5" or "0.1.6" or "0.1.7" or "0.1.8" or "0.1.9" or "0.1.10" or "0.1.11") || legacy;
+        bool versionCompatible=data.Format==2 && (data.ModVersion==ModEntry.Version || data.ModVersion is "0.1.3" or "0.1.4" or "0.1.5" or "0.1.6" or "0.1.7" or "0.1.8" or "0.1.9" or "0.1.10" or "0.1.11" or "0.1.12") || legacy;
         bool modsCompatible=versionCompatible && data.Mods==FingerprintFor(data.ModVersion);
         if(!versionCompatible || data.GameAssembly!=GameAssembly || !modsCompatible || data.RunId!=run || data.NativeDigest!=digest) {
             Log.Warn($"[NoSuffering] Companion mismatch: format={data.Format}, version={versionCompatible}, game={data.GameAssembly==GameAssembly}, mods={modsCompatible}, run={data.RunId==run}, native={data.NativeDigest==digest}");

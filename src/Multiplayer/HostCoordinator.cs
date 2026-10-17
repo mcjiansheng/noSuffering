@@ -15,6 +15,7 @@ using MegaCrit.Sts2.Core.Multiplayer.Transport;
 using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
+using MegaCrit.Sts2.Core.Saves;
 using NoSuffering.Ancients;
 using NoSuffering.Checkpoints;
 using NoSuffering.Combat;
@@ -140,7 +141,7 @@ public static class HostCoordinator
             ConfigStore.ApplyHostRules(data.Rules);
             bool liveShop=RunManager.Instance.IsInProgress && Bridge.State.CurrentRoom is MerchantRoom &&
                 data.Timeline.Shop?.Context==$"{Bridge.State.Rng.Seed}:{Bridge.State.MapLocation}";
-            CheckpointService.Restore(data.Timeline,true,live:liveShop);AncientService.MarkLiveStateSynchronized();
+            CheckpointService.Restore(data.Timeline,true,live:liveShop);CompanionStore.AcceptHostState(m.Revision);AncientService.MarkLiveStateSynchronized();
             if(restoreChoice)AncientService.RestoreRejectedLocalChoice();
             return;
         }
@@ -445,6 +446,19 @@ public static class HostCoordinator
     }
     private static string Digest() {
         var s=Bridge.Capture(null);
+        PrepareNativeDigest(s);
+        string native=Bridge.Freeze(s),ancient=JsonSerializer.Serialize(AncientService.CaptureState()),shop=JsonSerializer.Serialize(ShopService.CaptureState()),boss=JsonSerializer.Serialize(BossHealthService.CaptureState());
+        Diagnostics.MultiplayerProbe.RecordDigest(native,ancient,shop,boss);
+        RecordNativeDigestDiagnostic(native);
+        // Component hashes identify the affected state without logging saves or
+        // weakening any compared fields. Peers compare the complete manifest.
+        return JsonSerializer.Serialize(new {
+            Native=Bridge.Hash(CanonicalJson(native)),
+            Combat=Bridge.Hash(CanonicalJson(JsonSerializer.Serialize(CombatService.CurrentOrderDigests))),
+            Ancient=Bridge.Hash(CanonicalJson(ancient)),Shop=Bridge.Hash(CanonicalJson(shop)),Boss=Bridge.Hash(CanonicalJson(boss))
+        });
+    }
+    private static void PrepareNativeDigest(SerializableRun s) {
         s.NumReloads=0;s.SaveTime=0;s.RunTime=0;s.PlatformType=default;
         s.MapDrawings=null; // Local map annotations are presentation, not synchronized gameplay.
         foreach(var player in s.Players)
@@ -470,7 +484,10 @@ public static class HostCoordinator
             // remote stock does not clear/restock with native purchase packets.
             // These history annotations are not a shared gameplay state.
             if(point.HasRoomOfType(RoomType.Shop)) {
-                stats.CardChoices.RemoveAll(choice=>!choice.wasPicked);
+                // Remote RewardObtained(Card) also appends a picked choice for
+                // a purchase; the buyer's merchant wrapper does not. Actual
+                // acquisitions remain compared in CardsGained and the deck.
+                stats.CardChoices.Clear();
                 stats.RelicChoices.RemoveAll(choice=>!choice.wasPicked);
                 stats.PotionChoices.RemoveAll(choice=>!choice.wasPicked);
             }
@@ -478,15 +495,17 @@ public static class HostCoordinator
             // the live deck, card identity and upgrades remain fully compared.
             foreach(var card in stats.CardsGained)card.FloorAddedToDeck=null;
         }
-        string native=Bridge.Freeze(s),ancient=JsonSerializer.Serialize(AncientService.CaptureState()),shop=JsonSerializer.Serialize(ShopService.CaptureState()),boss=JsonSerializer.Serialize(BossHealthService.CaptureState());
-        Diagnostics.MultiplayerProbe.RecordDigest(native,ancient,shop,boss);
-        // Component hashes identify the affected state without logging saves or
-        // weakening any compared fields. Peers compare the complete manifest.
-        return JsonSerializer.Serialize(new {
-            Native=Bridge.Hash(CanonicalJson(native)),
-            Combat=Bridge.Hash(CanonicalJson(JsonSerializer.Serialize(CombatService.CurrentOrderDigests))),
-            Ancient=Bridge.Hash(CanonicalJson(ancient)),Shop=Bridge.Hash(CanonicalJson(shop)),Boss=Bridge.Hash(CanonicalJson(boss))
-        });
+    }
+    private static void RecordNativeDigestDiagnostic(string native)
+    {
+        if(!OS.GetCmdlineUserArgs().Contains("--ns-shop-diagnostics"))return;
+        try {
+            string directory=Path.Combine(OS.GetUserDataDir(),"NoSuffering","shop-diagnostics");
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(Path.Combine(directory,$"revision-{WorldRevision}-player-{_net!.NetId}-native-digest.json"),native);
+        } catch(Exception error) {
+            Log.Warn($"[NoSuffering] Native digest diagnostic write failed: {error.Message}");
+        }
     }
     private static string CanonicalJson(string json)
     {

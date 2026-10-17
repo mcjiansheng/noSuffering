@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HarmonyLib;
+using Godot;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Merchant;
@@ -9,6 +10,7 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Rngs;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.CardPools;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Nodes;
@@ -50,6 +52,9 @@ public static class ShopService
     private static RunState State => RunManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("没有活动运行状态");
     private static string Context => $"{State.Rng.Seed}:{State.MapLocation}";
     public static bool HasPendingPurchases => PurchasesInFlight.Values.Any(count => count > 0);
+    // Only paired, not-yet-replayed stock can identify an entered merchant at
+    // native load time. Pre-entry checkpoints do not carry this stock.
+    internal static bool HasPendingCurrentRoom => PendingRestore.Count > 0 && _state?.Context == Context;
 
     public static string? GetUnavailableReason(ulong playerId, HostRules rules)
     {
@@ -75,7 +80,9 @@ public static class ShopService
             var inventory = room.Inventories.Single(i => i.Player.NetId == LocalContext.GetMe(State)!.NetId);
             Store(inventory, _state.Players.GetValueOrDefault(inventory.Player.NetId)?.Seed ?? 0);
         }
-        return Clone(_state);
+        var captured = Clone(_state);
+        RecordDiagnostic("capture", captured);
+        return captured;
     }
 
     // Ready packets may contribute ONLY the authenticated sender's native stock.
@@ -130,6 +137,8 @@ public static class ShopService
     };
     private static ShopEntryRecord CloneEntry(ShopEntryRecord entry) => entry with
     {
+        OriginalCard = CanonicalPayload(entry.OriginalCard), Card = CanonicalPayload(entry.Card),
+        Model = CanonicalPayload(entry.Model), TemplateModel = CanonicalPayload(entry.TemplateModel),
         ModifyingRelics = entry.ModifyingRelics?.ToArray(), CardPool = entry.CardPool?.ToArray()
     };
 
@@ -158,6 +167,7 @@ public static class ShopService
             var oldInventory = room.Inventories[index];
             room.Inventories[index] = inventory;
             Store(inventory, seed);
+            RecordDiagnostic("generated", _state!);
             // Replace only this client's native presentation when it owns the stock.
             // No room Exit/Enter, room ID change, or another player's stock redraw.
             if (LocalContext.GetMe(State)?.NetId == playerId && NMerchantRoom.Instance is { } node)
@@ -210,7 +220,59 @@ public static class ShopService
 #endif
     }
 
-    private static string Encode<T>(T value) => JsonSerializer.Serialize(value, JsonSerializationUtility.Options);
+    private static void RecordDiagnostic(string stage, ShopRecord record)
+    {
+        if (!OS.GetCmdlineUserArgs().Contains("--ns-shop-diagnostics")) return;
+        try
+        {
+            string directory = Path.Combine(OS.GetUserDataDir(), "NoSuffering", "shop-diagnostics");
+            Directory.CreateDirectory(directory);
+            ulong local = LocalContext.GetMe(State)!.NetId;
+            long revision = NoSuffering.Multiplayer.HostCoordinator.WorldRevision;
+            File.WriteAllText(Path.Combine(directory, $"revision-{revision}-player-{local}-{stage}.json"),
+                JsonSerializer.Serialize(record));
+        }
+        catch (Exception error)
+        {
+            Log.Warn($"[NoSuffering] Shop diagnostic write failed: {error.Message}");
+        }
+    }
+
+    private static string Encode<T>(T value) => CanonicalPayload(JsonSerializer.Serialize(value, JsonSerializationUtility.Options))!;
+
+    private static string? CanonicalPayload(string? payload)
+    {
+        if (payload is null) return null;
+        // Native save options indent with the platform's newline. These payloads
+        // are strings inside ShopRecord, so outer JSON canonicalization cannot
+        // normalize them. Keep every native value and array position, including
+        // older companion payloads, while removing formatting and key order.
+        using var document = JsonDocument.Parse(payload);
+        using var bytes = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(bytes)) Write(document.RootElement, writer);
+        return System.Text.Encoding.UTF8.GetString(bytes.ToArray());
+
+        static void Write(JsonElement value, Utf8JsonWriter writer)
+        {
+            if (value.ValueKind == JsonValueKind.Object)
+            {
+                writer.WriteStartObject();
+                foreach (var property in value.EnumerateObject().OrderBy(p => p.Name, StringComparer.Ordinal))
+                {
+                    writer.WritePropertyName(property.Name);
+                    Write(property.Value, writer);
+                }
+                writer.WriteEndObject();
+            }
+            else if (value.ValueKind == JsonValueKind.Array)
+            {
+                writer.WriteStartArray();
+                foreach (var item in value.EnumerateArray()) Write(item, writer);
+                writer.WriteEndArray();
+            }
+            else value.WriteTo(writer);
+        }
+    }
     private static T Decode<T>(string value) => JsonSerializer.Deserialize<T>(value, JsonSerializationUtility.Options)
         ?? throw new InvalidOperationException("商店存档条目为空");
 

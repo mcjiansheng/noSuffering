@@ -3,7 +3,7 @@
     <TargetFramework>net9.0</TargetFramework><LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings>
     <DefineConstants Condition="'$(Sts2Branch)' == 'public'">$(DefineConstants);STS2_STABLE</DefineConstants>
-    <Version>0.1.12</Version><AssemblyName>NoSuffering</AssemblyName>
+    <Version>0.1.13</Version><AssemblyName>NoSuffering</AssemblyName>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <Sts2InstallDir Condition="'$(Sts2InstallDir)' == ''">$(STS2_INSTALL_DIR)</Sts2InstallDir>
